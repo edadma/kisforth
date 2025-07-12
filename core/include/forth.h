@@ -11,8 +11,10 @@ typedef uint32_t ucell_t;      // Unsigned cell
 typedef uint8_t byte_t;        // Byte for C@ C! operations
 typedef uint32_t forth_addr_t; // Forth address (always 32-bit)
 
-// Memory layout constants
-#define FORTH_MEMORY_SIZE (64 * 1024)  // 64KB virtual memory
+// Memory layout constants (can be overridden by CMake for different platforms)
+#ifndef FORTH_MEMORY_SIZE
+#define FORTH_MEMORY_SIZE (64 * 1024)  // 64KB virtual memory (default)
+#endif
 #define DATA_STACK_SIZE 64             // Per standard minimum
 #define RETURN_STACK_SIZE 48           // Per standard minimum
 #define INPUT_BUFFER_SIZE 256          // Text input buffer
