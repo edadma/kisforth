@@ -3,7 +3,7 @@
 #include "forth.h"
 
 int main(int argc, char* argv[]) {
-    printf("KISForth v1.0 - PC Development Version\n");
+    printf("KISForth v0.0.1 - PC Development Version\n");
     printf("Memory size: %d bytes\n", FORTH_MEMORY_SIZE);
     printf("Initial HERE: %u\n", here);
 
