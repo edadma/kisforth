@@ -64,6 +64,58 @@ int main(int argc, char* argv[]) {
     printf("Pop: %d\n", return_pop());
     printf("Return stack depth after pops: %d\n", return_depth());
 
+    printf("\n✓ All stack tests passed!\n");
+
+    // Test primitive word creation and execution
+    printf("\nTesting primitive word creation and execution:\n");
+
+    // Create some primitive words
+    word_t* plus_word = create_primitive_word("+", f_plus);
+    word_t* minus_word = create_primitive_word("-", f_minus);
+    word_t* mult_word = create_primitive_word("*", f_multiply);
+    word_t* drop_word = create_primitive_word("DROP", f_drop);
+
+    printf("Created words: %s, %s, %s, %s\n",
+           plus_word->name, minus_word->name, mult_word->name, drop_word->name);
+
+    // Test + word: 10 20 +  should leave 30
+    printf("\nTesting: 10 20 + (should leave 30)\n");
+    data_push(10);
+    data_push(20);
+    printf("Stack before +: depth=%d, top=%d\n", data_depth(), data_peek());
+    execute_word(plus_word);
+    printf("Stack after +: depth=%d, top=%d\n", data_depth(), data_peek());
+
+    // Test - word: 50 8 -  should leave 42
+    printf("\nTesting: 50 8 - (should leave 42)\n");
+    data_push(50);
+    data_push(8);
+    printf("Stack before -: depth=%d\n", data_depth());
+    execute_word(minus_word);
+    printf("Stack after -: depth=%d, top=%d\n", data_depth(), data_peek());
+
+    // Test * word: 6 7 *  should leave 42
+    printf("\nTesting: 6 7 * (should leave 42)\n");
+    data_push(6);
+    data_push(7);
+    execute_word(mult_word);
+    printf("Stack after *: depth=%d, top=%d\n", data_depth(), data_peek());
+
+    // Test DROP: should remove one item
+    printf("\nTesting: DROP (should remove 42)\n");
+    printf("Stack before DROP: depth=%d\n", data_depth());
+    execute_word(drop_word);
+    printf("Stack after DROP: depth=%d\n", data_depth());
+
+    // Verify we're back to our expected state
+    printf("Final stack state: depth=%d, should have 30 on top\n", data_depth());
+    if (data_depth() == 1 && data_peek() == 30) {
+        printf("✓ Primitive word execution working correctly!\n");
+    } else {
+        printf("✗ Primitive word execution failed\n");
+        return 1;
+    }
+
     printf("\n✓ All core tests passed!\n");
     return 0;
 }

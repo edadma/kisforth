@@ -57,4 +57,15 @@ void return_push(cell_t value);
 cell_t return_pop(void);
 int return_depth(void);
 
+// Word creation and execution
+word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self));
+void execute_word(word_t* word);
+
+// Primitive word implementations
+void f_plus(word_t* self);
+void f_minus(word_t* self);
+void f_multiply(word_t* self);
+void f_divide(word_t* self);
+void f_drop(word_t* self);
+
 #endif // FORTH_H
