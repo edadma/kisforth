@@ -10,7 +10,6 @@ option(BUILD_FOR_PICO "Build for Raspberry Pi Pico" OFF)
 
 # Extension options
 option(ENABLE_FLOATING "Enable floating point word set" OFF)
-option(ENABLE_DOUBLE "Enable double number extension" OFF)
 
 # Compiler settings - use GCC for consistency
 if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -51,11 +50,6 @@ if(ENABLE_FLOATING)
     message(STATUS "Floating point extension enabled")
 endif()
 
-if(ENABLE_DOUBLE)
-    add_subdirectory(extensions/double)
-    message(STATUS "Double number extension enabled")
-endif()
-
 # Platform-specific executables
 if(BUILD_FOR_PICO)
     add_subdirectory(pico)
@@ -69,4 +63,4 @@ message(STATUS "  Platform: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "  Compiler: ${CMAKE_C_COMPILER_ID}")
 message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Target: ${BUILD_FOR_PICO}")
-message(STATUS "  Extensions: Floating=${ENABLE_FLOATING}, Double=${ENABLE_DOUBLE}")
+message(STATUS "  Extensions: Floating=${ENABLE_FLOATING}")

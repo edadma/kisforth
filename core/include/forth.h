@@ -35,10 +35,26 @@ typedef struct word {
 extern uint8_t forth_memory[FORTH_MEMORY_SIZE];
 extern forth_addr_t here;  // Data space pointer
 
+// Stack structures
+extern cell_t data_stack[DATA_STACK_SIZE];
+extern cell_t return_stack[RETURN_STACK_SIZE];
+extern int data_stack_ptr;    // Points to next empty slot
+extern int return_stack_ptr;  // Points to next empty slot
+
 // Basic memory management functions
 forth_addr_t forth_allot(size_t bytes);
 void forth_align(void);
 word_t* addr_to_word(forth_addr_t addr);
 forth_addr_t word_to_addr(word_t* word);
+
+// Stack operations
+void stack_init(void);
+void data_push(cell_t value);
+cell_t data_pop(void);
+cell_t data_peek(void);
+int data_depth(void);
+void return_push(cell_t value);
+cell_t return_pop(void);
+int return_depth(void);
 
 #endif // FORTH_H

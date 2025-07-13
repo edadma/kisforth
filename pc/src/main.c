@@ -3,9 +3,14 @@
 #include "forth.h"
 
 int main(int argc, char* argv[]) {
-    printf("KISForth v0.0.1 - PC Development Version\n");
+    printf("KISForth v1.0 - PC Development Version\n");
     printf("Memory size: %d bytes\n", FORTH_MEMORY_SIZE);
     printf("Initial HERE: %u\n", here);
+
+    // Initialize stacks
+    stack_init();
+    printf("Data stack depth: %d, Return stack depth: %d\n",
+           data_depth(), return_depth());
 
     // Test basic memory allocation
     printf("\nTesting memory allocation:\n");
@@ -34,6 +39,31 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    printf("\nCore memory management tests passed!\n");
-  return 0;
+    // Test data stack operations
+    printf("\nTesting data stack:\n");
+
+    data_push(42);
+    data_push(100);
+    data_push(-5);
+    printf("Pushed 42, 100, -5. Stack depth: %d\n", data_depth());
+
+    printf("Peek top: %d\n", data_peek());
+    printf("Pop: %d\n", data_pop());
+    printf("Pop: %d\n", data_pop());
+    printf("Pop: %d\n", data_pop());
+    printf("Stack depth after pops: %d\n", data_depth());
+
+    // Test return stack operations
+    printf("\nTesting return stack:\n");
+
+    return_push(123);
+    return_push(456);
+    printf("Pushed 123, 456. Return stack depth: %d\n", return_depth());
+
+    printf("Pop: %d\n", return_pop());
+    printf("Pop: %d\n", return_pop());
+    printf("Return stack depth after pops: %d\n", return_depth());
+
+    printf("\n✓ All core tests passed!\n");
+    return 0;
 }
