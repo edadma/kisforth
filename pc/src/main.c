@@ -12,6 +12,10 @@ int main(int argc, char* argv[]) {
     printf("Data stack depth: %d, Return stack depth: %d\n",
            data_depth(), return_depth());
 
+    // Initialize dictionary
+    dictionary_init();
+    printf("Dictionary initialized\n");
+
     // Test basic memory allocation
     printf("\nTesting memory allocation:\n");
 
@@ -120,6 +124,47 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    printf("\n✓ All core tests passed!\n");
+    // Test dictionary functionality
+    printf("\nTesting dictionary functionality:\n");
+
+    show_dictionary();
+
+    // Test word lookup
+    printf("\nTesting word lookup:\n");
+
+    word_t* found_plus = find_word("+");
+    word_t* found_drop = find_word("DROP");
+    word_t* found_nonexistent = find_word("NONEXISTENT");
+
+    printf("Looking up '+': %s\n", found_plus ? "FOUND" : "NOT FOUND");
+    printf("Looking up 'DROP': %s\n", found_drop ? "FOUND" : "NOT FOUND");
+    printf("Looking up 'NONEXISTENT': %s\n", found_nonexistent ? "FOUND" : "NOT FOUND");
+
+    // Test that found words can be executed
+    if (found_plus && found_drop) {
+        printf("\nTesting execution of found words:\n");
+        stack_init();
+        data_push(15);
+        data_push(27);
+        printf("Stack: [15, 27], executing found '+' word\n");
+        execute_word(found_plus);
+        printf("Result: %d (should be 42)\n", data_peek());
+
+        printf("Executing found 'DROP' word\n");
+        execute_word(found_drop);
+        printf("Stack depth after DROP: %d (should be 0)\n", data_depth());
+
+        if (data_depth() == 0) {
+            printf("✓ Dictionary lookup and execution working correctly!\n");
+        } else {
+            printf("✗ Dictionary execution failed\n");
+            return 1;
+        }
+    } else {
+        printf("✗ Dictionary lookup failed\n");
+        return 1;
+    }
+
+    printf("\n✓ All tests passed! Core Forth functionality working.\n");
     return 0;
 }

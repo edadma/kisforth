@@ -12,13 +12,16 @@ word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
     word_t* word = addr_to_word(word_addr);
 
     // Initialize the word structure
-    word->link = NULL;  // We'll link these later when we have a dictionary
+    word->link = NULL;  // Will be set by link_word()
     strncpy(word->name, name, sizeof(word->name) - 1);
     word->name[sizeof(word->name) - 1] = '\0';  // Ensure null termination
     word->flags = 0;
     word->cfunc = cfunc;
 
     // Primitives have no parameter field (zero bytes allocated)
+
+    // Automatically link into dictionary
+    link_word(word);
 
     return word;
 }

@@ -57,6 +57,14 @@ void return_push(cell_t value);
 cell_t return_pop(void);
 int return_depth(void);
 
+// Dictionary management
+extern word_t* dictionary_head;  // Points to most recently defined word
+
+void dictionary_init(void);
+void link_word(word_t* word);
+word_t* find_word(const char* name);
+void show_dictionary(void);  // Debug helper
+
 // Word creation and execution
 word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self));
 void execute_word(word_t* word);
