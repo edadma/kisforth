@@ -11,6 +11,13 @@ add_library(kisforth_core STATIC
         # src/io_interface.c   # Platform-agnostic I/O abstraction
 )
 
+# Conditionally add test system
+if(ENABLE_TESTS)
+    target_sources(kisforth_core PRIVATE src/test.c)
+    target_compile_definitions(kisforth_core PUBLIC FORTH_ENABLE_TESTS=1)
+    message(STATUS "Unit testing enabled")
+endif()
+
 # Include directories
 target_include_directories(kisforth_core
         PUBLIC include

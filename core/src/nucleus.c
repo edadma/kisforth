@@ -79,3 +79,18 @@ void f_source(word_t* self) {
 void f_to_in(word_t* self) {
     data_push((cell_t)&to_in);  // Address of >IN variable
 }
+
+// Create all primitive words - called during system initialization
+void create_all_primitives(void) {
+    create_primitive_word("+", f_plus);
+    create_primitive_word("-", f_minus);
+    create_primitive_word("*", f_multiply);
+    create_primitive_word("/", f_divide);
+    create_primitive_word("DROP", f_drop);
+    create_primitive_word("SOURCE", f_source);
+    create_primitive_word(">IN", f_to_in);
+
+    #ifdef FORTH_ENABLE_TESTS
+    create_primitive_word("TEST", f_test);
+    #endif
+}
