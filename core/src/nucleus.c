@@ -89,6 +89,8 @@ void create_all_primitives(void) {
     create_primitive_word("DROP", f_drop);
     create_primitive_word("SOURCE", f_source);
     create_primitive_word(">IN", f_to_in);
+    create_primitive_word("QUIT", f_quit);
+    create_primitive_word("BYE", f_bye);
 
     #ifdef FORTH_ENABLE_TESTS
     create_primitive_word("TEST", f_test);
