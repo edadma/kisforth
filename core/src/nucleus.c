@@ -38,6 +38,8 @@ void execute_word(word_t* word) {
 
 // + ( n1 n2 -- n3 )  Add n1 and n2, leaving sum n3
 void f_plus(word_t* self) {
+    (void)self;
+
     cell_t n2 = data_pop();
     cell_t n1 = data_pop();
     data_push(n1 + n2);
@@ -45,6 +47,8 @@ void f_plus(word_t* self) {
 
 // - ( n1 n2 -- n3 )  Subtract n2 from n1, leaving difference n3
 void f_minus(word_t* self) {
+    (void)self;
+
     cell_t n2 = data_pop();
     cell_t n1 = data_pop();
     data_push(n1 - n2);
@@ -52,6 +56,8 @@ void f_minus(word_t* self) {
 
 // * ( n1 n2 -- n3 )  Multiply n1 by n2, leaving product n3
 void f_multiply(word_t* self) {
+    (void)self;
+
     cell_t n2 = data_pop();
     cell_t n1 = data_pop();
     data_push(n1 * n2);
@@ -59,6 +65,8 @@ void f_multiply(word_t* self) {
 
 // / ( n1 n2 -- n3 )  Divide n1 by n2, leaving quotient n3
 void f_divide(word_t* self) {
+    (void)self;
+
     cell_t n2 = data_pop();
     cell_t n1 = data_pop();
     assert(n2 != 0);  // Division by zero check
@@ -67,22 +75,30 @@ void f_divide(word_t* self) {
 
 // DROP ( x -- )  Remove x from the stack
 void f_drop(word_t* self) {
+    (void)self;
+
     data_pop();
 }
 
 // SOURCE ( -- c-addr u )  Return input buffer address and length
 void f_source(word_t* self) {
-    data_push((cell_t)source_addr());  // Address of input buffer
-    data_push(source_length());        // Length of input buffer
+    (void)self;
+
+    data_push(input_buffer_addr);      // Forth address
+    data_push(input_length);           // Length
 }
 
 // >IN ( -- addr )  Return address of >IN variable
 void f_to_in(word_t* self) {
-    data_push((cell_t)&to_in);  // Address of >IN variable
+    (void)self;
+
+    data_push(to_in_addr);             // Forth address of >IN
 }
 
 // . ( n -- ) Print and remove top stack item
 void f_dot(word_t* self) {
+    (void)self;
+
     //if (data_depth() == 0) {
     //    forth_abort("Stack underflow");
     //    return;

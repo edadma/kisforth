@@ -6,6 +6,16 @@
 uint8_t forth_memory[FORTH_MEMORY_SIZE];
 forth_addr_t here = 0;  // Data space pointer starts at beginning
 
+static forth_addr_t input_buffer_addr;
+static forth_addr_t to_in_addr;
+
+void input_system_init(void) {
+    input_buffer_addr = forth_allot(INPUT_BUFFER_SIZE);
+    to_in_addr = forth_allot(sizeof(cell_t));
+    // Initialize >IN to 0
+    forth_store(to_in_addr, 0);
+}
+
 // Allocate bytes in virtual memory and advance HERE
 forth_addr_t forth_allot(size_t bytes) {
     assert(here + bytes <= FORTH_MEMORY_SIZE);  // Simple bounds check

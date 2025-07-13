@@ -67,13 +67,9 @@ word_t* find_word(const char* name);
 void show_dictionary(void);  // Debug helper
 
 // Input buffer management (ANS Forth standard)
-extern char input_buffer[INPUT_BUFFER_SIZE];
-extern cell_t input_length;
-extern cell_t to_in;  // >IN variable - current parse position
-
-void set_input_buffer(const char* text);
-char* source_addr(void);
-cell_t source_length(void);
+void input_system_init(void);
+extern forth_addr_t input_buffer_addr;
+extern forth_addr_t to_in_addr;
 
 // Text interpreter (ANS Forth compliant)
 void skip_spaces(void);
