@@ -6,8 +6,9 @@
 uint8_t forth_memory[FORTH_MEMORY_SIZE];
 forth_addr_t here = 0;  // Data space pointer starts at beginning
 
-static forth_addr_t input_buffer_addr;
-static forth_addr_t to_in_addr;
+forth_addr_t input_buffer_addr;
+forth_addr_t to_in_addr;
+forth_addr_t input_length_addr;  // <-- Add this
 
 void input_system_init(void) {
     input_buffer_addr = forth_allot(INPUT_BUFFER_SIZE);

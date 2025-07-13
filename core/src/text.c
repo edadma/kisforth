@@ -5,12 +5,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// ANS Forth compliant input buffer system
-char input_buffer[INPUT_BUFFER_SIZE];
-cell_t input_length = 0;
-cell_t to_in = 0;  // >IN variable - current parse position
 
 // Set the input buffer (like EVALUATE does)
+/*
 void set_input_buffer(const char* text) {
     if (!text) {
         input_length = 0;
@@ -31,15 +28,7 @@ void set_input_buffer(const char* text) {
 
     debug("Input buffer set: \"%s\" (length=%d)\n", input_buffer, input_length);
 }
-
-// SOURCE ( -- c-addr u ) Return input buffer address and length
-char* source_addr(void) {
-    return input_buffer;
-}
-
-cell_t source_length(void) {
-    return input_length;
-}
+*/
 
 // Skip leading spaces in parse area (from >IN position)
 void skip_spaces(void) {
