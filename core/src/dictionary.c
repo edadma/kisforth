@@ -1,6 +1,7 @@
 #include "forth.h"
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 // Dictionary head points to the most recently defined word
 word_t* dictionary_head = NULL;
@@ -16,13 +17,24 @@ void link_word(word_t* word) {
     dictionary_head = word;        // Make this word the new head
 }
 
+// Add this helper function to dictionary.c
+static int case_insensitive_strcmp(const char* a, const char* b) {
+    while (*a && *b) {
+        char ca = tolower(*a);
+        char cb = tolower(*b);
+        if (ca != cb) return ca - cb;
+        a++; b++;
+    }
+    return tolower(*a) - tolower(*b);
+}
+
 // Find a word in the dictionary by name (case-sensitive search)
 word_t* find_word(const char* name) {
     word_t* current = dictionary_head;
 
     while (current != NULL) {
-        if (strcmp(current->name, name) == 0) {
-            return current;  // Found it!
+        if (case_insensitive_strcmp(current->name, name) == 0) {
+            return current;
         }
         current = current->link;  // Move to next word in chain
     }
