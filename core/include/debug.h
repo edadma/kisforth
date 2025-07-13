@@ -28,4 +28,17 @@ void debug_on(void);
 void debug_off(void);
 bool debug_is_enabled(void);
 
+#ifdef FORTH_DEBUG_ENABLED
+// Enhanced debug macro that can handle buffer creation
+#define debug_with_buffer(buffer_name, size, setup_code, fmt, ...) do { \
+if (debug_enabled) { \
+char buffer_name[size]; \
+setup_code \
+debug_raw(fmt, ##__VA_ARGS__); \
+} \
+} while(0)
+#else
+#define debug_with_buffer(buffer_name, size, setup_code, fmt, ...) ((void)0)
+#endif
+
 #endif // FORTH_DEBUG_H

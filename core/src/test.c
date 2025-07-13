@@ -142,6 +142,8 @@ void run_all_tests(void) {
 
 // TEST word implementation
 void f_test(word_t* self) {
+    (void)self;
+
     run_all_tests();
 }
 

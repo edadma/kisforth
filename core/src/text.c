@@ -6,29 +6,40 @@
 #include <stdio.h>
 
 
-// Set the input buffer (like EVALUATE does)
-/*
+// Set the input buffer (ANS Forth compliant version)
+// This function sets up the input buffer in Forth memory space
 void set_input_buffer(const char* text) {
     if (!text) {
-        input_length = 0;
-        to_in = 0;
-        input_buffer[0] = '\0';
+        // Handle NULL input - set empty buffer
+        forth_store(input_length_addr, 0);
+        forth_store(to_in_addr, 0);
+        forth_c_store(input_buffer_addr, '\0');
         return;
     }
 
     size_t len = strlen(text);
+
+    // Bounds check - respect INPUT_BUFFER_SIZE limit
     if (len >= INPUT_BUFFER_SIZE) {
         len = INPUT_BUFFER_SIZE - 1;
     }
 
-    strncpy(input_buffer, text, len);
-    input_buffer[len] = '\0';
-    input_length = len;
-    to_in = 0;
+    // Copy string to Forth memory at input_buffer_addr
+    for (size_t i = 0; i < len; i++) {
+        forth_c_store(input_buffer_addr + i, text[i]);
+    }
 
-    debug("Input buffer set: \"%s\" (length=%d)\n", input_buffer, input_length);
+    // Null terminate
+    forth_c_store(input_buffer_addr + len, '\0');
+
+    // Set length and reset >IN to start of buffer
+    forth_store(input_length_addr, (cell_t)len);
+    forth_store(to_in_addr, 0);
+
+    // Debug output (only if debug is enabled)
+    debug("Input buffer set: \"%.*s\" (length=%d)\n",
+          (int)len, text, (int)len);
 }
-*/
 
 // Skip leading spaces in parse area (from >IN position)
 void skip_spaces(void) {
@@ -104,7 +115,13 @@ void interpret(void) {
     }
     debug_buffer[current_length] = '\0';
 
-    debug("Interpreting buffer: \"%s\"\n", debug_buffer);
+    debug_with_buffer(debug_buffer, INPUT_BUFFER_SIZE, {
+        cell_t current_length = forth_fetch(input_length_addr);
+        for (cell_t i = 0; i < current_length && i < INPUT_BUFFER_SIZE - 1; i++) {
+            debug_buffer[i] = forth_c_fetch(input_buffer_addr + i);
+        }
+        debug_buffer[current_length] = '\0';
+    }, "Interpreting buffer: \"%s\"", debug_buffer);
 
     // Text interpretation loop (ANS Forth 3.4)
     while (forth_fetch(to_in_addr) < forth_fetch(input_length_addr)) {

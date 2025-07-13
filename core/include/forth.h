@@ -46,6 +46,8 @@ cell_t get_current_to_in(void);
 cell_t get_current_input_length(void);
 forth_addr_t get_current_input_buffer_addr(void);
 
+void set_input_buffer(const char* text);  // Set input buffer content
+
 // Basic memory management functions
 forth_addr_t forth_allot(size_t bytes);
 void forth_align(void);
