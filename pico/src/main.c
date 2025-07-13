@@ -7,9 +7,15 @@ int main() {
     // Initialize stdio over USB CDC
     stdio_init_all();
 
-    // Small delay to ensure USB connection is stable
-    sleep_ms(2000);
+    // Wait for USB CDC connection
+    while (!stdio_usb_connected()) {
+        sleep_ms(100);
+    }
 
+    // Give a tiny bit more time for terminal to be ready
+    sleep_ms(500);
+
+    printf("\n");
     printf("KISForth v%s - Pico Version\n", KISFORTH_VERSION_STRING);
     printf("Memory size: %d bytes\n", FORTH_MEMORY_SIZE);
 
