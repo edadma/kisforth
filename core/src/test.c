@@ -16,6 +16,8 @@ void forth_reset(void) {
     // Clear stacks
     stack_init();
 
+    input_system_init();
+
     // Clear input buffer
     set_input_buffer("");
 

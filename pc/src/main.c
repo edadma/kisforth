@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "forth.h"
+#include "debug.h"
 #include "version.h"
 
 int main(int argc, char* argv[]) {
@@ -10,6 +11,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize the Forth system
     stack_init();
+    debug_init();
     input_system_init();    // Initialize input buffers in Forth memory
     dictionary_init();
     create_all_primitives();
