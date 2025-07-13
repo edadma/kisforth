@@ -8,13 +8,16 @@ forth_addr_t here = 0;  // Data space pointer starts at beginning
 
 forth_addr_t input_buffer_addr;
 forth_addr_t to_in_addr;
-forth_addr_t input_length_addr;  // <-- Add this
+forth_addr_t input_length_addr;
 
 void input_system_init(void) {
     input_buffer_addr = forth_allot(INPUT_BUFFER_SIZE);
     to_in_addr = forth_allot(sizeof(cell_t));
+    input_length_addr = forth_allot(sizeof(cell_t));
+
     // Initialize >IN to 0
     forth_store(to_in_addr, 0);
+    forth_store(input_length_addr, 0);
 }
 
 // Allocate bytes in virtual memory and advance HERE

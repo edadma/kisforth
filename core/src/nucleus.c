@@ -85,7 +85,7 @@ void f_source(word_t* self) {
     (void)self;
 
     data_push(input_buffer_addr);      // Forth address
-    data_push(input_length);           // Length
+    data_push(forth_fetch(input_length_addr));       // Current length from Forth memory
 }
 
 // >IN ( -- addr )  Return address of >IN variable

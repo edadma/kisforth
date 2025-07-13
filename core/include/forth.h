@@ -47,6 +47,12 @@ void forth_align(void);
 word_t* addr_to_word(forth_addr_t addr);
 forth_addr_t word_to_addr(word_t* word);
 
+// Memory access functions (needed for @, !, C@, C!)
+void forth_store(forth_addr_t addr, cell_t value);    // !
+cell_t forth_fetch(forth_addr_t addr);                // @
+void forth_c_store(forth_addr_t addr, byte_t value);  // C!
+byte_t forth_c_fetch(forth_addr_t addr);              // C@
+
 // Stack operations
 void stack_init(void);
 void data_push(cell_t value);
@@ -70,6 +76,7 @@ void show_dictionary(void);  // Debug helper
 void input_system_init(void);
 extern forth_addr_t input_buffer_addr;
 extern forth_addr_t to_in_addr;
+extern forth_addr_t input_length_addr;
 
 // Text interpreter (ANS Forth compliant)
 void skip_spaces(void);
