@@ -210,4 +210,7 @@ static inline void f_test(word_t* self) {
 }
 #endif
 
+// Add this declaration with the other platform I/O functions:
+io_interface_t* get_pico_io(void);  // Pico implementation
+
 #endif // FORTH_H

@@ -37,12 +37,16 @@ endif()
 
 # Platform-specific configuration
 if(BUILD_FOR_PICO)
-    # Pico SDK setup
-    if(NOT DEFINED PICO_SDK_PATH)
-        message(FATAL_ERROR "PICO_SDK_PATH must be set for Pico builds")
+    # Pico SDK setup - check environment variable first
+    if(NOT DEFINED PICO_SDK_PATH AND DEFINED ENV{PICO_SDK_PATH})
+        set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
     endif()
 
-    include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+    if(NOT DEFINED PICO_SDK_PATH)
+        message(FATAL_ERROR "PICO_SDK_PATH must be set for Pico builds (either as CMake variable or environment variable)")
+    endif()
+
+    include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
     pico_sdk_init()
 
     message(STATUS "Building for Raspberry Pi Pico")
