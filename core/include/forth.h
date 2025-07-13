@@ -93,6 +93,7 @@ void f_divide(word_t* self);
 void f_drop(word_t* self);
 void f_source(word_t* self);    // SOURCE ( -- c-addr u )
 void f_to_in(word_t* self);     // >IN ( -- addr )
+void f_dot(word_t* self);           // . ( n -- )
 
 // I/O interface - platform abstraction
 typedef struct {

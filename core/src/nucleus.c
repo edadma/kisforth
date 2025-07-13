@@ -1,6 +1,7 @@
 #include "forth.h"
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
 // Create a primitive word in virtual memory
 word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
@@ -80,6 +81,18 @@ void f_to_in(word_t* self) {
     data_push((cell_t)&to_in);  // Address of >IN variable
 }
 
+// . ( n -- ) Print and remove top stack item
+void f_dot(word_t* self) {
+    //if (data_depth() == 0) {
+    //    forth_abort("Stack underflow");
+    //    return;
+    //}
+
+    cell_t value = data_pop();
+    printf("%d ", value);  // Print with trailing space per ANS standard
+    fflush(stdout);        // Ensure immediate output
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -91,6 +104,7 @@ void create_all_primitives(void) {
     create_primitive_word(">IN", f_to_in);
     create_primitive_word("QUIT", f_quit);
     create_primitive_word("BYE", f_bye);
+    create_primitive_word(".", f_dot);
 
     #ifdef FORTH_ENABLE_TESTS
     create_primitive_word("TEST", f_test);
