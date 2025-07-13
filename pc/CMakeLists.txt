@@ -1,7 +1,7 @@
 # PC version of KISForth
 add_executable(kisforth
         src/main.c
-        # src/pc_io.c will be added when we implement I/O
+        src/pc_io.c
 )
 
 # Link with core library

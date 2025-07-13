@@ -94,6 +94,31 @@ void f_drop(word_t* self);
 void f_source(word_t* self);    // SOURCE ( -- c-addr u )
 void f_to_in(word_t* self);     // >IN ( -- addr )
 
+// I/O interface - platform abstraction
+typedef struct {
+    void (*print_string)(const char* str);
+    void (*print_char)(char c);
+    char* (*read_line)(const char* prompt);
+    void (*cleanup)(void);
+} io_interface_t;
+
+extern io_interface_t* current_io;
+
+// I/O interface management
+void set_io_interface(io_interface_t* io);
+void io_print(const char* str);
+void io_print_char(char c);
+char* io_read_line(const char* prompt);
+void io_cleanup(void);
+
+// REPL system
+void forth_repl(void);
+void f_quit(word_t* self);
+void f_bye(word_t* self);
+
+// Platform-specific I/O interfaces
+io_interface_t* get_pc_io(void);  // PC implementation
+
 // System management
 void forth_reset(void);         // Complete system reset
 void create_all_primitives(void); // Create all primitive words

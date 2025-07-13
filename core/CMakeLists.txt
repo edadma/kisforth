@@ -5,10 +5,10 @@ add_library(kisforth_core STATIC
         src/nucleus.c
         src/dictionary.c
         src/text.c
+        src/io_interface.c
         # Additional sources will be added as we implement them:
         # src/forth.c          # Main interpreter, initialization
         # src/compiler.c       # Colon definitions, control structures
-        # src/io_interface.c   # Platform-agnostic I/O abstraction
 )
 
 # Conditionally add test system
@@ -51,16 +51,3 @@ endif()
 if(ENABLE_DOUBLE)
     target_compile_definitions(kisforth_core PUBLIC FORTH_ENABLE_DOUBLE=1)
 endif()
-
-# Generate version header from template
-configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/version.h.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
-)
-
-# Make sure the generated header is found
-target_include_directories(kisforth_core
-        PUBLIC include
-        PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include  # For generated version.h
-        PRIVATE src
-)
