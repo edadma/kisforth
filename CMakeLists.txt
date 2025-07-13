@@ -12,6 +12,7 @@ option(BUILD_FOR_PICO "Build for Raspberry Pi Pico" OFF)
 option(ENABLE_FLOATING "Enable floating point word set" OFF)
 option(ENABLE_DOUBLE "Enable double number extension" OFF)
 option(ENABLE_TESTS "Enable unit testing system" ON)  # Default ON for development
+option(ENABLE_DEBUG "Enable debug output system" OFF)  # OFF by default for production
 
 # Compiler settings - use GCC for consistency
 if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -27,6 +28,12 @@ endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
 set(CMAKE_C_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
+
+# Debug system configuration
+if(ENABLE_DEBUG)
+    add_compile_definitions(FORTH_DEBUG_ENABLED)
+    message(STATUS "Debug output system enabled")
+endif()
 
 # Platform-specific configuration
 if(BUILD_FOR_PICO)
@@ -70,4 +77,4 @@ message(STATUS "  Platform: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "  Compiler: ${CMAKE_C_COMPILER_ID}")
 message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Target: ${BUILD_FOR_PICO}")
-message(STATUS "  Extensions: Floating=${ENABLE_FLOATING}, Double=${ENABLE_DOUBLE}, Tests=${ENABLE_TESTS}")
+message(STATUS "  Extensions: Floating=${ENABLE_FLOATING}, Double=${ENABLE_DOUBLE}, Tests=${ENABLE_TESTS}, Debug=${ENABLE_DEBUG}")

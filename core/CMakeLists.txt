@@ -6,9 +6,7 @@ add_library(kisforth_core STATIC
         src/dictionary.c
         src/text.c
         src/io_interface.c
-        # Additional sources will be added as we implement them:
-        # src/forth.c          # Main interpreter, initialization
-        # src/compiler.c       # Colon definitions, control structures
+        src/debug.c
 )
 
 # Conditionally add test system

@@ -1,4 +1,5 @@
 #include "forth.h"
+#include "debug.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -28,7 +29,7 @@ void set_input_buffer(const char* text) {
     input_length = len;
     to_in = 0;
 
-    printf("Input buffer set: \"%s\" (length=%d)\n", input_buffer, input_length);
+    debug("Input buffer set: \"%s\" (length=%d)\n", input_buffer, input_length);
 }
 
 // SOURCE ( -- c-addr u ) Return input buffer address and length
@@ -92,7 +93,7 @@ bool try_parse_number(const char* token, cell_t* result) {
 void interpret(void) {
     char name_buffer[64];
 
-    printf("Interpreting buffer: \"%s\"\n", input_buffer);
+    debug("Interpreting buffer: \"%s\"\n", input_buffer);
 
     // Text interpretation loop (ANS Forth 3.4)
     while (to_in < input_length) {
@@ -102,19 +103,19 @@ void interpret(void) {
             break;  // Parse area is empty
         }
 
-        printf("  >IN=%d, parsed: '%s'", to_in, name);
+        debug("  >IN=%d, parsed: '%s'", to_in, name);
 
         // b) Search the dictionary name space
         word_t* word = find_word(name);
         if (word) {
-            printf(" -> found word, executing\n");
+            debug(" -> found word, executing\n");
             // b.1) if interpreting, perform interpretation semantics
             execute_word(word);
         } else {
             // c) Not found, attempt to convert string to number
             cell_t number;
             if (try_parse_number(name, &number)) {
-                printf(" -> number %d, pushing to stack\n", number);
+                debug(" -> number %d, pushing to stack\n", number);
                 // c.1) if interpreting, place number on data stack
                 data_push(number);
             } else {
@@ -125,8 +126,8 @@ void interpret(void) {
         }
     }
 
-    printf("  Interpretation complete. >IN=%d, Stack depth: %d\n", to_in, data_depth());
+    debug("  Interpretation complete. >IN=%d, Stack depth: %d\n", to_in, data_depth());
     if (data_depth() > 0) {
-        printf("  Top of stack: %d\n", data_peek());
+        debug("  Top of stack: %d\n", data_peek());
     }
 }

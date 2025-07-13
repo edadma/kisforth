@@ -19,6 +19,7 @@ KISForth (Keep It Simple Forth) prioritizes simplicity and correctness over perf
 - Cross-platform build system with CMake
 - Shared core library with platform-specific executables
 - Ready for embedded deployment (tested on Raspberry Pi Pico)
+- Optional debug output system with zero overhead when disabled
 
 ## Architecture
 
@@ -59,7 +60,16 @@ cmake -DBUILD_FOR_PICO=ON ..
 make
 ```
 
-This generates `.uf2` files suitable for flashing to the Pico.
+### Debug Build
+
+```bash
+mkdir build-debug
+cd build-debug
+cmake -DENABLE_DEBUG=ON ..
+make
+```
+
+This enables runtime debug output controlled by `DEBUG-ON` and `DEBUG-OFF` words.
 
 ## Development Environment
 
@@ -96,4 +106,3 @@ This project emphasizes simplicity and correctness. When contributing:
 ## License
 
 This project is released into the public domain under [The Unlicense](https://unlicense.org/).
-
