@@ -52,6 +52,7 @@ void stack_init(void);
 void data_push(cell_t value);
 cell_t data_pop(void);
 cell_t data_peek(void);
+cell_t data_peek_at(int offset);  // Peek at stack[depth-1-offset]
 int data_depth(void);
 void return_push(cell_t value);
 cell_t return_pop(void);
@@ -65,6 +66,21 @@ void link_word(word_t* word);
 word_t* find_word(const char* name);
 void show_dictionary(void);  // Debug helper
 
+// Input buffer management (ANS Forth standard)
+extern char input_buffer[INPUT_BUFFER_SIZE];
+extern cell_t input_length;
+extern cell_t to_in;  // >IN variable - current parse position
+
+void set_input_buffer(const char* text);
+char* source_addr(void);
+cell_t source_length(void);
+
+// Text interpreter (ANS Forth compliant)
+void skip_spaces(void);
+char* parse_name(char* dest, size_t max_len);
+bool try_parse_number(const char* token, cell_t* result);
+void interpret(void);  // Standard interpreter loop
+
 // Word creation and execution
 word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self));
 void execute_word(word_t* word);
@@ -75,5 +91,7 @@ void f_minus(word_t* self);
 void f_multiply(word_t* self);
 void f_divide(word_t* self);
 void f_drop(word_t* self);
+void f_source(word_t* self);    // SOURCE ( -- c-addr u )
+void f_to_in(word_t* self);     // >IN ( -- addr )
 
 #endif // FORTH_H

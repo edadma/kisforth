@@ -77,10 +77,14 @@ int main(int argc, char* argv[]) {
     word_t* plus_word = create_primitive_word("+", f_plus);
     word_t* minus_word = create_primitive_word("-", f_minus);
     word_t* mult_word = create_primitive_word("*", f_multiply);
+    word_t* div_word = create_primitive_word("/", f_divide);  // Added missing divide
     word_t* drop_word = create_primitive_word("DROP", f_drop);
+    word_t* source_word = create_primitive_word("SOURCE", f_source);
+    word_t* to_in_word = create_primitive_word(">IN", f_to_in);
 
-    printf("Created words: %s, %s, %s, %s\n",
-           plus_word->name, minus_word->name, mult_word->name, drop_word->name);
+    printf("Created words: %s, %s, %s, %s, %s, %s, %s\n",
+           plus_word->name, minus_word->name, mult_word->name, div_word->name,
+           drop_word->name, source_word->name, to_in_word->name);
 
     // Test + word: 10 20 +  should leave 30
     printf("\nTesting: 10 20 + (should leave 30)\n");
@@ -162,6 +166,132 @@ int main(int argc, char* argv[]) {
         }
     } else {
         printf("✗ Dictionary lookup failed\n");
+        return 1;
+    }
+
+    // Test text interpreter functionality
+    printf("\n" "=" "=" "=" "=" "=" " ANS FORTH TEXT INTERPRETER TESTS " "=" "=" "=" "=" "=" "\n");
+
+    // Test 1: Simple number parsing
+    printf("\nTest 1: Number parsing\n");
+    stack_init();
+    set_input_buffer("42");
+    interpret();
+    if (data_depth() == 1 && data_peek() == 42) {
+        printf("✓ Number parsing works\n");
+    } else {
+        printf("✗ Number parsing failed\n");
+        return 1;
+    }
+
+    // Test 2: Basic arithmetic
+    printf("\nTest 2: Basic arithmetic '10 20 +'\n");
+    stack_init();
+    set_input_buffer("10 20 +");
+    interpret();
+    if (data_depth() == 1 && data_peek() == 30) {
+        printf("✓ Basic arithmetic works\n");
+    } else {
+        printf("✗ Basic arithmetic failed: depth=%d, top=%d\n",
+               data_depth(), data_depth() > 0 ? data_peek() : 0);
+        return 1;
+    }
+
+    // Test 3: More complex expression
+    printf("\nTest 3: Complex expression '5 3 + 2 *'\n");
+    stack_init();
+    set_input_buffer("5 3 + 2 *");
+    interpret();
+    printf("  After interpretation: stack depth=%d\n", data_depth());
+    if (data_depth() == 1 && data_peek() == 16) {
+        printf("✓ Complex expression works (5+3)*2 = 16\n");
+    } else {
+        printf("✗ Complex expression failed: depth=%d, top=%d (expected 16)\n",
+               data_depth(), data_depth() > 0 ? data_peek() : -999);
+        return 1;
+    }
+
+    // Test 4: Multiple operations leaving multiple results
+    printf("\nTest 4: Multiple results '100 25 - 30 10 +'\n");
+    stack_init();
+    set_input_buffer("100 25 - 30 10 +");
+    interpret();
+    printf("  After interpretation: stack depth=%d\n", data_depth());
+    if (data_depth() == 2) {
+        cell_t top = data_peek_at(0);     // Top of stack (should be 40)
+        cell_t bottom = data_peek_at(1);  // Second from top (should be 75)
+
+        printf("  Stack contents: bottom=%d, top=%d\n", bottom, top);
+
+        if (top == 40 && bottom == 75) {
+            printf("✓ Multiple results work: 75 and 40\n");
+        } else {
+            printf("✗ Multiple results failed: got bottom=%d, top=%d (expected 75, 40)\n",
+                   bottom, top);
+            return 1;
+        }
+    } else {
+        printf("✗ Multiple results failed: wrong depth %d (expected 2)\n", data_depth());
+        return 1;
+    }
+
+    // Test 5: Error handling
+    printf("\nTest 5: Error handling 'UNKNOWN_WORD'\n");
+    stack_init();
+    set_input_buffer("42 UNKNOWN_WORD 100");  // Should stop at UNKNOWN_WORD
+    interpret();
+    // Stack should have 42 but not 100 (interpretation should stop at UNKNOWN_WORD)
+    if (data_depth() == 1 && data_peek() == 42) {
+        printf("✓ Error handling works (stops on unknown word)\n");
+    } else {
+        printf("✗ Error handling failed: depth=%d, top=%s\n",
+               data_depth(), data_depth() > 0 ? "exists" : "empty");
+        if (data_depth() > 0) {
+            printf("  Top value: %d (expected 42)\n", data_peek());
+        }
+        return 1;
+    }
+
+    // Test 6: >IN and SOURCE compliance
+    printf("\nTest 6: >IN and SOURCE variables\n");
+    set_input_buffer("123 456");
+    printf("SOURCE returns: addr=%p, length=%d\n", (void*)source_addr(), source_length());
+    printf("Initial >IN: %d\n", to_in);
+
+    // Parse first number manually to test >IN advancement
+    char name_buf[32];
+    char* first_name = parse_name(name_buf, sizeof(name_buf));
+    printf("Parsed '%s', >IN now: %d\n", first_name, to_in);
+
+    char* second_name = parse_name(name_buf, sizeof(name_buf));
+    printf("Parsed '%s', >IN now: %d\n", second_name, to_in);
+
+    if (to_in == source_length()) {
+        printf("✓ >IN correctly tracks parse position\n");
+    } else {
+        printf("✗ >IN tracking failed\n");
+        return 1;
+    }
+
+    printf("\n🎉 ALL ANS FORTH TESTS PASSED! Standard-compliant interpreter! 🎉\n");
+
+    // Final demonstration
+    printf("\nFinal demonstration - RPN calculator:\n");
+    stack_init();
+    set_input_buffer("10 5 / 3 + 2 *");  // (10/5 + 3) * 2 = (2+3)*2 = 10
+    interpret();
+
+    if (data_depth() == 1) {
+        cell_t result = data_peek();
+        printf("Expression: '10 5 / 3 + 2 *' = %d\n", result);
+        if (result == 10) {
+            printf("✓ Final calculation correct: (10/5 + 3) * 2 = 10\n");
+        } else {
+            printf("✗ Final calculation incorrect: expected 10, got %d\n", result);
+            return 1;
+        }
+    } else {
+        printf("✗ Final calculation failed: wrong stack depth %d\n", data_depth());
         return 1;
     }
 

@@ -68,3 +68,14 @@ void f_divide(word_t* self) {
 void f_drop(word_t* self) {
     data_pop();
 }
+
+// SOURCE ( -- c-addr u )  Return input buffer address and length
+void f_source(word_t* self) {
+    data_push((cell_t)source_addr());  // Address of input buffer
+    data_push(source_length());        // Length of input buffer
+}
+
+// >IN ( -- addr )  Return address of >IN variable
+void f_to_in(word_t* self) {
+    data_push((cell_t)&to_in);  // Address of >IN variable
+}

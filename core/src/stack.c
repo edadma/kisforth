@@ -30,6 +30,12 @@ cell_t data_peek(void) {
     return data_stack[data_stack_ptr - 1];
 }
 
+// Peek at specific stack position (0 = top, 1 = second from top, etc.)
+cell_t data_peek_at(int offset) {
+    assert(data_stack_ptr > offset);  // Bounds check
+    return data_stack[data_stack_ptr - 1 - offset];
+}
+
 int data_depth(void) {
     return data_stack_ptr;
 }

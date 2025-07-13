@@ -4,9 +4,9 @@ add_library(kisforth_core STATIC
         src/stack.c
         src/nucleus.c
         src/dictionary.c
+        src/text.c
         # Additional sources will be added as we implement them:
         # src/forth.c          # Main interpreter, initialization
-        # src/text.c           # Text interpreter, number conversion
         # src/compiler.c       # Colon definitions, control structures
         # src/io_interface.c   # Platform-agnostic I/O abstraction
 )
