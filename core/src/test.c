@@ -125,7 +125,7 @@ void run_all_tests(void) {
     test_stats.current_test_name = "Input Buffer Functions";
     set_input_buffer("123 456");
     TEST_ASSERT_EQUAL(7, get_current_input_length());
-    TEST_ASSERT_TRUE(get_current_input_buffer_addr() != 0);
+    TEST_ASSERT_TRUE(get_current_input_buffer_addr() < FORTH_MEMORY_SIZE);
     TEST_ASSERT_EQUAL(0, get_current_to_in());
 
     // Final summary
