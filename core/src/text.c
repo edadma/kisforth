@@ -32,9 +32,15 @@ void set_input_buffer(const char* text) {
 
 // Skip leading spaces in parse area (from >IN position)
 void skip_spaces(void) {
-    while (to_in < input_length && isspace(input_buffer[to_in])) {
-        to_in++;
-    }
+    cell_t current_to_in = forth_fetch(to_in_addr);
+    cell_t current_length = forth_fetch(input_length_addr);
+
+    while (current_to_in < current_length &&
+           isspace(forth_c_fetch(input_buffer_addr + current_to_in))) {
+        current_to_in++;
+           }
+
+    forth_store(to_in_addr, current_to_in);
 }
 
 // Parse a name from the input buffer starting at >IN
@@ -43,20 +49,28 @@ void skip_spaces(void) {
 char* parse_name(char* dest, size_t max_len) {
     skip_spaces();
 
+    cell_t current_to_in = forth_fetch(to_in_addr);
+    cell_t current_length = forth_fetch(input_length_addr);
+
     // Check if we're at end of input
-    if (to_in >= input_length) {
+    if (current_to_in >= current_length) {
         return NULL;
     }
 
     // Parse name until space or end of input
     size_t len = 0;
-    while (to_in < input_length &&
-           !isspace(input_buffer[to_in]) &&
+    while (current_to_in < current_length &&
+           !isspace(forth_c_fetch(input_buffer_addr + current_to_in)) &&
            len < max_len - 1) {
-        dest[len++] = input_buffer[to_in++];
-    }
+        dest[len++] = forth_c_fetch(input_buffer_addr + current_to_in);
+        current_to_in++;
+           }
 
     dest[len] = '\0';
+
+    // Update >IN in Forth memory
+    forth_store(to_in_addr, current_to_in);
+
     return len > 0 ? dest : NULL;
 }
 
@@ -82,17 +96,25 @@ bool try_parse_number(const char* token, cell_t* result) {
 void interpret(void) {
     char name_buffer[64];
 
-    debug("Interpreting buffer: \"%s\"\n", input_buffer);
+    // Get debug info from Forth memory
+    cell_t current_length = forth_fetch(input_length_addr);
+    char debug_buffer[INPUT_BUFFER_SIZE];
+    for (cell_t i = 0; i < current_length && i < INPUT_BUFFER_SIZE - 1; i++) {
+        debug_buffer[i] = forth_c_fetch(input_buffer_addr + i);
+    }
+    debug_buffer[current_length] = '\0';
+
+    debug("Interpreting buffer: \"%s\"\n", debug_buffer);
 
     // Text interpretation loop (ANS Forth 3.4)
-    while (to_in < input_length) {
+    while (forth_fetch(to_in_addr) < forth_fetch(input_length_addr)) {
         // a) Skip leading spaces and parse a name
         char* name = parse_name(name_buffer, sizeof(name_buffer));
         if (!name) {
             break;  // Parse area is empty
         }
 
-        debug("  >IN=%d, parsed: '%s'", to_in, name);
+        debug("  >IN=%d, parsed: '%s'", forth_fetch(to_in_addr), name);
 
         // b) Search the dictionary name space
         word_t* word = find_word(name);
@@ -115,8 +137,22 @@ void interpret(void) {
         }
     }
 
-    debug("  Interpretation complete. >IN=%d, Stack depth: %d\n", to_in, data_depth());
+    debug("  Interpretation complete. >IN=%d, Stack depth: %d\n",
+          forth_fetch(to_in_addr), data_depth());
     if (data_depth() > 0) {
         debug("  Top of stack: %d\n", data_peek());
     }
+}
+
+// Test accessor functions for the Forth memory input system
+cell_t get_current_to_in(void) {
+    return forth_fetch(to_in_addr);
+}
+
+cell_t get_current_input_length(void) {
+    return forth_fetch(input_length_addr);
+}
+
+forth_addr_t get_current_input_buffer_addr(void) {
+    return input_buffer_addr;
 }

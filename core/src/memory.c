@@ -20,6 +20,30 @@ void input_system_init(void) {
     forth_store(input_length_addr, 0);
 }
 
+// Store cell (32-bit) at Forth address - implements ! (STORE)
+void forth_store(forth_addr_t addr, cell_t value) {
+    assert(addr + sizeof(cell_t) <= FORTH_MEMORY_SIZE);
+    *(cell_t*)&forth_memory[addr] = value;
+}
+
+// Fetch cell (32-bit) from Forth address - implements @ (FETCH)
+cell_t forth_fetch(forth_addr_t addr) {
+    assert(addr + sizeof(cell_t) <= FORTH_MEMORY_SIZE);
+    return *(cell_t*)&forth_memory[addr];
+}
+
+// Store byte at Forth address - implements C! (C-STORE)
+void forth_c_store(forth_addr_t addr, byte_t value) {
+    assert(addr < FORTH_MEMORY_SIZE);
+    forth_memory[addr] = value;
+}
+
+// Fetch byte from Forth address - implements C@ (C-FETCH)
+byte_t forth_c_fetch(forth_addr_t addr) {
+    assert(addr < FORTH_MEMORY_SIZE);
+    return forth_memory[addr];
+}
+
 // Allocate bytes in virtual memory and advance HERE
 forth_addr_t forth_allot(size_t bytes) {
     assert(here + bytes <= FORTH_MEMORY_SIZE);  // Simple bounds check

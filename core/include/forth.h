@@ -41,6 +41,11 @@ extern cell_t return_stack[RETURN_STACK_SIZE];
 extern int data_stack_ptr;    // Points to next empty slot
 extern int return_stack_ptr;  // Points to next empty slot
 
+// Test accessor functions for Forth memory input system:
+cell_t get_current_to_in(void);
+cell_t get_current_input_length(void);
+forth_addr_t get_current_input_buffer_addr(void);
+
 // Basic memory management functions
 forth_addr_t forth_allot(size_t bytes);
 void forth_align(void);

@@ -122,9 +122,9 @@ void run_all_tests(void) {
     // Test SOURCE and >IN behavior
     test_stats.current_test_name = "Input Buffer Functions";
     set_input_buffer("123 456");
-    TEST_ASSERT_EQUAL(7, source_length());
-    TEST_ASSERT_NOT_NULL(source_addr());
-    TEST_ASSERT_EQUAL(0, to_in);
+    TEST_ASSERT_EQUAL(7, get_current_input_length());
+    TEST_ASSERT_TRUE(get_current_input_buffer_addr() != 0);
+    TEST_ASSERT_EQUAL(0, get_current_to_in());
 
     // Final summary
     printf("\n" "=" "=" "=" "=" "=" " Test Summary " "=" "=" "=" "=" "=" "\n");

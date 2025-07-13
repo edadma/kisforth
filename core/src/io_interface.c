@@ -60,6 +60,8 @@ void io_cleanup(void) {
 
 // QUIT word - restart the REPL loop
 void f_quit(word_t* self) {
+    (void)self;
+
     if (repl_running) {
         // Clear stacks and reset input
         stack_init();
@@ -72,6 +74,8 @@ void f_quit(word_t* self) {
 
 // BYE word - exit the system
 void f_bye(word_t* self) {
+    (void)self;
+
     io_print("Goodbye!\n");
     io_cleanup();
     exit(0);
