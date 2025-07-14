@@ -145,6 +145,43 @@ void f_c_fetch(word_t* self) {
     data_push((cell_t)value);
 }
 
+// Comparison primitives - these operate on the data stack and return ANS Forth flags
+
+// = ( x1 x2 -- flag )  Return true if x1 equals x2
+void f_equals(word_t* self) {
+    (void)self;
+
+    cell_t x2 = data_pop();
+    cell_t x1 = data_pop();
+
+    // ANS Forth: true = -1, false = 0
+    cell_t flag = (x1 == x2) ? -1 : 0;
+    data_push(flag);
+}
+
+// < ( x1 x2 -- flag )  Return true if x1 is less than x2 (signed comparison)
+void f_less_than(word_t* self) {
+    (void)self;
+
+    cell_t x2 = data_pop();
+    cell_t x1 = data_pop();
+
+    // ANS Forth: true = -1, false = 0
+    cell_t flag = (x1 < x2) ? -1 : 0;
+    data_push(flag);
+}
+
+// 0= ( x -- flag )  Return true if x equals zero
+void f_zero_equals(word_t* self) {
+    (void)self;
+
+    cell_t x = data_pop();
+
+    // ANS Forth: true = -1, false = 0
+    cell_t flag = (x == 0) ? -1 : 0;
+    data_push(flag);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -161,6 +198,9 @@ void create_all_primitives(void) {
     create_primitive_word("@", f_fetch);
     create_primitive_word("C!", f_c_store);
     create_primitive_word("C@", f_c_fetch);
+    create_primitive_word("=", f_equals);
+    create_primitive_word("<", f_less_than);
+    create_primitive_word("0=", f_zero_equals);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);
