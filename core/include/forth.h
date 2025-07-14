@@ -111,6 +111,9 @@ void f_c_fetch(word_t* self);    // C@ ( addr -- char )
 void f_equals(word_t* self);     // = ( x1 x2 -- flag )
 void f_less_than(word_t* self);  // < ( x1 x2 -- flag )
 void f_zero_equals(word_t* self); // 0= ( x -- flag )
+void f_swap(word_t* self);          // SWAP ( x1 x2 -- x2 x1 )
+void f_rot(word_t* self);           // ROT ( x1 x2 x3 -- x2 x3 x1 )
+void f_pick(word_t* self);          // PICK ( xu ... x1 x0 u -- xu ... x1 x0 xu )
 
 // I/O interface - platform abstraction
 typedef struct {

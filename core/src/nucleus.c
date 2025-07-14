@@ -182,6 +182,44 @@ void f_zero_equals(word_t* self) {
     data_push(flag);
 }
 
+// SWAP ( x1 x2 -- x2 x1 )  Exchange the top two stack items
+void f_swap(word_t* self) {
+    (void)self;
+
+    cell_t x2 = data_pop();
+    cell_t x1 = data_pop();
+    data_push(x2);
+    data_push(x1);
+}
+
+// ROT ( x1 x2 x3 -- x2 x3 x1 )  Rotate third item to top
+void f_rot(word_t* self) {
+    (void)self;
+
+    cell_t x3 = data_pop();
+    cell_t x2 = data_pop();
+    cell_t x1 = data_pop();
+    data_push(x2);
+    data_push(x3);
+    data_push(x1);
+}
+
+// PICK ( xu ... x1 x0 u -- xu ... x1 x0 xu )  Copy u-th stack item to top
+// 0 PICK is equivalent to DUP, 1 PICK is equivalent to OVER
+void f_pick(word_t* self) {
+    (void)self;
+
+    cell_t u = data_pop();
+
+    // Bounds check: u must be >= 0 and < stack depth
+    assert(u >= 0);
+    assert(u < data_depth());
+
+    // Use data_peek_at to get the u-th item from top
+    cell_t xu = data_peek_at(u);
+    data_push(xu);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -201,6 +239,9 @@ void create_all_primitives(void) {
     create_primitive_word("=", f_equals);
     create_primitive_word("<", f_less_than);
     create_primitive_word("0=", f_zero_equals);
+    create_primitive_word("SWAP", f_swap);
+    create_primitive_word("ROT", f_rot);
+    create_primitive_word("PICK", f_pick);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);
