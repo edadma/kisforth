@@ -45,8 +45,6 @@ static void get_line(void) {
 
         if (c == '\r' || c == '\n') {
             *ptr = '\0';
-            putchar('\n');
-            fflush(stdout);
             break;
         } else if (c == '\b' || c == 127) { // Backspace or DEL
             if (ptr > input_line) {
@@ -56,8 +54,6 @@ static void get_line(void) {
             }
         } else if (c >= 32 && c < 127) { // Printable characters
             *ptr++ = c;
-            putchar(c);
-            fflush(stdout);
         }
         // Ignore other characters (ctrl chars, etc.)
     }
