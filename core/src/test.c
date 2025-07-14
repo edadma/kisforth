@@ -7,6 +7,31 @@
 // Global test statistics
 test_stats_t test_stats = {0, 0, 0, NULL};
 
+#define TEST_DIVISION(name, div_word, dividend_lo, dividend_hi, divisor, expected_remainder, expected_quotient) \
+    do { \
+        forth_reset(); \
+        data_push(dividend_lo); \
+        data_push(dividend_hi); \
+        data_push(divisor); \
+        execute_word(div_word); \
+        test_stats.total++; \
+        if (data_depth() == 2) { \
+            cell_t actual_quotient = data_pop(); \
+            cell_t actual_remainder = data_pop(); \
+            if (actual_quotient == (expected_quotient) && actual_remainder == (expected_remainder)) { \
+                test_stats.passed++; \
+            } else { \
+                test_stats.failed++; \
+                printf("    FAIL %s: expected rem=%d quo=%d, got rem=%d quo=%d\n", \
+                       name, (int)(expected_remainder), (int)(expected_quotient), \
+                       (int)actual_remainder, (int)actual_quotient); \
+            } \
+        } else { \
+            test_stats.failed++; \
+            printf("    FAIL %s: wrong stack depth %d (expected 2)\n", name, data_depth()); \
+        } \
+    } while(0)
+
 // Complete system reset for test isolation
 void forth_reset(void) {
     // Clear memory and reset HERE
@@ -100,6 +125,61 @@ static void test_dictionary_functions(void) {
     TEST_ASSERT_TRUE(nonexistent == NULL);
 }
 
+static void test_division_functions(void) {
+    // Basic functional tests using direct C calls
+    word_t* sm_rem = find_word("SM/REM");
+    word_t* fm_mod = find_word("FM/MOD");
+    TEST_ASSERT_NOT_NULL(sm_rem);
+    TEST_ASSERT_NOT_NULL(fm_mod);
+
+    // Test SM/REM basic case: 10 ÷ 7 = 1 remainder 3
+    forth_reset();
+    data_push(10); data_push(0); data_push(7);
+    execute_word(sm_rem);
+    TEST_ASSERT_STACK_DEPTH(2);
+    TEST_ASSERT_EQUAL(1, data_pop());  // quotient
+    TEST_ASSERT_EQUAL(3, data_pop());  // remainder
+
+    // Test FM/MOD different result: -10 ÷ 7 = -2 remainder 4 (floored)
+    forth_reset();
+    data_push(-10); data_push(-1); data_push(7);
+    execute_word(fm_mod);
+    TEST_ASSERT_STACK_DEPTH(2);
+    TEST_ASSERT_EQUAL(-2, data_pop()); // quotient (floored)
+    TEST_ASSERT_EQUAL(4, data_pop());  // remainder (sign of divisor)
+}
+
+static void test_division_comprehensive(void) {
+    word_t* sm_rem = find_word("SM/REM");
+    word_t* fm_mod = find_word("FM/MOD");
+    TEST_ASSERT_NOT_NULL(sm_rem);
+    TEST_ASSERT_NOT_NULL(fm_mod);
+
+    // SM/REM tests (Symmetric Division - remainder has sign of dividend)
+    TEST_DIVISION("SM/REM 10÷7", sm_rem, 10, 0, 7, 3, 1);
+    TEST_DIVISION("SM/REM -10÷7", sm_rem, -10, -1, 7, -3, -1);
+    TEST_DIVISION("SM/REM 10÷-7", sm_rem, 10, 0, -7, 3, -1);
+    TEST_DIVISION("SM/REM -10÷-7", sm_rem, -10, -1, -7, -3, 1);
+
+    // FM/MOD tests (Floored Division - remainder has sign of divisor)
+    TEST_DIVISION("FM/MOD 10÷7", fm_mod, 10, 0, 7, 3, 1);
+    TEST_DIVISION("FM/MOD -10÷7", fm_mod, -10, -1, 7, 4, -2);
+    TEST_DIVISION("FM/MOD 10÷-7", fm_mod, 10, 0, -7, -4, -2);
+    TEST_DIVISION("FM/MOD -10÷-7", fm_mod, -10, -1, -7, -3, 1);
+
+    // Edge cases
+    TEST_DIVISION("SM/REM 0÷5", sm_rem, 0, 0, 5, 0, 0);
+    TEST_DIVISION("FM/MOD 7÷7", fm_mod, 7, 0, 7, 0, 1);
+
+    // Verify mathematical identity: divisor * quotient + remainder = dividend
+    test_stats.current_test_name = "Division Identity Check";
+    forth_reset();
+    data_push(-10); data_push(-1); data_push(7);
+    execute_word(sm_rem);
+    cell_t q = data_pop(); cell_t r = data_pop();
+    TEST_ASSERT_EQUAL(-10, 7 * q + r);  // 7 * (-1) + (-3) = -10 ✓
+}
+
 // Main test runner
 void run_all_tests(void) {
     test_stats = (test_stats_t){0, 0, 0, NULL};
@@ -110,6 +190,8 @@ void run_all_tests(void) {
     TEST_FUNC("Memory Management", test_memory_functions);
     TEST_FUNC("Stack Operations", test_stack_functions);
     TEST_FUNC("Dictionary Lookup", test_dictionary_functions);
+    TEST_FUNC("Division Functions", test_division_functions);
+    TEST_FUNC("Division Comprehensive", test_division_comprehensive);
 
     // Forth code tests
     TEST_FORTH("Basic Addition", "10 20 +", 30, 1);
@@ -120,6 +202,9 @@ void run_all_tests(void) {
     TEST_FORTH("Complex Expression", "2 3 + 4 *", 20, 1);
     TEST_FORTH("Multiple Operations", "10 5 / 3 + 2 *", 10, 1);
     TEST_FORTH("Multiple Results", "100 25 - 30 10 +", 40, 2);
+
+    TEST_FORTH("SM/REM Basic", "10 0 7 SM/REM", 1, 2);      // quotient on top
+    TEST_FORTH("FM/MOD Basic", "10 0 7 FM/MOD", 1, 2);      // quotient on top
 
     // Test SOURCE and >IN behavior
     test_stats.current_test_name = "Input Buffer Functions";

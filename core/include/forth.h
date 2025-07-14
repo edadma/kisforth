@@ -114,6 +114,12 @@ void f_zero_equals(word_t* self); // 0= ( x -- flag )
 void f_swap(word_t* self);          // SWAP ( x1 x2 -- x2 x1 )
 void f_rot(word_t* self);           // ROT ( x1 x2 x3 -- x2 x3 x1 )
 void f_pick(word_t* self);          // PICK ( xu ... x1 x0 u -- xu ... x1 x0 xu )
+void f_here(word_t* self);           // HERE ( -- addr )
+void f_allot(word_t* self);          // ALLOT ( n -- )
+void f_comma(word_t* self);          // , ( x -- )
+void f_lit(word_t* self);            // LIT ( -- x ) [value follows]
+void f_sm_rem(word_t* self);	// SM/REM ( d1 n1 -- n2 n3 )  Symmetric division primitive
+void f_fm_mod(word_t* self);	// FM/MOD ( d1 n1 -- n2 n3 )  Floored division primitive
 
 // I/O interface - platform abstraction
 typedef struct {

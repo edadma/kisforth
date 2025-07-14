@@ -220,6 +220,132 @@ void f_pick(word_t* self) {
     data_push(xu);
 }
 
+// HERE ( -- addr )  Return the current data space pointer
+void f_here(word_t* self) {
+    (void)self;
+
+    data_push(here);
+}
+
+// ALLOT ( n -- )  Allocate n bytes of data space
+void f_allot(word_t* self) {
+    (void)self;
+
+    cell_t n = data_pop();
+
+    // Handle negative allot (deallocation) carefully
+    if (n < 0) {
+        // Negative allot - check bounds to prevent underflow
+        assert(here >= (forth_addr_t)(-n));
+        here += n;  // n is negative, so this subtracts
+    } else {
+        // Positive allot - normal allocation
+        forth_allot(n);
+    }
+}
+
+// , ( x -- )  Store cell at HERE and advance HERE by one cell
+void f_comma(word_t* self) {
+    (void)self;
+
+    cell_t x = data_pop();
+
+    // Align HERE to cell boundary before storing
+    forth_align();
+
+    // Store the value at current HERE
+    forth_store(here, x);
+
+    // Advance HERE by one cell
+    here += sizeof(cell_t);
+}
+
+// LIT ( -- x )  Push the literal value that follows in compiled code
+// Note: This is used internally by the compiler for compiled literals
+void f_lit(word_t* self) {
+    (void)self;
+
+    // TODO: This implementation is incomplete
+    // LIT is a special runtime word used in colon definitions to push literals.
+    // When the compiler encounters a number in a colon definition like ": DOUBLE 2 * ;",
+    // it compiles: [LIT_ADDR, 2, MULT_ADDR, EXIT_ADDR]
+    // At runtime, LIT should read the next cell from the current execution token
+    // stream and push it as a literal value.
+    // This requires access to the current instruction pointer/execution context
+    // which will be implemented when the colon definition executor is completed.
+
+    data_push(0);  // Placeholder - will be properly implemented with compiler
+}
+
+// SM/REM ( d1 n1 -- n2 n3 )  Symmetric division primitive (rounds toward zero)
+// d1 is double-cell dividend, n1 is single-cell divisor
+// n2 is remainder (sign of dividend), n3 is quotient (truncated)
+void f_sm_rem(word_t* self) {
+    (void)self;
+
+    // Pop divisor (single cell)
+    cell_t divisor = data_pop();
+    assert(divisor != 0);  // Division by zero check
+
+    // Pop dividend (double cell: high cell first, then low cell)
+    cell_t dividend_hi = data_pop();
+    cell_t dividend_lo = data_pop();
+
+    // Convert to 64-bit signed value
+    int64_t dividend = ((int64_t)dividend_hi << 32) | (uint32_t)dividend_lo;
+    int64_t div = (int64_t)divisor;
+
+    // Perform symmetric division (truncate toward zero)
+    int64_t quotient = dividend / div;  // C division truncates toward zero
+    int64_t remainder = dividend % div;  // C remainder has sign of dividend
+
+    // Ensure results fit in 32-bit cells
+    assert(quotient >= INT32_MIN && quotient <= INT32_MAX);
+    assert(remainder >= INT32_MIN && remainder <= INT32_MAX);
+
+    // Push remainder first, then quotient
+    data_push((cell_t)remainder);
+    data_push((cell_t)quotient);
+}
+
+// FM/MOD ( d1 n1 -- n2 n3 )  Floored division primitive (rounds toward negative infinity)
+// d1 is double-cell dividend, n1 is single-cell divisor
+// n2 is remainder (sign of divisor), n3 is quotient (floored)
+void f_fm_mod(word_t* self) {
+    (void)self;
+
+    // Pop divisor (single cell)
+    cell_t divisor = data_pop();
+    assert(divisor != 0);  // Division by zero check
+
+    // Pop dividend (double cell: high cell first, then low cell)
+    cell_t dividend_hi = data_pop();
+    cell_t dividend_lo = data_pop();
+
+    // Convert to 64-bit signed value
+    int64_t dividend = ((int64_t)dividend_hi << 32) | (uint32_t)dividend_lo;
+    int64_t div = (int64_t)divisor;
+
+    // Perform floored division
+    int64_t quotient = dividend / div;
+    int64_t remainder = dividend % div;
+
+    // Adjust for floored division if remainder and divisor have different signs
+    // and remainder is non-zero (this converts from symmetric to floored)
+    if (remainder != 0 && ((remainder > 0) != (div > 0))) {
+        quotient -= 1;
+        remainder += div;
+    }
+
+    // Ensure results fit in 32-bit cells
+    assert(quotient >= INT32_MIN && quotient <= INT32_MAX);
+    assert(remainder >= INT32_MIN && remainder <= INT32_MAX);
+
+    // Push remainder first, then quotient
+    data_push((cell_t)remainder);
+    data_push((cell_t)quotient);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -242,6 +368,12 @@ void create_all_primitives(void) {
     create_primitive_word("SWAP", f_swap);
     create_primitive_word("ROT", f_rot);
     create_primitive_word("PICK", f_pick);
+    create_primitive_word("HERE", f_here);
+    create_primitive_word("ALLOT", f_allot);
+    create_primitive_word(",", f_comma);
+    create_primitive_word("LIT", f_lit);
+    create_primitive_word("SM/REM", f_sm_rem);
+    create_primitive_word("FM/MOD", f_fm_mod);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);
