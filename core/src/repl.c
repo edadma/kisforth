@@ -37,7 +37,34 @@ void f_bye(word_t* self) {
 
 // Character-by-character input with backspace support
 static void get_line(void) {
-    // ... (your get_line implementation)
+    char *ptr = input_line;
+    int c;
+
+    while (ptr < input_line + INPUT_BUFFER_SIZE - 1) {
+        c = getchar();
+
+        if (c == '\r' || c == '\n') {
+            *ptr = '\0';
+            putchar('\n');
+            fflush(stdout);
+            break;
+        } else if (c == '\b' || c == 127) { // Backspace or DEL
+            if (ptr > input_line) {
+                ptr--;
+                printf("\b \b"); // Erase character visually
+                fflush(stdout);
+            }
+        } else if (c >= 32 && c < 127) { // Printable characters
+            *ptr++ = c;
+            putchar(c);
+            fflush(stdout);
+        }
+        // Ignore other characters (ctrl chars, etc.)
+    }
+
+    if (ptr >= input_line + INPUT_BUFFER_SIZE - 1) {
+        *ptr = '\0';
+    }
 }
 
 // Simplified REPL with setjmp for QUIT support
