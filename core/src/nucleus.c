@@ -445,6 +445,52 @@ void f_type(word_t* self) {
     fflush(stdout);  // Ensure immediate output
 }
 
+// Return stack operations - essential for colon definitions and mixed-precision arithmetic
+
+// >R ( x -- ) ( R: -- x )  Transfer x from data stack to return stack
+void f_to_r(word_t* self) {
+    (void)self;
+
+    cell_t x = data_pop();
+    return_push(x);
+}
+
+// R> ( -- x ) ( R: x -- )  Transfer x from return stack to data stack
+void f_r_from(word_t* self) {
+    (void)self;
+
+    cell_t x = return_pop();
+    data_push(x);
+}
+
+// R@ ( -- x ) ( R: x -- x )  Copy top of return stack to data stack
+void f_r_fetch(word_t* self) {
+    (void)self;
+
+    // Make sure there's something to peek at
+    assert(return_depth() > 0);
+
+    // Peek at top of return stack without removing it
+    cell_t x = return_stack[return_stack_ptr - 1];
+    data_push(x);
+}
+
+// M* ( n1 n2 -- d )  Multiply n1 by n2 giving signed double-cell product d
+void f_m_star(word_t* self) {
+    (void)self;
+
+    cell_t n2 = data_pop();
+    cell_t n1 = data_pop();
+
+    // Use 64-bit arithmetic to handle the full range without overflow
+    int64_t product = (int64_t)n1 * (int64_t)n2;
+
+    // Push as double-cell: low cell first, then high cell
+    // This follows ANS Forth convention for double-cell numbers
+    data_push((cell_t)(product & 0xFFFFFFFF));        // low 32 bits
+    data_push((cell_t)((product >> 32) & 0xFFFFFFFF)); // high 32 bits
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -480,6 +526,10 @@ void create_all_primitives(void) {
     create_primitive_word("EMIT", f_emit);
     create_primitive_word("KEY", f_key);
     create_primitive_word("TYPE", f_type);
+    create_primitive_word(">R", f_to_r);
+    create_primitive_word("R>", f_r_from);
+    create_primitive_word("R@", f_r_fetch);
+    create_primitive_word("M*", f_m_star);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);

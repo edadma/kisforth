@@ -127,6 +127,10 @@ void f_invert(word_t* self);     // INVERT ( x1 -- x2 )
 void f_emit(word_t* self);       // EMIT ( char -- )
 void f_key(word_t* self);        // KEY ( -- char )
 void f_type(word_t* self);       // TYPE ( c-addr u -- )
+void f_to_r(word_t* self);      // >R ( x -- ) ( R: -- x )
+void f_r_from(word_t* self);    // R> ( -- x ) ( R: x -- )
+void f_r_fetch(word_t* self);   // R@ ( -- x ) ( R: x -- x )
+void f_m_star(word_t* self);    // M* ( n1 n2 -- d )
 
 // I/O interface - platform abstraction
 typedef struct {
