@@ -107,14 +107,6 @@ bool try_parse_number(const char* token, cell_t* result) {
 void interpret(void) {
     char name_buffer[64];
 
-    // Get debug info from Forth memory
-    cell_t current_length = forth_fetch(input_length_addr);
-    char debug_buffer[INPUT_BUFFER_SIZE];
-    for (cell_t i = 0; i < current_length && i < INPUT_BUFFER_SIZE - 1; i++) {
-        debug_buffer[i] = forth_c_fetch(input_buffer_addr + i);
-    }
-    debug_buffer[current_length] = '\0';
-
     debug_with_buffer(debug_buffer, INPUT_BUFFER_SIZE, {
         cell_t current_length = forth_fetch(input_length_addr);
         for (cell_t i = 0; i < current_length && i < INPUT_BUFFER_SIZE - 1; i++) {

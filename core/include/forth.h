@@ -118,8 +118,8 @@ void forth_repl(void);
 void f_quit(word_t* self);
 void f_bye(word_t* self);
 
-// Platform-specific I/O interfaces
-io_interface_t* get_pc_io(void);  // PC implementation
+void f_debug_on(word_t* self);      // DEBUG-ON ( -- )
+void f_debug_off(word_t* self);     // DEBUG-OFF ( -- )
 
 // System management
 void forth_reset(void);         // Complete system reset
@@ -210,8 +210,5 @@ static inline void f_test(word_t* self) {
     printf("Tests not compiled in. Rebuild with -DENABLE_TESTS=ON\n");
 }
 #endif
-
-// Add this declaration with the other platform I/O functions:
-io_interface_t* get_pico_io(void);  // Pico implementation
 
 #endif // FORTH_H

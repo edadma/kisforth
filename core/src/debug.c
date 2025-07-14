@@ -1,4 +1,5 @@
 #include "debug.h"
+#include "forth.h"
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -29,30 +30,29 @@ void debug_raw(const char* fmt, ...) {
 // Core debug interface functions - always available
 // This ensures Forth words DEBUG-ON/DEBUG-OFF can always be linked
 
-void debug_init(void) {
 #ifdef FORTH_DEBUG_ENABLED
+void debug_init(void) {
     debug_enabled = false;  // Start with debugging off
-#endif
     // When debugging disabled at compile time, this is a no-op
 }
+#endif
 
-void debug_on(void) {
 #ifdef FORTH_DEBUG_ENABLED
+void debug_on(void) {
     debug_enabled = true;
     printf("Debug output enabled\n");
     fflush(stdout);
-#endif
-    // When debugging disabled at compile time, this is a no-op
 }
+#endif
 
-void debug_off(void) {
 #ifdef FORTH_DEBUG_ENABLED
+void debug_off(void) {
     debug_enabled = false;
     printf("Debug output disabled\n");
     fflush(stdout);
-#endif
     // When debugging disabled at compile time, this is a no-op
 }
+#endif
 
 bool debug_is_enabled(void) {
 #ifdef FORTH_DEBUG_ENABLED
@@ -61,3 +61,19 @@ bool debug_is_enabled(void) {
     return false;  // Always disabled when not compiled in
 #endif
 }
+
+// Debug control primitives
+
+#ifdef FORTH_DEBUG_ENABLED
+// DEBUG-ON ( -- ) Enable debug output
+void f_debug_on(word_t* self) {
+    (void)self;
+    debug_on();
+}
+
+// DEBUG-OFF ( -- ) Disable debug output
+void f_debug_off(word_t* self) {
+    (void)self;
+    debug_off();
+}
+#endif

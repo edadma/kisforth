@@ -122,6 +122,11 @@ void create_all_primitives(void) {
     create_primitive_word("BYE", f_bye);
     create_primitive_word(".", f_dot);
 
+	#ifdef FORTH_DEBUG_ENABLED
+    create_primitive_word("DEBUG-ON", f_debug_on);
+    create_primitive_word("DEBUG-OFF", f_debug_off);
+	#endif
+
     #ifdef FORTH_ENABLE_TESTS
     create_primitive_word("TEST", f_test);
     #endif

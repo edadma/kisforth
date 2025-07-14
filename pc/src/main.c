@@ -11,7 +11,11 @@ int main(int argc, char* argv[]) {
 
     // Initialize the Forth system
     stack_init();
-    debug_init();
+
+	#ifdef FORTH_DEBUG_ENABLED
+   	debug_init();
+	#endif
+
     input_system_init();    // Initialize input buffers in Forth memory
     dictionary_init();
     create_all_primitives();
