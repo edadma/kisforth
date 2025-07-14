@@ -104,6 +104,13 @@ void f_drop(word_t* self);
 void f_source(word_t* self);    // SOURCE ( -- c-addr u )
 void f_to_in(word_t* self);     // >IN ( -- addr )
 void f_dot(word_t* self);           // . ( n -- )
+void f_store(word_t* self);      // ! ( x addr -- )
+void f_fetch(word_t* self);      // @ ( addr -- x )
+void f_c_store(word_t* self);    // C! ( char addr -- )
+void f_c_fetch(word_t* self);    // C@ ( addr -- char )
+void f_equals(word_t* self);     // = ( x1 x2 -- flag )
+void f_less_than(word_t* self);  // < ( x1 x2 -- flag )
+void f_zero_equals(word_t* self); // 0= ( x -- flag )
 
 // I/O interface - platform abstraction
 typedef struct {

@@ -109,6 +109,42 @@ void f_dot(word_t* self) {
     fflush(stdout);        // Ensure immediate output
 }
 
+// ! ( x addr -- )  Store x at addr
+void f_store(word_t* self) {
+    (void)self;
+
+    forth_addr_t addr = (forth_addr_t)data_pop();
+    cell_t value = data_pop();
+    forth_store(addr, value);
+}
+
+// @ ( addr -- x )  Fetch value from addr
+void f_fetch(word_t* self) {
+    (void)self;
+
+    forth_addr_t addr = (forth_addr_t)data_pop();
+    cell_t value = forth_fetch(addr);
+    data_push(value);
+}
+
+// C! ( char addr -- )  Store char at addr
+void f_c_store(word_t* self) {
+    (void)self;
+
+    forth_addr_t addr = (forth_addr_t)data_pop();
+    byte_t value = (byte_t)data_pop();
+    forth_c_store(addr, value);
+}
+
+// C@ ( addr -- char )  Fetch char from addr
+void f_c_fetch(word_t* self) {
+    (void)self;
+
+    forth_addr_t addr = (forth_addr_t)data_pop();
+    byte_t value = forth_c_fetch(addr);
+    data_push((cell_t)value);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -121,6 +157,10 @@ void create_all_primitives(void) {
     create_primitive_word("QUIT", f_quit);
     create_primitive_word("BYE", f_bye);
     create_primitive_word(".", f_dot);
+    create_primitive_word("!", f_store);
+    create_primitive_word("@", f_fetch);
+    create_primitive_word("C!", f_c_store);
+    create_primitive_word("C@", f_c_fetch);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);
