@@ -44,6 +44,10 @@ static void get_line(void) {
         c = getchar();
 
         if (c == '\r' || c == '\n') {
+#ifdef FORTH_TARGET_PICO
+           	putchar('\n');  // Echo newline on Pico
+			fflush(stdout);
+#endif
             *ptr = '\0';
             break;
         } else if (c == '\b' || c == 127) { // Backspace or DEL
@@ -54,6 +58,10 @@ static void get_line(void) {
             }
         } else if (c >= 32 && c < 127) { // Printable characters
             *ptr++ = c;
+#ifdef FORTH_TARGET_PICO
+            putchar(c);      // Echo character on Pico only
+            fflush(stdout);
+#endif
         }
         // Ignore other characters (ctrl chars, etc.)
     }
