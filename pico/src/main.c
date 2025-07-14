@@ -24,9 +24,6 @@ int main() {
     dictionary_init();
     create_all_primitives();
 
-    // Set up Pico I/O interface (we'll create this)
-    set_io_interface(get_pico_io());
-
     printf("Forth system initialized.\n");
     printf("Connect via USB serial (minicom, screen, etc.)\n");
 

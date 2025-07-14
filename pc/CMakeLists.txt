@@ -1,25 +1,24 @@
 # PC version of KISForth
 add_executable(kisforth
         src/main.c
-        src/pc_io.c
 )
 
 # Link with core library
 target_link_libraries(kisforth PRIVATE kisforth_core)
 
 # Platform-specific libraries for PC
-if(UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE)
     # Linux - might need readline later
     # target_link_libraries(kisforth PRIVATE readline)
-endif()
+endif ()
 
-if(APPLE)
+if (APPLE)
     # macOS specific settings if needed
-endif()
+endif ()
 
-if(WIN32)
+if (WIN32)
     # Windows specific settings if needed
-endif()
+endif ()
 
 # Set executable properties
 set_target_properties(kisforth PROPERTIES

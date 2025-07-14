@@ -5,16 +5,16 @@ add_library(kisforth_core STATIC
         src/nucleus.c
         src/dictionary.c
         src/text.c
-        src/io_interface.c
         src/debug.c
+        src/repl.c
 )
 
 # Conditionally add test system
-if(ENABLE_TESTS)
+if (ENABLE_TESTS)
     target_sources(kisforth_core PRIVATE src/test.c)
     target_compile_definitions(kisforth_core PUBLIC FORTH_ENABLE_TESTS=1)
     message(STATUS "Unit testing enabled")
-endif()
+endif ()
 
 # Include directories
 target_include_directories(kisforth_core
@@ -30,25 +30,25 @@ target_compile_options(kisforth_core PRIVATE
 )
 
 # Platform-specific definitions
-if(BUILD_FOR_PICO)
+if (BUILD_FOR_PICO)
     target_compile_definitions(kisforth_core PUBLIC
             FORTH_TARGET_PICO=1
             FORTH_MEMORY_SIZE=32768  # Smaller memory for Pico
     )
-else()
+else ()
     target_compile_definitions(kisforth_core PUBLIC
             FORTH_TARGET_PC=1
     )
-endif()
+endif ()
 
 # Extension support
-if(ENABLE_FLOATING)
+if (ENABLE_FLOATING)
     target_compile_definitions(kisforth_core PUBLIC FORTH_ENABLE_FLOATING=1)
-endif()
+endif ()
 
-if(ENABLE_DOUBLE)
+if (ENABLE_DOUBLE)
     target_compile_definitions(kisforth_core PUBLIC FORTH_ENABLE_DOUBLE=1)
-endif()
+endif ()
 
 # Generate version header from template
 configure_file(

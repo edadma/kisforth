@@ -16,9 +16,6 @@ int main(int argc, char* argv[]) {
     dictionary_init();
     create_all_primitives();
 
-    // Set up PC I/O interface
-    set_io_interface(get_pc_io());
-
     printf("Forth system initialized.\n");
 
     // Check for command line arguments
@@ -43,7 +40,5 @@ int main(int argc, char* argv[]) {
         forth_repl();
     }
 
-    // Cleanup
-    io_cleanup();
     return 0;
 }

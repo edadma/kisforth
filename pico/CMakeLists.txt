@@ -1,7 +1,6 @@
 # Pico executable
 add_executable(kisforth_pico
         src/main.c
-        src/pico_io.c
 )
 
 # Link against core library and Pico SDK

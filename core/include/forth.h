@@ -113,15 +113,6 @@ typedef struct {
     void (*cleanup)(void);
 } io_interface_t;
 
-extern io_interface_t* current_io;
-
-// I/O interface management
-void set_io_interface(io_interface_t* io);
-void io_print(const char* str);
-void io_print_char(char c);
-char* io_read_line(const char* prompt);
-void io_cleanup(void);
-
 // REPL system
 void forth_repl(void);
 void f_quit(word_t* self);
