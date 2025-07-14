@@ -21,6 +21,7 @@ int main() {
 
     // Initialize the Forth system
     stack_init();
+    input_system_init();    // Initialize input buffers in Forth memory
     dictionary_init();
     create_all_primitives();
 
