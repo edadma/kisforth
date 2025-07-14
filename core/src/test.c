@@ -139,6 +139,8 @@ void run_all_tests(void) {
     } else {
         printf("❌ %d test(s) failed\n", test_stats.failed);
     }
+
+    forth_reset();
     printf("\n");
 }
 
