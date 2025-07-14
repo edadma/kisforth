@@ -120,6 +120,10 @@ void f_comma(word_t* self);          // , ( x -- )
 void f_lit(word_t* self);            // LIT ( -- x ) [value follows]
 void f_sm_rem(word_t* self);	// SM/REM ( d1 n1 -- n2 n3 )  Symmetric division primitive
 void f_fm_mod(word_t* self);	// FM/MOD ( d1 n1 -- n2 n3 )  Floored division primitive
+void f_and(word_t* self);        // AND ( x1 x2 -- x3 )
+void f_or(word_t* self);         // OR ( x1 x2 -- x3 )
+void f_xor(word_t* self);        // XOR ( x1 x2 -- x3 )
+void f_invert(word_t* self);     // INVERT ( x1 -- x2 )
 
 // I/O interface - platform abstraction
 typedef struct {

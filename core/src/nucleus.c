@@ -346,6 +346,47 @@ void f_fm_mod(word_t* self) {
     data_push((cell_t)quotient);
 }
 
+// Bitwise logical operations - operate on the data stack
+
+// AND ( x1 x2 -- x3 )  Bitwise logical AND of x1 with x2
+void f_and(word_t* self) {
+    (void)self;
+
+    cell_t x2 = data_pop();
+    cell_t x1 = data_pop();
+    cell_t x3 = x1 & x2;  // Bitwise AND operator in C
+    data_push(x3);
+}
+
+// OR ( x1 x2 -- x3 )  Bitwise inclusive-or of x1 with x2
+void f_or(word_t* self) {
+    (void)self;
+
+    cell_t x2 = data_pop();
+    cell_t x1 = data_pop();
+    cell_t x3 = x1 | x2;  // Bitwise OR operator in C
+    data_push(x3);
+}
+
+// XOR ( x1 x2 -- x3 )  Bitwise exclusive-or of x1 with x2
+void f_xor(word_t* self) {
+    (void)self;
+
+    cell_t x2 = data_pop();
+    cell_t x1 = data_pop();
+    cell_t x3 = x1 ^ x2;  // Bitwise XOR operator in C
+    data_push(x3);
+}
+
+// INVERT ( x1 -- x2 )  Bitwise logical inversion of x1
+void f_invert(word_t* self) {
+    (void)self;
+
+    cell_t x1 = data_pop();
+    cell_t x2 = ~x1;  // Bitwise NOT operator in C
+    data_push(x2);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -374,6 +415,10 @@ void create_all_primitives(void) {
     create_primitive_word("LIT", f_lit);
     create_primitive_word("SM/REM", f_sm_rem);
     create_primitive_word("FM/MOD", f_fm_mod);
+    create_primitive_word("AND", f_and);
+    create_primitive_word("OR", f_or);
+    create_primitive_word("XOR", f_xor);
+    create_primitive_word("INVERT", f_invert);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);
