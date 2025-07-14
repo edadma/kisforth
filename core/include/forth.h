@@ -124,6 +124,9 @@ void f_and(word_t* self);        // AND ( x1 x2 -- x3 )
 void f_or(word_t* self);         // OR ( x1 x2 -- x3 )
 void f_xor(word_t* self);        // XOR ( x1 x2 -- x3 )
 void f_invert(word_t* self);     // INVERT ( x1 -- x2 )
+void f_emit(word_t* self);       // EMIT ( char -- )
+void f_key(word_t* self);        // KEY ( -- char )
+void f_type(word_t* self);       // TYPE ( c-addr u -- )
 
 // I/O interface - platform abstraction
 typedef struct {

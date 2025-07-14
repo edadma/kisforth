@@ -387,6 +387,64 @@ void f_invert(word_t* self) {
     data_push(x2);
 }
 
+// I/O primitives - operate on the data stack and provide character I/O
+
+// EMIT ( char -- )  Output character to the user output device
+void f_emit(word_t* self) {
+    (void)self;
+
+    cell_t char_value = data_pop();
+
+    // Extract character from cell (only low 8 bits)
+    char c = (char)(char_value & 0xFF);
+
+    // Output character directly to stdout
+    putchar(c);
+    fflush(stdout);  // Ensure immediate output like f_dot
+}
+
+// KEY ( -- char )  Input character from the user input device
+void f_key(word_t* self) {
+    (void)self;
+
+    // Read one character from stdin
+    int c = getchar();
+
+    // Handle EOF or error conditions
+    if (c == EOF) {
+        c = 0;  // Push null character on EOF
+    }
+
+    // Push character value onto stack (extend to cell size)
+    data_push((cell_t)(c & 0xFF));
+}
+
+// TYPE ( c-addr u -- )  Output u characters from string at c-addr
+void f_type(word_t* self) {
+    (void)self;
+
+    cell_t u = data_pop();           // Character count
+    forth_addr_t c_addr = (forth_addr_t)data_pop();  // String address
+
+    // Bounds check the character count
+    if (u < 0) {
+        return;  // Ignore negative count per ANS Forth practice
+    }
+
+    // Output each character
+    for (cell_t i = 0; i < u; i++) {
+        // Bounds check the address
+        if (c_addr + i >= FORTH_MEMORY_SIZE) {
+            break;  // Stop at memory boundary
+        }
+
+        char c = (char)forth_c_fetch(c_addr + i);
+        putchar(c);
+    }
+
+    fflush(stdout);  // Ensure immediate output
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -419,6 +477,9 @@ void create_all_primitives(void) {
     create_primitive_word("OR", f_or);
     create_primitive_word("XOR", f_xor);
     create_primitive_word("INVERT", f_invert);
+    create_primitive_word("EMIT", f_emit);
+    create_primitive_word("KEY", f_key);
+    create_primitive_word("TYPE", f_type);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);
