@@ -46,10 +46,6 @@ if (ENABLE_FLOATING)
     target_compile_definitions(kisforth_core PUBLIC FORTH_ENABLE_FLOATING=1)
 endif ()
 
-if (ENABLE_DOUBLE)
-    target_compile_definitions(kisforth_core PUBLIC FORTH_ENABLE_DOUBLE=1)
-endif ()
-
 # Generate version header from template
 configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/include/version.h.in"
