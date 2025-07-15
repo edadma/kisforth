@@ -3,6 +3,9 @@
 #include <assert.h>
 #include <stdio.h>
 
+// Global STATE pointer for efficient access
+cell_t* state_ptr = NULL;
+
 // Create a primitive word in virtual memory
 word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
     // Align to word boundary
@@ -27,11 +30,34 @@ word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
     return word;
 }
 
+cell_t* create_variable_word(const char* name, cell_t initial_value) {
+    // Create the word header with f_variable cfunc
+    create_primitive_word(name, f_variable);
+
+    // Now allocate space for the parameter field (one cell)
+    forth_addr_t param_addr = forth_allot(sizeof(cell_t));
+
+    // Store the initial value
+    forth_store(param_addr, initial_value);
+
+    // Return C pointer to the parameter field for efficiency
+    return (cell_t*)&forth_memory[param_addr];
+}
+
 // Execute a word by calling its cfunc
 void execute_word(word_t* word) {
     assert(word != NULL);
     assert(word->cfunc != NULL);
     word->cfunc(word);
+}
+
+void f_variable(word_t* self) {
+    // Parameter field is right after the word structure in memory
+    forth_addr_t word_addr = word_to_addr(self);
+    forth_addr_t param_addr = word_addr + sizeof(word_t);
+
+    // Push the Forth address of the parameter field
+    data_push(param_addr);
 }
 
 // Arithmetic primitives - these operate on the data stack
@@ -530,6 +556,9 @@ void create_all_primitives(void) {
     create_primitive_word("R>", f_r_from);
     create_primitive_word("R@", f_r_fetch);
     create_primitive_word("M*", f_m_star);
+
+    // Create STATE variable (0 = interpret, -1 = compile)
+    state_ptr = create_variable_word("STATE", 0);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);

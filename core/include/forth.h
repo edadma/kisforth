@@ -34,6 +34,7 @@ typedef struct word {
 // Global memory
 extern uint8_t forth_memory[FORTH_MEMORY_SIZE];
 extern forth_addr_t here;  // Data space pointer
+extern cell_t* state_ptr;  // C pointer to STATE variable for efficiency
 
 // Stack structures
 extern cell_t data_stack[DATA_STACK_SIZE];
@@ -93,6 +94,7 @@ void interpret(void);  // Standard interpreter loop
 
 // Word creation and execution
 word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self));
+cell_t* create_variable_word(const char* name, cell_t initial_value);
 void execute_word(word_t* word);
 
 // Primitive word implementations
@@ -131,6 +133,7 @@ void f_to_r(word_t* self);      // >R ( x -- ) ( R: -- x )
 void f_r_from(word_t* self);    // R> ( -- x ) ( R: x -- )
 void f_r_fetch(word_t* self);   // R@ ( -- x ) ( R: x -- x )
 void f_m_star(word_t* self);    // M* ( n1 n2 -- d )
+void f_variable(word_t* self);       // Variable execution ( -- addr )
 
 // I/O interface - platform abstraction
 typedef struct {
