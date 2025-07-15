@@ -1,10 +1,14 @@
 #include "forth.h"
+#include "debug.h"
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
 
 // Global STATE pointer for efficient access
 cell_t* state_ptr = NULL;
+
+// Global instruction pointer for colon definition execution
+static forth_addr_t current_ip = 0;  // 0 means not executing
 
 // Create a primitive word in virtual memory
 word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
@@ -42,6 +46,13 @@ cell_t* create_variable_word(const char* name, cell_t initial_value) {
 
     // Return C pointer to the parameter field for efficiency
     return (cell_t*)&forth_memory[param_addr];
+}
+
+// Simple helper function
+word_t* create_immediate_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
+    word_t* word = create_primitive_word(name, cfunc);
+    word->flags |= WORD_FLAG_IMMEDIATE;
+    return word;
 }
 
 // Execute a word by calling its cfunc
@@ -286,21 +297,144 @@ void f_comma(word_t* self) {
     here += sizeof(cell_t);
 }
 
-// LIT ( -- x )  Push the literal value that follows in compiled code
-// Note: This is used internally by the compiler for compiled literals
+// Execute a colon definition using the return stack
+void execute_colon(word_t* self) {
+    // Parameter field contains array of tokens (word addresses)
+    forth_addr_t word_addr = word_to_addr(self);
+    forth_addr_t tokens_addr = word_addr + sizeof(word_t);
+
+    debug("Executing colon definition: %s", self->name);
+
+    // Save current instruction pointer on return stack (if executing)
+    if (current_ip != 0) {
+        return_push((cell_t)current_ip);
+        debug("  Saved IP on return stack");
+    }
+
+    // Set new instruction pointer to start of this definition's tokens
+    current_ip = tokens_addr;
+
+    // Execute tokens until EXIT is called (which will restore IP from return stack)
+    while (current_ip != 0) {
+        forth_addr_t token_addr = forth_fetch(current_ip);
+        current_ip += sizeof(cell_t);  // Advance to next token
+
+        // Execute the word at token_addr
+        word_t* word = addr_to_word(token_addr);
+        debug("  Executing token: %s", word->name);
+        execute_word(word);
+
+        // If EXIT was called, current_ip will have been updated
+    }
+
+    debug("Colon definition execution complete");
+}
+
+// : (colon) - start colon definition
+// ( C: "<spaces>name" -- colon-sys )
+void f_colon(word_t* self) {
+    (void)self;
+
+    char name_buffer[32];
+
+    // Parse the name for the new definition
+    char* name = parse_name(name_buffer, sizeof(name_buffer));
+    if (!name) {
+        printf("ERROR: Missing name after :\n");
+        return;
+    }
+
+    debug("Starting colon definition: %s", name);
+
+    // Create word header but don't link it yet (hidden until ; is executed)
+    forth_align();
+    current_def_addr = here;
+    forth_addr_t word_addr = forth_allot(sizeof(word_t));
+    word_t* word = addr_to_word(word_addr);
+
+    // Initialize word header
+    word->link = NULL;  // Will be set by ; when definition is complete
+    strncpy(word->name, name, sizeof(word->name) - 1);
+    word->name[sizeof(word->name) - 1] = '\0';
+    word->flags = 0;
+    word->cfunc = execute_colon;
+
+    // Enter compilation state
+    *state_ptr = -1;
+
+    debug("Colon definition header created at %u, entering compilation mode", word_addr);
+}
+
+// ; (semicolon) - end colon definition
+// Compilation: ( C: colon-sys -- )
+void f_semicolon(word_t* self) {
+    (void)self;
+
+    if (*state_ptr == 0) {
+        printf("ERROR: ; without matching :\n");
+        return;
+    }
+
+    debug("Ending colon definition, compiling EXIT");
+
+    // Compile EXIT as the last token
+    word_t* exit_word = find_word("EXIT");
+    if (exit_word) {
+        compile_token(word_to_addr(exit_word));
+    } else {
+        printf("ERROR: EXIT word not found\n");
+        return;
+    }
+
+    // Link the completed word into dictionary
+    word_t* word = addr_to_word(current_def_addr);
+    link_word(word);
+
+    // Exit compilation state
+    *state_ptr = 0;
+    current_def_addr = 0;
+
+    debug("Colon definition complete, exiting compilation mode");
+}
+
+// EXIT - return from colon definition using return stack
+// Run-time: ( -- ) ( R: nest-sys -- )
+void f_exit(word_t* self) {
+    (void)self;
+
+    debug("EXIT called");
+
+    // Check if there's a saved instruction pointer on the return stack
+    if (return_depth() > 0) {
+        // Restore previous instruction pointer from return stack
+        current_ip = (forth_addr_t)return_pop();
+        debug("  Restored IP from return stack");
+    } else {
+        // No saved IP - we're at the top level, end execution
+        current_ip = 0;
+        debug("  No saved IP - ending execution");
+    }
+}
+
+// LIT implementation that reads from instruction stream
+// LIT ( -- x ) Push the literal value that follows in compiled code
 void f_lit(word_t* self) {
     (void)self;
 
-    // TODO: This implementation is incomplete
-    // LIT is a special runtime word used in colon definitions to push literals.
-    // When the compiler encounters a number in a colon definition like ": DOUBLE 2 * ;",
-    // it compiles: [LIT_ADDR, 2, MULT_ADDR, EXIT_ADDR]
-    // At runtime, LIT should read the next cell from the current execution token
-    // stream and push it as a literal value.
-    // This requires access to the current instruction pointer/execution context
-    // which will be implemented when the colon definition executor is completed.
+    if (current_ip == 0) {
+        printf("ERROR: LIT called outside colon definition\n");
+        data_push(0);  // Fallback for safety
+        return;
+    }
 
-    data_push(0);  // Placeholder - will be properly implemented with compiler
+    // Read the literal value from the instruction stream
+    cell_t literal = forth_fetch(current_ip);
+    current_ip += sizeof(cell_t);  // Advance past the literal
+
+    // Push the literal onto the data stack
+    data_push(literal);
+
+    debug("LIT pushed literal: %d", literal);
 }
 
 // SM/REM ( d1 n1 -- n2 n3 )  Symmetric division primitive (rounds toward zero)
@@ -559,6 +693,10 @@ void create_all_primitives(void) {
 
     // Create STATE variable (0 = interpret, -1 = compile)
     state_ptr = create_variable_word("STATE", 0);
+
+    create_primitive_word(":", f_colon);
+    create_immediate_primitive_word(";", f_semicolon);
+    create_primitive_word("EXIT", f_exit);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);

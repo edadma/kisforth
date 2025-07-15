@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// Global compilation state
+forth_addr_t current_def_addr = 0;  // Address of current definition being compiled
 
 // Set the input buffer (ANS Forth compliant version)
 // This function sets up the input buffer in Forth memory space
@@ -102,8 +104,40 @@ bool try_parse_number(const char* token, cell_t* result) {
     return false;
 }
 
+// Compile a token (word address) into current definition
+void compile_token(forth_addr_t token) {
+    if (current_def_addr == 0) {
+        printf("ERROR: Not compiling\n");
+        return;
+    }
+
+    // Align and store the token
+    forth_align();
+    forth_store(here, token);
+    here += sizeof(cell_t);
+
+    debug("Compiled token: %u at address %u", token, here - sizeof(cell_t));
+}
+
+// Compile a literal using LIT
+void compile_literal(cell_t value) {
+    // Find LIT word address
+    word_t* lit_word = find_word("LIT");
+    if (!lit_word) {
+        printf("ERROR: LIT word not found\n");
+        return;
+    }
+
+    // Compile LIT followed by the literal value
+    compile_token(word_to_addr(lit_word));
+    compile_token((forth_addr_t)value);
+
+    debug("Compiled literal: %d", value);
+}
+
 // ANS Forth compliant text interpreter
 // Implements the algorithm from section 3.4 of the standard
+// Enhanced to support both interpretation and compilation modes
 void interpret(void) {
     char name_buffer[64];
 
@@ -113,7 +147,7 @@ void interpret(void) {
             debug_buffer[i] = forth_c_fetch(input_buffer_addr + i);
         }
         debug_buffer[current_length] = '\0';
-    }, "Interpreting buffer: \"%s\"", debug_buffer);
+    }, "Interpreting buffer: \"%s\" (STATE=%d)", debug_buffer, *state_ptr);
 
     // Text interpretation loop (ANS Forth 3.4)
     while (forth_fetch(to_in_addr) < forth_fetch(input_length_addr)) {
@@ -128,16 +162,36 @@ void interpret(void) {
         // b) Search the dictionary name space
         word_t* word = find_word(name);
         if (word) {
-            debug(" -> found word, executing\n");
-            // b.1) if interpreting, perform interpretation semantics
-            execute_word(word);
+            debug(" -> found word");
+
+            // Check if word is immediate (always execute)
+            if (word->flags & WORD_FLAG_IMMEDIATE) {
+                debug(" (immediate), executing");
+                execute_word(word);
+            } else if (*state_ptr == 0) {
+                // b.1) if interpreting, perform interpretation semantics
+                debug(" (interpreting), executing");
+                execute_word(word);
+            } else {
+                // b.2) if compiling, perform compilation semantics
+                debug(" (compiling), compiling token");
+                compile_token(word_to_addr(word));
+            }
         } else {
             // c) Not found, attempt to convert string to number
             cell_t number;
             if (try_parse_number(name, &number)) {
-                debug(" -> number %d, pushing to stack\n", number);
-                // c.1) if interpreting, place number on data stack
-                data_push(number);
+                debug(" -> number %d", number);
+
+                if (*state_ptr == 0) {
+                    // c.1) if interpreting, place number on data stack
+                    debug(" (interpreting), pushing to stack");
+                    data_push(number);
+                } else {
+                    // c.2) if compiling, compile literal
+                    debug(" (compiling), compiling literal");
+                    compile_literal(number);
+                }
             } else {
                 // d) If unsuccessful, ambiguous condition (error)
                 printf(" -> ERROR: '%s' not found and not a number\n", name);
@@ -146,10 +200,10 @@ void interpret(void) {
         }
     }
 
-    debug("  Interpretation complete. >IN=%d, Stack depth: %d\n",
+    debug("  Interpretation complete. >IN=%d, Stack depth: %d",
           forth_fetch(to_in_addr), data_depth());
     if (data_depth() > 0) {
-        debug("  Top of stack: %d\n", data_peek());
+        debug("  Top of stack: %d", data_peek());
     }
 }
 

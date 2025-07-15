@@ -35,6 +35,7 @@ typedef struct word {
 extern uint8_t forth_memory[FORTH_MEMORY_SIZE];
 extern forth_addr_t here;  // Data space pointer
 extern cell_t* state_ptr;  // C pointer to STATE variable for efficiency
+extern forth_addr_t current_def_addr;  // Address of current definition being compiled
 
 // Stack structures
 extern cell_t data_stack[DATA_STACK_SIZE];
@@ -95,7 +96,23 @@ void interpret(void);  // Standard interpreter loop
 // Word creation and execution
 word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self));
 cell_t* create_variable_word(const char* name, cell_t initial_value);
+word_t* create_immediate_primitive_word(const char* name, void (*cfunc)(word_t* self));
 void execute_word(word_t* word);
+
+// Compilation support
+void compile_token(forth_addr_t token);
+void compile_literal(cell_t value);
+
+// Execution context management
+forth_addr_t* get_current_ip(void);
+void set_current_ip(forth_addr_t* new_ip, word_t* word);
+void pop_exec_context(void);
+
+// Colon definition words
+void f_colon(word_t* self);        // : ( C: "<spaces>name" -- colon-sys )
+void f_semicolon(word_t* self);    // ; ( C: colon-sys -- )
+void f_exit(word_t* self);         // EXIT ( -- ) ( R: nest-sys -- )
+void execute_colon(word_t* self);  // Generic colon definition executor
 
 // Primitive word implementations
 void f_plus(word_t* self);
