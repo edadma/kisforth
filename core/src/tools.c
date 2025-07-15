@@ -9,13 +9,22 @@
 void f_dot_s(word_t* self) {
     (void)self;
 
-    printf("<");
-    printf("%d", data_depth());
-    printf("> ");
+    // Stack depth always in decimal for readability
+    printf("<%d> ", data_depth());
+
+    // Display each stack item in current BASE
+    cell_t base = *base_ptr;
+
+    // Validate base range, fall back to decimal if invalid
+    if (base < 2 || base > 36) {
+        base = 10;
+    }
 
     for (int i = 0; i < data_stack_ptr; i++) {
-        printf("%d ", data_stack[i]);
+        print_number_in_base(data_stack[i], base);
+        printf(" ");
     }
+
     printf("\n");
     fflush(stdout);
 }
