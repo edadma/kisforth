@@ -1023,8 +1023,11 @@ static const char* builtin_definitions[] = {
     ": 0< 0 < ;",
     ": 0> 0 SWAP < ;",
     ": > SWAP < ;",
-    ": <> = 0= ;",
+	": NOT 0= ;",
+    ": <> = NOT ;",
 	": 0<> 0 <> ;",
+	": <= > NOT ;",
+	": >= < NOT ;",
 
     ": 2* DUP + ;",
     ": 2/ 2 / ;",
