@@ -173,6 +173,7 @@ typedef struct {
 // REPL system
 void forth_repl(void);
 void f_quit(word_t* self);
+void f_abort(word_t* self);
 void f_bye(word_t* self);
 
 void f_debug_on(word_t* self);      // DEBUG-ON ( -- )

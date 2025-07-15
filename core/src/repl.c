@@ -18,13 +18,20 @@ void f_quit(word_t* self) {
     (void)self;
 
     if (repl_running) {
-        // Clear stacks and reset input
-        stack_init();
-        set_input_buffer("");
+        return_stack_ptr = 0;
+        *state_ptr = 0;
 
         // Jump back to REPL start
         longjmp(repl_restart, 1);
     }
+}
+
+void f_abort(word_t* self) {
+    // Empty data stack
+    data_stack_ptr = 0;
+
+    // Call QUIT for cleanup
+    f_quit(self);
 }
 
 // BYE word - exit the system

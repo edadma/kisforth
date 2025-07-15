@@ -767,6 +767,7 @@ void create_all_primitives(void) {
     create_primitive_word("SOURCE", f_source);
     create_primitive_word(">IN", f_to_in);
     create_primitive_word("QUIT", f_quit);
+    create_primitive_word("ABORT", f_abort);
     create_primitive_word("BYE", f_bye);
     create_primitive_word(".", f_dot);
     create_primitive_word("!", f_store);
