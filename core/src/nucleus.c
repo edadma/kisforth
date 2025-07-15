@@ -651,6 +651,21 @@ void f_m_star(word_t* self) {
     data_push((cell_t)((product >> 32) & 0xFFFFFFFF)); // high 32 bits
 }
 
+// IMMEDIATE ( -- ) Mark the most recently defined word as immediate
+void f_immediate(word_t* self) {
+    (void)self;
+
+    if (dictionary_head == NULL) {
+        printf("ERROR: No word to make immediate\n");
+        return;
+    }
+
+    // Set immediate flag on most recently defined word
+    dictionary_head->flags |= WORD_FLAG_IMMEDIATE;
+
+    debug("Made word '%s' immediate", dictionary_head->name);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -697,6 +712,7 @@ void create_all_primitives(void) {
     create_primitive_word(":", f_colon);
     create_immediate_primitive_word(";", f_semicolon);
     create_primitive_word("EXIT", f_exit);
+    create_primitive_word("IMMEDIATE", f_immediate);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);
@@ -726,6 +742,10 @@ static const char* builtin_definitions[] = {
     ": NEGATE 0 SWAP - ;",
     ": 1+ 1 + ;",
     ": 1- 1 - ;",
+
+    // State control (immediate words)
+    ": [ 0 STATE ! ; IMMEDIATE",      // Enter interpretation state
+    ": ] -1 STATE ! ; IMMEDIATE",     // Enter compilation state
 
     NULL  // End marker
 };
