@@ -1,4 +1,5 @@
 #include "forth.h"
+#include "tools.h"
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -11,6 +12,11 @@ void dictionary_init(void) {
     dictionary_head = NULL;
     create_all_primitives();
 	create_builtin_definitions();
+
+    #ifdef FORTH_ENABLE_TOOLS
+    create_tools_primitives();
+    create_tools_definitions();
+    #endif
 }
 
 // Link a word into the dictionary (at the head of the linked list)

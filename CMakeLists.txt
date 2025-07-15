@@ -4,9 +4,11 @@ cmake_minimum_required(VERSION 3.13)
 option(BUILD_FOR_PICO "Build for Raspberry Pi Pico" OFF)
 
 # Extension options
-option(ENABLE_FLOATING "Enable floating point word set" OFF)
 option(ENABLE_TESTS "Enable unit testing system" ON)  # Default ON for development
 option(ENABLE_DEBUG "Enable debug output system" OFF)  # OFF by default for production
+
+option(ENABLE_FLOATING "Enable floating point word set" OFF)
+option(ENABLE_TOOLS "Enable programming tools word set" ON)  # Default ON for development
 
 if (BUILD_FOR_PICO)
     # Pico-specific setup
@@ -69,4 +71,4 @@ message(STATUS "  Platform: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "  Compiler: ${CMAKE_C_COMPILER_ID}")
 message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Target: ${BUILD_FOR_PICO}")
-message(STATUS "  Extensions: Floating=${ENABLE_FLOATING}, Tests=${ENABLE_TESTS}, Debug=${ENABLE_DEBUG}")
+message(STATUS "  Extensions: Floating=${ENABLE_FLOATING}, Tools=${ENABLE_TOOLS}, Tests=${ENABLE_TESTS}, Debug=${ENABLE_DEBUG}")

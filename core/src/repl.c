@@ -92,8 +92,7 @@ void forth_repl(void) {
             continue;
         }
 
-        set_input_buffer(input_line);
-        interpret();
+        interpret_text(input_line);
 
         if (data_depth() > 0) {
             printf(" <%d>", data_depth());

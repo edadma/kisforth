@@ -16,6 +16,13 @@ if (ENABLE_TESTS)
     message(STATUS "Unit testing enabled")
 endif ()
 
+# Conditionally add tool system
+if (ENABLE_TOOLS)
+    target_sources(kisforth_core PRIVATE src/tools.c)
+    target_compile_definitions(kisforth_core PUBLIC FORTH_ENABLE_TOOLS=1)
+    message(STATUS "Programming tools word set enabled")
+endif ()
+
 # Include directories
 target_include_directories(kisforth_core
         PUBLIC include
@@ -39,11 +46,6 @@ else ()
     target_compile_definitions(kisforth_core PUBLIC
             FORTH_TARGET_PC=1
     )
-endif ()
-
-# Extension support
-if (ENABLE_FLOATING)
-    target_compile_definitions(kisforth_core PUBLIC FORTH_ENABLE_FLOATING=1)
 endif ()
 
 # Generate version header from template

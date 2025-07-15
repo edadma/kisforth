@@ -58,8 +58,7 @@ bool test_forth_code(const char* code, cell_t expected_top, int expected_depth) 
     test_stats.total++;
 
     // Execute the test code
-    set_input_buffer(code);
-    interpret();
+    interpret_text(code);
 
     // Check stack state
     bool depth_ok = (data_depth() == expected_depth);
