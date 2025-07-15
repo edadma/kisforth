@@ -1,4 +1,5 @@
 #include "forth.h"
+#include "debug.h"
 #include <assert.h>
 #include <string.h>
 
@@ -59,13 +60,14 @@ forth_addr_t forth_allot(size_t bytes) {
 
 // Align HERE to cell boundary (4 bytes)
 void forth_align(void) {
-    while (here % sizeof(cell_t) != 0) {
-        here++;
-    }
+    int misalignment = here % sizeof(cell_t);
+
+    if (misalignment > 0) here += sizeof(cell_t) - misalignment;
 }
 
 // Convert Forth address to C pointer
 word_t* addr_to_word(forth_addr_t addr) {
+    debug("addr_to_word: converting address %u", addr);
     assert(addr < FORTH_MEMORY_SIZE);
     return (word_t*)&forth_memory[addr];
 }

@@ -768,14 +768,15 @@ forth_addr_t store_counted_string(const char* str, int length) {
     debug("store_counted_string: storing \"%s\" (length %d) at address %u",
           str, length, string_addr);
 
+    // Allocate space for the entire counted string (length byte + characters)
+    forth_allot(1 + length);
+
     // Store length byte first (counted string format)
-    forth_c_store(here, (byte_t)length);
-    here += 1;
+    forth_c_store(string_addr, (byte_t)length);
 
     // Store the string characters
     for (int i = 0; i < length; i++) {
-        forth_c_store(here, (byte_t)str[i]);
-        here += 1;
+        forth_c_store(string_addr + 1 + i, (byte_t)str[i]);
     }
 
     // Align after string storage for next allocation
