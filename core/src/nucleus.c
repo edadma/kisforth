@@ -666,6 +666,38 @@ void f_immediate(word_t* self) {
     debug("Made word '%s' immediate", dictionary_head->name);
 }
 
+// ROLL ( xu xu-1 ... x1 x0 u -- xu-1 ... x1 x0 xu )
+// Remove u. Rotate u+1 items on top of stack. An ambiguous condition
+// exists if there are less than u+2 items on the stack before ROLL.
+void f_roll(word_t* self) {
+    (void)self;
+
+    cell_t u = data_pop();
+
+    if (u == 0) {
+        // ROLL with u=0 is a no-op
+        return;
+    }
+
+    if (data_depth() < u + 1) {
+        printf("ERROR: ROLL stack underflow\n");
+        return;
+    }
+
+    // Get the item that's u positions down
+    cell_t xu = data_stack[data_stack_ptr - 1 - u];
+
+    // Shift all items above it down by one position
+    for (int i = data_stack_ptr - 1 - u; i < data_stack_ptr - 1; i++) {
+        data_stack[i] = data_stack[i + 1];
+    }
+
+    // Put xu on top
+    data_stack[data_stack_ptr - 1] = xu;
+
+    debug("ROLL %d executed", u);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -688,6 +720,7 @@ void create_all_primitives(void) {
     create_primitive_word("SWAP", f_swap);
     create_primitive_word("ROT", f_rot);
     create_primitive_word("PICK", f_pick);
+    create_primitive_word("ROLL", f_roll);
     create_primitive_word("HERE", f_here);
     create_primitive_word("ALLOT", f_allot);
     create_primitive_word(",", f_comma);
@@ -733,15 +766,37 @@ static const char* builtin_definitions[] = {
     ": NIP SWAP DROP ;",
     ": TUCK SWAP OVER ;",
     ": 2DROP DROP DROP ;",
+    ": 2SWAP ROT >R ROT R> ;",
+    ": 2OVER 3 PICK 3 PICK ;",
+    //": ?DUP DUP IF DUP THEN ;",
 
-    // Constants
     ": TRUE -1 ;",
     ": FALSE 0 ;",
 
-    // Basic math
     ": NEGATE 0 SWAP - ;",
     ": 1+ 1 + ;",
     ": 1- 1 - ;",
+
+    ": 0< 0 < ;",
+    ": 0> 0 SWAP < ;",
+    ": > SWAP < ;",
+    ": <> = 0= ;",
+
+    ": 2* DUP + ;",
+    ": 2/ 2 / ;",
+
+    ": MOD SM/REM DROP ;",
+    //": /MOD DUP >R 0 SWAP SM/REM R> 0< IF SWAP NEGATE SWAP THEN ;",
+    ": */ >R M* R> FM/MOD SWAP DROP ;",
+    ": */MOD >R M* R> FM/MOD ;",
+
+    ": CELL+ 4 + ;",
+    ": CELLS 4 * ;",
+    ": CHAR+ 1+ ;",
+    ": CHARS ;",              // No-op
+    ": +! TUCK @ + SWAP ! ;",
+    ": 2! TUCK ! CELL+ ! ;",
+    ": 2@ DUP CELL+ @ SWAP @ ;",
 
     // State control (immediate words)
     ": [ 0 STATE ! ; IMMEDIATE",      // Enter interpretation state

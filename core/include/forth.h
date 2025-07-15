@@ -155,6 +155,7 @@ void f_r_fetch(word_t* self);   // R@ ( -- x ) ( R: x -- x )
 void f_m_star(word_t* self);    // M* ( n1 n2 -- d )
 void f_variable(word_t* self);       // Variable execution ( -- addr )
 void f_immediate(word_t* self);      // IMMEDIATE ( -- )
+void f_roll(word_t* self);
 
 // I/O interface - platform abstraction
 typedef struct {
