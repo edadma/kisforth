@@ -139,6 +139,8 @@ void set_current_to_in(cell_t value) {
 // Returns length of parsed string, stores string at dest
 // Updates >IN to position after closing quote
 int parse_string(char quote_char, char* dest, size_t max_len) {
+    skip_spaces();
+
     cell_t to_in = get_current_to_in();
     cell_t input_length = get_current_input_length();
     forth_addr_t input_addr = get_current_input_buffer_addr();

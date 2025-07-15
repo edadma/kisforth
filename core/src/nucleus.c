@@ -835,13 +835,15 @@ void f_dot_quote_runtime(word_t* self) {
     debug("(. runtime: reading string length %d", length);
 
     // Display each character
-    for (int i = 0; i < length; i++) {
-        byte_t ch = (byte_t)forth_fetch(current_ip);
-        current_ip += sizeof(cell_t);  // Each char stored as a cell for alignment
-        putchar(ch);
+    for (cell_t i = 0; i < length; i++) {
+        putchar(forth_c_fetch(current_ip + i));
     }
 
     fflush(stdout);
+
+    current_ip += length;
+    current_ip = (current_ip + sizeof(cell_t) - 1) & ~(sizeof(cell_t) - 1);  // Align
+
     debug("(. runtime: displayed string, IP now at %u", current_ip);
 }
 
@@ -899,7 +901,6 @@ void f_dot_quote(word_t* self) {
         debug(".\" compilation: compiling inline string \"%s\" (length %d)",
               string_buffer, length);
 
-        // 1. Compile the runtime word
         word_t* runtime_word = find_word("(.\"");
         if (runtime_word) {
             compile_token(word_to_addr(runtime_word));
@@ -908,15 +909,16 @@ void f_dot_quote(word_t* self) {
             return;
         }
 
-        // 2. Compile the string length
         compile_token((forth_addr_t)length);
 
-        // 3. Compile each character (stored as cells for alignment)
         for (int i = 0; i < length; i++) {
-            compile_token((forth_addr_t)string_buffer[i]);
+            forth_c_store(here + i, string_buffer[i]);
         }
 
-        debug(".\" compilation: compiled %d tokens total", length + 2);
+        here += length;
+        forth_align();  // Align for next token
+
+        debug(".\" compilation: compiled %d bytes + alignment", length + sizeof(cell_t));
     }
 }
 
