@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <stdio.h>
 
+#define FORTH_PAD_SIZE 1024
+
 // Global STATE pointer for efficient access
 cell_t* state_ptr = NULL;
 
@@ -12,7 +14,6 @@ static forth_addr_t current_ip = 0;  // 0 means not executing
 
 // Global BASE pointer for efficient access
 cell_t* base_ptr = NULL;
-
 
 // Digit conversion array for bases 2-36
 static const char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -391,6 +392,37 @@ void execute_colon(word_t* self) {
     }
 
     debug("Colon definition execution complete");
+}
+
+forth_addr_t defining_word(void (*cfunc)(struct word* self)) {
+    char name_buffer[32];
+
+    // Parse the name for the new definition
+    char* name = parse_name(name_buffer, sizeof(name_buffer));
+    if (!name) {
+        printf("ERROR: Missing name after :\n");
+        return 0;
+    }
+
+    debug("Starting colon definition: %s", name);
+
+    // Create word header but don't link it yet (hidden until ; is executed)
+    forth_align();
+    current_def_addr = here;
+    forth_addr_t word_addr = forth_allot(sizeof(word_t));
+    word_t* word = addr_to_word(word_addr);
+
+    // Initialize word header
+    word->link = NULL;  // Will be set by ; when definition is complete
+    strncpy(word->name, name, sizeof(word->name) - 1);
+    word->name[sizeof(word->name) - 1] = '\0';
+    word->flags = 0;
+    word->cfunc = cfunc;
+
+    // Enter compilation state
+    *state_ptr = -1;
+
+	return word_addr + sizeof(word_t);
 }
 
 // : (colon) - start colon definition
@@ -933,6 +965,19 @@ void f_abort_quote(word_t* self) {
     }
 }
 
+void f_create(word_t* self) {
+    (void)self;
+
+	defining_word(f_address);
+}
+
+void f_variable(word_t* self) {
+    (void)self;
+
+	defining_word(f_address);
+	forth_allot(sizeof(cell_t));
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -993,6 +1038,12 @@ void create_all_primitives(void) {
     // Create the user-visible immediate words
     create_immediate_primitive_word(".\"", f_dot_quote);
     create_immediate_primitive_word("ABORT\"", f_abort_quote);
+
+	create_area_word("PAD");
+	forth_allot(FORTH_PAD_SIZE);
+
+	create_primitive_word("CREATE", f_create);
+	create_primitive_word("VARIABLE", f_variable);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);

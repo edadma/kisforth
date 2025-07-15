@@ -23,7 +23,7 @@ typedef uint32_t forth_addr_t; // Forth address (always 32-bit)
 typedef struct word {
     struct word* link;          // Link to previous word (C pointer)
     char name[32];              // Word name (31 chars max per standard)
-    uint8_t flags;              // Immediate flag, etc.
+    uint32_t flags;             // Immediate flag, etc.
     void (*cfunc)(struct word* self);  // C function for ALL word types
     // Parameter field follows immediately after this structure
 } word_t;
@@ -107,6 +107,7 @@ cell_t* create_variable_word(const char* name, cell_t initial_value);
 void create_area_word(const char* name);
 word_t* create_immediate_primitive_word(const char* name, void (*cfunc)(word_t* self));
 void execute_word(word_t* word);
+forth_addr_t defining_word(void (*cfunc)(struct word* self));
 
 // Compilation support
 void compile_token(forth_addr_t token);
@@ -184,6 +185,9 @@ void f_bye(word_t* self);
 
 void f_debug_on(word_t* self);      // DEBUG-ON ( -- )
 void f_debug_off(word_t* self);     // DEBUG-OFF ( -- )
+
+void f_create(word_t* self);
+void f_variable(word_t* self);
 
 // System management
 void forth_reset(void);         // Complete system reset
