@@ -1050,6 +1050,9 @@ static const char* builtin_definitions[] = {
 	": BINARY 2 BASE ! ;",
 	": OCTAL 8 BASE ! ;",
 
+	": BL 32 ;",
+	": CR 10 EMIT ;",
+
     NULL  // End marker
 };
 
