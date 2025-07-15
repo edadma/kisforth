@@ -90,9 +90,13 @@ word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
     return word;
 }
 
+void create_area_word(const char* name) {
+	create_primitive_word(name, f_address);
+}
+
 cell_t* create_variable_word(const char* name, cell_t initial_value) {
-    // Create the word header with f_variable cfunc
-    create_primitive_word(name, f_variable);
+    // Create the word header with f_address cfunc
+    create_primitive_word(name, f_address);
 
     // Now allocate space for the parameter field (one cell)
     forth_addr_t param_addr = forth_allot(sizeof(cell_t));
@@ -118,7 +122,7 @@ void execute_word(word_t* word) {
     word->cfunc(word);
 }
 
-void f_variable(word_t* self) {
+void f_address(word_t* self) {
     // Parameter field is right after the word structure in memory
     forth_addr_t word_addr = word_to_addr(self);
     forth_addr_t param_addr = word_addr + sizeof(word_t);

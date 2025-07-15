@@ -104,6 +104,7 @@ void create_builtin_definitions(void);
 // Word creation and execution
 word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self));
 cell_t* create_variable_word(const char* name, cell_t initial_value);
+void create_area_word(const char* name);
 word_t* create_immediate_primitive_word(const char* name, void (*cfunc)(word_t* self));
 void execute_word(word_t* word);
 
@@ -158,7 +159,7 @@ void f_to_r(word_t* self);      // >R ( x -- ) ( R: -- x )
 void f_r_from(word_t* self);    // R> ( -- x ) ( R: x -- )
 void f_r_fetch(word_t* self);   // R@ ( -- x ) ( R: x -- x )
 void f_m_star(word_t* self);    // M* ( n1 n2 -- d )
-void f_variable(word_t* self);       // Variable execution ( -- addr )
+void f_address(word_t* self);       // Variable execution ( -- addr )
 void f_immediate(word_t* self);      // IMMEDIATE ( -- )
 void f_roll(word_t* self);
 void f_display_counted_string(word_t* self);

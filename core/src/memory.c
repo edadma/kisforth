@@ -47,6 +47,8 @@ byte_t forth_c_fetch(forth_addr_t addr) {
 
 // Allocate bytes in virtual memory and advance HERE
 forth_addr_t forth_allot(size_t bytes) {
+	forth_align();
+
     assert(here + bytes <= FORTH_MEMORY_SIZE);  // Simple bounds check
 
     forth_addr_t old_here = here;
