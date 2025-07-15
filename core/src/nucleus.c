@@ -786,98 +786,116 @@ forth_addr_t store_counted_string(const char* str, int length) {
     return string_addr;
 }
 
-// Runtime helper: Display a counted string given its address
-// Stack: ( string-addr -- )
-void f_display_counted_string(word_t* self) {
+void f_dot_quote_runtime(word_t* self) {
     (void)self;
 
-    forth_addr_t string_addr = (forth_addr_t)data_pop();
+    if (current_ip == 0) {
+        printf("ERROR: .( called outside colon definition\n");
+        return;
+    }
 
-    // Get length from first byte
-    byte_t length = forth_c_fetch(string_addr);
+    // Read string length from parameter field
+    byte_t length = (byte_t)forth_fetch(current_ip);
+    current_ip += sizeof(cell_t);
 
-    debug("f_display_counted_string: displaying string at %u, length %d",
-          string_addr, length);
+    debug("(. runtime: reading string length %d", length);
 
     // Display each character
     for (int i = 0; i < length; i++) {
-        byte_t ch = forth_c_fetch(string_addr + 1 + i);
+        byte_t ch = (byte_t)forth_fetch(current_ip);
+        current_ip += sizeof(cell_t);  // Each char stored as a cell for alignment
         putchar(ch);
     }
 
     fflush(stdout);
+    debug("(. runtime: displayed string, IP now at %u", current_ip);
 }
 
-// Runtime helper for ABORT": Display string and abort if flag is true
-// Stack: ( flag string-addr -- )
+// Runtime word for ABORT" - reads inline string data and conditionally aborts
+// Compiled sequence: [(ABORT")]  [length] [char1] [char2] ... [charN]
 void f_abort_quote_runtime(word_t* self) {
     (void)self;
 
-    forth_addr_t string_addr = (forth_addr_t)data_pop();
     cell_t flag = data_pop();
 
-    debug("f_abort_quote_runtime: flag=%d, string_addr=%u", flag, string_addr);
+    if (current_ip == 0) {
+        printf("ERROR: (ABORT called outside colon definition\n");
+        return;
+    }
+
+    // Read string length from parameter field
+    byte_t length = (byte_t)forth_fetch(current_ip);
+    current_ip += sizeof(cell_t);
+
+    debug("(ABORT runtime: flag=%d, string length=%d", flag, length);
 
     if (flag != 0) {
-        // Display the string first
-        data_push(string_addr);
-        f_display_counted_string(self);
+        // Display the string
+        for (int i = 0; i < length; i++) {
+            byte_t ch = (byte_t)forth_fetch(current_ip);
+            current_ip += sizeof(cell_t);
+            putchar(ch);
+        }
+        fflush(stdout);
 
-        // Then perform abort sequence
+        // Perform abort
         f_abort(self);
+    } else {
+        // Skip over the string data
+        current_ip += length * sizeof(cell_t);
+        debug("(ABORT runtime: skipped string, IP now at %u", current_ip);
     }
-    // If flag is 0, do nothing (continue execution)
 }
 
-// ." (dot-quote) implementation - CORE word
-// Dual behavior: immediate display in interpretation, compiled display in compilation
+// Improved ." implementation - compiles inline string data
 void f_dot_quote(word_t* self) {
     (void)self;
 
-    // Parse the string until closing quote
+    // Parse the string
     char string_buffer[256];
     int length = parse_string('"', string_buffer, sizeof(string_buffer));
 
     if (*state_ptr == 0) {
-        // Interpretation mode - display string immediately
-        debug("f_dot_quote: interpretation mode, displaying immediately");
+        // Interpretation mode - display immediately
+        debug(".\" interpretation: displaying '%s'", string_buffer);
         printf("%s", string_buffer);
         fflush(stdout);
     } else {
-        // Compilation mode - store string and compile runtime code
-        debug("f_dot_quote: compilation mode, storing string and compiling code");
+        // Compilation mode - compile inline string data
+        debug(".\" compilation: compiling inline string \"%s\" (length %d)",
+              string_buffer, length);
 
-        // Store the string in Forth memory
-        forth_addr_t string_addr = store_counted_string(string_buffer, length);
-
-        // Compile code to display this string at runtime
-        // 1. Compile LIT followed by the string address
-        compile_literal((cell_t)string_addr);
-
-        // 2. Compile call to display function
-        word_t* display_word = find_word("(DISPLAY-STRING)");
-        if (display_word) {
-            compile_token(word_to_addr(display_word));
+        // 1. Compile the runtime word
+        word_t* runtime_word = find_word("(.\"");
+        if (runtime_word) {
+            compile_token(word_to_addr(runtime_word));
         } else {
-            printf("ERROR: (DISPLAY-STRING) word not found\n");
+            printf("ERROR: (. word not found\n");
+            return;
         }
+
+        // 2. Compile the string length
+        compile_token((forth_addr_t)length);
+
+        // 3. Compile each character (stored as cells for alignment)
+        for (int i = 0; i < length; i++) {
+            compile_token((forth_addr_t)string_buffer[i]);
+        }
+
+        debug(".\" compilation: compiled %d tokens total", length + 2);
     }
 }
 
-// ABORT" implementation - CORE word
-// Dual behavior: immediate abort in interpretation, compiled conditional abort in compilation
+// Improved ABORT" implementation - compiles inline string data
 void f_abort_quote(word_t* self) {
     (void)self;
 
-    // Parse the string until closing quote
+    // Parse the string
     char string_buffer[256];
     int length = parse_string('"', string_buffer, sizeof(string_buffer));
 
     if (*state_ptr == 0) {
-        // Interpretation mode - this is unusual but we can handle it
-        // Pop flag from stack and abort immediately if non-zero
-        debug("f_abort_quote: interpretation mode, checking flag immediately");
-
+        // Interpretation mode - check flag and abort immediately
         if (data_depth() < 1) {
             printf("ERROR: ABORT\" requires a flag on the stack\n");
             return;
@@ -889,22 +907,24 @@ void f_abort_quote(word_t* self) {
             f_abort(self);
         }
     } else {
-        // Compilation mode - store string and compile runtime code
-        debug("f_abort_quote: compilation mode, storing string and compiling code");
+        // Compilation mode - compile inline string data
+        debug("ABORT\" compilation: compiling inline string \"%s\"", string_buffer);
 
-        // Store the string in Forth memory
-        forth_addr_t string_addr = store_counted_string(string_buffer, length);
-
-        // Compile runtime code for ABORT"
-        // 1. Compile LIT followed by the string address
-        compile_literal((cell_t)string_addr);
-
-        // 2. Compile call to runtime ABORT" function
-        word_t* abort_runtime_word = find_word("(ABORT\"-RUNTIME)");
-        if (abort_runtime_word) {
-            compile_token(word_to_addr(abort_runtime_word));
+        // 1. Compile the runtime word
+        word_t* runtime_word = find_word("(ABORT\"");
+        if (runtime_word) {
+            compile_token(word_to_addr(runtime_word));
         } else {
-            printf("ERROR: (ABORT\"-RUNTIME) word not found\n");
+            printf("ERROR: (ABORT word not found\n");
+            return;
+        }
+
+        // 2. Compile the string length
+        compile_token((forth_addr_t)length);
+
+        // 3. Compile each character
+        for (int i = 0; i < length; i++) {
+            compile_token((forth_addr_t)string_buffer[i]);
         }
     }
 }
@@ -963,8 +983,8 @@ void create_all_primitives(void) {
     create_primitive_word("IMMEDIATE", f_immediate);
 
     // Create helper words first (these are implementation details)
-    create_primitive_word("(DISPLAY-STRING)", f_display_counted_string);
-    create_primitive_word("(ABORT\"-RUNTIME)", f_abort_quote_runtime);
+    create_primitive_word("(.\"", f_dot_quote_runtime);
+    create_primitive_word("(ABORT\"", f_abort_quote_runtime);
 
     // Create the user-visible immediate words
     create_immediate_primitive_word(".\"", f_dot_quote);

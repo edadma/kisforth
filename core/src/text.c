@@ -201,6 +201,8 @@ void compile_literal(cell_t value) {
         return;
     }
 
+    debug("Found LIT word at address %u", word_to_addr(lit_word));
+
     // Compile LIT followed by the literal value
     compile_token(word_to_addr(lit_word));
     compile_token((forth_addr_t)value);
