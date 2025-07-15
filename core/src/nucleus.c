@@ -863,22 +863,22 @@ void f_abort_quote_runtime(word_t* self) {
     byte_t length = (byte_t)forth_fetch(current_ip);
     current_ip += sizeof(cell_t);
 
+	cell_t start = current_ip;
+
+	current_ip += length;
+    current_ip = (current_ip + sizeof(cell_t) - 1) & ~(sizeof(cell_t) - 1);  // Align
+
     debug("(ABORT runtime: flag=%d, string length=%d", flag, length);
 
     if (flag != 0) {
         // Display the string
-        for (int i = 0; i < length; i++) {
-            byte_t ch = (byte_t)forth_fetch(current_ip);
-            current_ip += sizeof(cell_t);
-            putchar(ch);
-        }
-        fflush(stdout);
+		for (cell_t i = 0; i < length; i++) {
+    		putchar(forth_c_fetch(start + i));
+		}
 
-        // Perform abort
+        fflush(stdout);
         f_abort(self);
     } else {
-        // Skip over the string data
-        current_ip += length * sizeof(cell_t);
         debug("(ABORT runtime: skipped string, IP now at %u", current_ip);
     }
 }
@@ -960,8 +960,11 @@ void f_abort_quote(word_t* self) {
 
         // 3. Compile each character
         for (int i = 0; i < length; i++) {
-            compile_token((forth_addr_t)string_buffer[i]);
+            forth_c_store(here + i, string_buffer[i]);
         }
+
+        here += length;
+        forth_align();  // Align for next token
     }
 }
 
