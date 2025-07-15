@@ -418,9 +418,7 @@ forth_addr_t defining_word(void (*cfunc)(struct word* self)) {
     word->name[sizeof(word->name) - 1] = '\0';
     word->flags = 0;
     word->cfunc = cfunc;
-
-    // Enter compilation state
-    *state_ptr = -1;
+    link_word(word);
 
 	return word_addr + sizeof(word_t);
 }
