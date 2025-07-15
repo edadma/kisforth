@@ -9,6 +9,8 @@ word_t* dictionary_head = NULL;
 // Initialize empty dictionary
 void dictionary_init(void) {
     dictionary_head = NULL;
+    create_all_primitives();
+	create_builtin_definitions();
 }
 
 // Link a word into the dictionary (at the head of the linked list)

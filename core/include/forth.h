@@ -92,6 +92,9 @@ void skip_spaces(void);
 char* parse_name(char* dest, size_t max_len);
 bool try_parse_number(const char* token, cell_t* result);
 void interpret(void);  // Standard interpreter loop
+void interpret_text(const char* text);  // Convenience: set_input_buffer + interpret
+
+void create_builtin_definitions(void);
 
 // Word creation and execution
 word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self));

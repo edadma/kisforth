@@ -18,7 +18,6 @@ int main(int argc, char* argv[]) {
 
     input_system_init();    // Initialize input buffers in Forth memory
     dictionary_init();
-    create_all_primitives();
 
     printf("Forth system initialized.\n");
 

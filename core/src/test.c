@@ -48,7 +48,6 @@ void forth_reset(void) {
 
     // Rebuild primitive dictionary
     dictionary_init();
-    create_all_primitives();
 }
 
 // Execute Forth code and check results
@@ -246,7 +245,6 @@ void forth_reset(void) {
     stack_init();
     set_input_buffer("");
     dictionary_init();
-    create_all_primitives();
 }
 
 #endif

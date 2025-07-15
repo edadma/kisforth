@@ -207,6 +207,12 @@ void interpret(void) {
     }
 }
 
+// Interpret text directly - convenience function
+void interpret_text(const char* text) {
+    set_input_buffer(text);
+    interpret();
+}
+
 // Test accessor functions for the Forth memory input system
 cell_t get_current_to_in(void) {
     return forth_fetch(to_in_addr);

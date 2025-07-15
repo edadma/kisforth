@@ -707,3 +707,54 @@ void create_all_primitives(void) {
     create_primitive_word("TEST", f_test);
     #endif
 }
+
+// Built-in Forth definitions (created after primitives are available)
+static const char* builtin_definitions[] = {
+    // Stack manipulation words
+    ": DUP 0 PICK ;",
+    ": OVER 1 PICK ;",
+    ": 2DUP OVER OVER ;",
+    ": NIP SWAP DROP ;",
+    ": TUCK SWAP OVER ;",
+    ": 2DROP DROP DROP ;",
+
+    // Constants
+    ": TRUE -1 ;",
+    ": FALSE 0 ;",
+
+    // Basic math
+    ": NEGATE 0 SWAP - ;",
+    ": 1+ 1 + ;",
+    ": 1- 1 - ;",
+
+    NULL  // End marker
+};
+
+// Create all built-in colon definitions
+void create_builtin_definitions(void) {
+    debug("Creating built-in colon definitions...");
+
+    for (int i = 0; builtin_definitions[i] != NULL; i++) {
+        debug("  Defining: %s", builtin_definitions[i]);
+
+        // Save current state
+        cell_t saved_state = *state_ptr;
+
+        // Interpret the definition
+        interpret_text(builtin_definitions[i]);
+
+        // Verify we're back in interpretation state
+        if (*state_ptr != 0) {
+            printf("ERROR: Built-in definition left system in compilation state: %s\n",
+                   builtin_definitions[i]);
+            *state_ptr = 0;  // Force back to interpretation
+        }
+
+        // Restore state if it was somehow changed
+        if (saved_state == 0 && *state_ptr != 0) {
+            *state_ptr = saved_state;
+        }
+    }
+
+    debug("Built-in definitions complete");
+}

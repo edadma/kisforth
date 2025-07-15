@@ -23,7 +23,6 @@ int main() {
     stack_init();
     input_system_init();    // Initialize input buffers in Forth memory
     dictionary_init();
-    create_all_primitives();
 
     printf("Forth system initialized.\n");
     printf("Connect via USB serial (minicom, screen, etc.)\n");
