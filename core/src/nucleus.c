@@ -1024,6 +1024,7 @@ static const char* builtin_definitions[] = {
     ": 0> 0 SWAP < ;",
     ": > SWAP < ;",
     ": <> = 0= ;",
+	": 0<> 0 <> ;",
 
     ": 2* DUP + ;",
     ": 2/ 2 / ;",
