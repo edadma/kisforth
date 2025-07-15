@@ -44,6 +44,8 @@ extern cell_t return_stack[RETURN_STACK_SIZE];
 extern int data_stack_ptr;    // Points to next empty slot
 extern int return_stack_ptr;  // Points to next empty slot
 
+extern forth_addr_t current_ip;
+
 char digit_to_char(int digit);
 int char_to_digit(char c, int base);
 void print_number_in_base(cell_t value, cell_t base);
@@ -112,11 +114,6 @@ forth_addr_t defining_word(void (*cfunc)(struct word* self));
 // Compilation support
 void compile_token(forth_addr_t token);
 void compile_literal(cell_t value);
-
-// Execution context management
-forth_addr_t* get_current_ip(void);
-void set_current_ip(forth_addr_t* new_ip, word_t* word);
-void pop_exec_context(void);
 
 // Colon definition words
 void f_colon(word_t* self);        // : ( C: "<spaces>name" -- colon-sys )

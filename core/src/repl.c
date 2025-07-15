@@ -18,6 +18,7 @@ void f_quit(word_t* self) {
     (void)self;
 
     if (repl_running) {
+		current_ip = 0;
         return_stack_ptr = 0;
         *state_ptr = 0;
 

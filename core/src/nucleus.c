@@ -10,7 +10,7 @@
 cell_t* state_ptr = NULL;
 
 // Global instruction pointer for colon definition execution
-static forth_addr_t current_ip = 0;  // 0 means not executing
+forth_addr_t current_ip = 0;  // 0 means not executing
 
 // Global BASE pointer for efficient access
 cell_t* base_ptr = NULL;
