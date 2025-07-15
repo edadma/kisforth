@@ -10,6 +10,62 @@ cell_t* state_ptr = NULL;
 // Global instruction pointer for colon definition execution
 static forth_addr_t current_ip = 0;  // 0 means not executing
 
+// Global BASE pointer for efficient access
+cell_t* base_ptr = NULL;
+
+
+// Digit conversion array for bases 2-36
+static const char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+// Helper function: convert digit value to character
+char digit_to_char(int digit) {
+    if (digit >= 0 && digit < 36) {
+        return digits[digit];
+    }
+    return '0';  // Fallback
+}
+
+// Helper function: convert character to digit value
+int char_to_digit(char c, int base) {
+    // Convert to uppercase for consistency
+    if (c >= 'a' && c <= 'z') {
+        c = c - 'a' + 'A';
+    }
+
+    // Find the digit value
+    for (int i = 0; i < base && i < 36; i++) {
+        if (digits[i] == c) {
+            return i;
+        }
+    }
+    return -1;  // Invalid digit for this base
+}
+
+// Helper function: print number in specified base
+void print_number_in_base(cell_t value, cell_t base) {
+    char buffer[34];  // Max for 32-bit binary + sign + null
+    char* ptr = buffer + sizeof(buffer) - 1;
+    *ptr = '\0';
+
+    bool negative = (value < 0);
+    uint32_t uvalue = negative ? -(uint32_t)value : (uint32_t)value;
+
+    // Convert digits (reverse order)
+    do {
+        --ptr;
+        *ptr = digits[uvalue % base];
+        uvalue /= base;
+    } while (uvalue > 0);
+
+    // Add sign if negative
+    if (negative) {
+        --ptr;
+        *ptr = '-';
+    }
+
+    printf("%s", ptr);
+}
+
 // Create a primitive word in virtual memory
 word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
     // Align to word boundary
@@ -132,18 +188,21 @@ void f_to_in(word_t* self) {
     data_push(to_in_addr);             // Forth address of >IN
 }
 
-// . ( n -- ) Print and remove top stack item
+// . ( n -- ) Print and remove top stack item (BASE-aware)
 void f_dot(word_t* self) {
     (void)self;
 
-    //if (data_depth() == 0) {
-    //    forth_abort("Stack underflow");
-    //    return;
-    //}
-
     cell_t value = data_pop();
-    printf("%d ", value);  // Print with trailing space per ANS standard
-    fflush(stdout);        // Ensure immediate output
+    cell_t base = *base_ptr;
+
+    // Validate base range, fall back to decimal if invalid
+    if (base < 2 || base > 36) {
+        base = 10;
+    }
+
+    print_number_in_base(value, base);
+    putchar(' ');
+    fflush(stdout);
 }
 
 // ! ( x addr -- )  Store x at addr
@@ -742,6 +801,9 @@ void create_all_primitives(void) {
     // Create STATE variable (0 = interpret, -1 = compile)
     state_ptr = create_variable_word("STATE", 0);
 
+    // Create BASE variable (default to decimal)
+    base_ptr = create_variable_word("BASE", 10);
+
     create_primitive_word(":", f_colon);
     create_immediate_primitive_word(";", f_semicolon);
     create_primitive_word("EXIT", f_exit);
@@ -801,6 +863,11 @@ static const char* builtin_definitions[] = {
     // State control (immediate words)
     ": [ 0 STATE ! ; IMMEDIATE",      // Enter interpretation state
     ": ] -1 STATE ! ; IMMEDIATE",     // Enter compilation state
+
+	": DECIMAL 10 BASE ! ;",
+	": HEX 16 BASE ! ;",
+	": BINARY 2 BASE ! ;",
+	": OCTAL 8 BASE ! ;",
 
     NULL  // End marker
 };

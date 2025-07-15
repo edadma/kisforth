@@ -36,12 +36,17 @@ extern uint8_t forth_memory[FORTH_MEMORY_SIZE];
 extern forth_addr_t here;  // Data space pointer
 extern cell_t* state_ptr;  // C pointer to STATE variable for efficiency
 extern forth_addr_t current_def_addr;  // Address of current definition being compiled
+extern cell_t* base_ptr;  // BASE variable pointer
 
 // Stack structures
 extern cell_t data_stack[DATA_STACK_SIZE];
 extern cell_t return_stack[RETURN_STACK_SIZE];
 extern int data_stack_ptr;    // Points to next empty slot
 extern int return_stack_ptr;  // Points to next empty slot
+
+char digit_to_char(int digit);
+int char_to_digit(char c, int base);
+void print_number_in_base(cell_t value, cell_t base);
 
 // Test accessor functions for Forth memory input system:
 cell_t get_current_to_in(void);

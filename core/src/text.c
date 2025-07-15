@@ -87,21 +87,47 @@ char* parse_name(char* dest, size_t max_len) {
     return len > 0 ? dest : NULL;
 }
 
-// Try to parse token as a number (base 10)
+// BASE-aware number parsing
 // Returns true if successful, false if not a number
 bool try_parse_number(const char* token, cell_t* result) {
     if (!token || !result) return false;
 
-    char* endptr;
-    long value = strtol(token, &endptr, 10);
-
-    // Check if entire token was consumed (valid number)
-    if (*endptr == '\0') {
-        *result = (cell_t)value;
-        return true;
+    cell_t base = *base_ptr;
+    if (base < 2 || base > 36) {
+        base = 10;  // Fall back to decimal for invalid base
     }
 
-    return false;
+    const char* ptr = token;
+    bool negative = false;
+    cell_t value = 0;
+
+    // Handle optional sign
+    if (*ptr == '-') {
+        negative = true;
+        ptr++;
+    } else if (*ptr == '+') {
+        ptr++;
+    }
+
+    // Must have at least one digit after sign
+    if (*ptr == '\0') return false;
+
+    // Convert digits
+    while (*ptr) {
+        int digit = char_to_digit(*ptr, base);
+        if (digit < 0) return false;  // Invalid digit
+
+        // Check for overflow before multiplying
+        if (value > (INT32_MAX - digit) / base) {
+            return false;  // Would overflow
+        }
+
+        value = value * base + digit;
+        ptr++;
+    }
+
+    *result = negative ? -value : value;
+    return true;
 }
 
 // Compile a token (word address) into current definition
