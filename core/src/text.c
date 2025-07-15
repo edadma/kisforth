@@ -130,6 +130,53 @@ bool try_parse_number(const char* token, cell_t* result) {
     return true;
 }
 
+// Helper function to set >IN (needed by parse_string)
+void set_current_to_in(cell_t value) {
+    forth_store(to_in_addr, value);
+}
+
+// Parse string delimited by quote character
+// Returns length of parsed string, stores string at dest
+// Updates >IN to position after closing quote
+int parse_string(char quote_char, char* dest, size_t max_len) {
+    cell_t to_in = get_current_to_in();
+    cell_t input_length = get_current_input_length();
+    forth_addr_t input_addr = get_current_input_buffer_addr();
+
+    int length = 0;
+    bool found_closing_quote = false;
+
+    debug("parse_string: looking for '%c' starting at >IN=%d, input_length=%d",
+          quote_char, to_in, input_length);
+
+    // Parse until we find the closing quote or end of input
+    while (to_in < input_length && length < (int)(max_len - 1)) {
+        byte_t ch = forth_c_fetch(input_addr + to_in);
+        to_in++;
+
+        if (ch == quote_char) {
+            // Found closing quote - we're done
+            found_closing_quote = true;
+            debug("parse_string: found closing quote at position %d", to_in - 1);
+            break;
+        }
+
+        dest[length++] = ch;
+    }
+
+    dest[length] = '\0';  // Null terminate
+
+    // Update >IN to position after closing quote (or end of input)
+    set_current_to_in(to_in);
+
+    if (!found_closing_quote) {
+        printf("WARNING: Missing closing %c in string\n", quote_char);
+    }
+
+    debug("parse_string: parsed \"%s\" (length %d)", dest, length);
+    return length;
+}
+
 // Compile a token (word address) into current definition
 void compile_token(forth_addr_t token) {
     if (current_def_addr == 0) {

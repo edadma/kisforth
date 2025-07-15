@@ -161,6 +161,10 @@ void f_m_star(word_t* self);    // M* ( n1 n2 -- d )
 void f_variable(word_t* self);       // Variable execution ( -- addr )
 void f_immediate(word_t* self);      // IMMEDIATE ( -- )
 void f_roll(word_t* self);
+void f_display_counted_string(word_t* self);
+void f_abort_quote_runtime(word_t* self);
+void f_dot_quote(word_t* self);
+void f_abort_quote(word_t* self);
 
 // I/O interface - platform abstraction
 typedef struct {
@@ -182,6 +186,11 @@ void f_debug_off(word_t* self);     // DEBUG-OFF ( -- )
 // System management
 void forth_reset(void);         // Complete system reset
 void create_all_primitives(void); // Create all primitive words
+
+int parse_string(char quote_char, char* dest, size_t max_len);
+void set_current_to_in(cell_t value);
+forth_addr_t store_counted_string(const char* str, int length);
+
 
 // Unit testing system
 #ifdef FORTH_ENABLE_TESTS
