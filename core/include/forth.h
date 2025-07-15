@@ -162,10 +162,10 @@ void f_variable(word_t* self);       // Variable execution ( -- addr )
 void f_immediate(word_t* self);      // IMMEDIATE ( -- )
 void f_roll(word_t* self);
 void f_display_counted_string(word_t* self);
-void f_abort_quote_runtime(word_t* self);
 void f_dot_quote(word_t* self);
 void f_dot_quote_runtime(word_t* self);
 void f_abort_quote(word_t* self);
+void f_abort_quote_runtime(word_t* self);
 
 // I/O interface - platform abstraction
 typedef struct {
