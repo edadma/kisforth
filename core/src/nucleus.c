@@ -167,7 +167,9 @@ void f_divide(word_t* self) {
 
     cell_t n2 = data_pop();
     cell_t n1 = data_pop();
-    assert(n2 != 0);  // Division by zero check
+
+    if (n2 == 0) error("Division by zero");
+
     data_push(n1 / n2);
 }
 

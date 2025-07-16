@@ -88,6 +88,7 @@ extern word_t* dictionary_head;  // Points to most recently defined word
 void dictionary_init(void);
 void link_word(word_t* word);
 word_t* find_word(const char* name);
+word_t* search_word(const char* name);
 void show_dictionary(void);  // Debug helper
 
 // Input buffer management (ANS Forth standard)

@@ -45,6 +45,13 @@ static int case_insensitive_strcmp(const char* a, const char* b) {
 
 // Find a word in the dictionary by name (case-sensitive search)
 word_t* find_word(const char* name) {
+    word_t* word = search_word(name);
+
+    if (word) return word;
+    else error("Word not found: %s", name);
+}
+
+word_t* search_word(const char* name) {
     word_t* current = dictionary_head;
 
     while (current != NULL) {
@@ -54,7 +61,7 @@ word_t* find_word(const char* name) {
         current = current->link;  // Move to next word in chain
     }
 
-    error("Word not found: %s", name);
+    return NULL;
 }
 
 // Debug helper - show all words in dictionary

@@ -119,7 +119,7 @@ static void test_dictionary_functions(void) {
     TEST_ASSERT_TRUE(strcmp(plus_word->name, "+") == 0);
     TEST_ASSERT_NOT_NULL(plus_word->cfunc);
 
-    word_t* nonexistent = find_word("NONEXISTENT");
+    word_t* nonexistent = search_word("NONEXISTENT");
     TEST_ASSERT_TRUE(nonexistent == NULL);
 }
 

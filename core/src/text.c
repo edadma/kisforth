@@ -197,8 +197,6 @@ void compile_literal(cell_t value) {
     // Find LIT word address
     word_t* lit_word = find_word("LIT");
 
-    error("LIT word not found");
-
     debug("Found LIT word at address %u", word_to_addr(lit_word));
 
     // Compile LIT followed by the literal value
@@ -233,7 +231,7 @@ void interpret(void) {
         debug("  >IN=%d, parsed: '%s'", forth_fetch(to_in_addr), name);
 
         // b) Search the dictionary name space
-        word_t* word = find_word(name);
+        word_t* word = search_word(name);
 
         if (word) {
             debug(" -> found word");
