@@ -144,7 +144,40 @@ void f_f_divide(struct word* self) {
 void f_f_dot(struct word* self) {
     (void)self;
     double value = float_pop();
-    printf("%g ", value);  // %g uses shortest representation
+
+#ifdef FORTH_TARGET_PICO
+    // Pico-specific formatting - manual cleanup for cleaner output
+    char buffer[32];
+
+    // Check if it's effectively a whole number
+    if (fabs(value - round(value)) < 1e-9 && value >= -2147483648.0 && value <= 2147483647.0) {
+        // Display as integer
+        snprintf(buffer, sizeof(buffer), "%.0f", value);
+    } else {
+        // Use %.6g and manually clean up trailing zeros
+        snprintf(buffer, sizeof(buffer), "%.6g", value);
+
+        // Remove trailing zeros after decimal point (if any)
+        char* dot = strchr(buffer, '.');
+        if (dot && !strchr(buffer, 'e') && !strchr(buffer, 'E')) {
+            char* end = buffer + strlen(buffer) - 1;
+            while (end > dot && *end == '0') {
+                *end = '\0';
+                end--;
+            }
+            // Remove trailing decimal point if no digits after it
+            if (*end == '.') {
+                *end = '\0';
+            }
+        }
+    }
+
+    printf("%s ", buffer);
+#else
+    // PC build - use simple %g format (should work well)
+    printf("%g ", value);
+#endif
+
     fflush(stdout);
 }
 
