@@ -1,8 +1,6 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
-#include "forth.h"
-
 #ifdef FORTH_ENABLE_TOOLS
 
 // Tools word set functions
