@@ -4,6 +4,7 @@
 #include <string.h>
 #include <setjmp.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #define INPUT_BUFFER_SIZE 256
 
@@ -33,6 +34,17 @@ void f_abort(word_t* self) {
 
     // Call QUIT for cleanup
     f_quit(self);
+}
+
+void exception(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+
+    printf("\n");
+    fflush(stdout);
+    f_abort(NULL);
 }
 
 // BYE word - exit the system
@@ -91,7 +103,7 @@ void forth_repl(void) {
     }
 
     while (true) {
-        printf(" ok\n");
+        printf(*state_ptr ? "\ncompiling> " : "\nok> ");
         fflush(stdout);
 
         get_line();

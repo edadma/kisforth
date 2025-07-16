@@ -19,15 +19,7 @@ int main(int argc, char* argv[]) {
     input_system_init();    // Initialize input buffers in Forth memory
     dictionary_init();
 
-    printf("Forth system initialized.\n");
-
-    // Check for command line arguments
-    bool run_tests = false;
     if (argc > 1 && strcmp(argv[1], "test") == 0) {
-        run_tests = true;
-    }
-
-    if (run_tests) {
         // Run tests and exit
         word_t* test_word = find_word("TEST");
         if (test_word) {
