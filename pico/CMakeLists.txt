@@ -15,3 +15,8 @@ pico_enable_stdio_uart(kisforth_pico 0)
 
 # Create UF2 file for easy flashing
 pico_add_extra_outputs(kisforth_pico)
+
+# Enable memory usage reporting
+set_target_properties(kisforth_pico PROPERTIES
+        LINK_FLAGS "-Wl,--print-memory-usage"
+)
