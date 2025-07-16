@@ -9,7 +9,24 @@ option(ENABLE_DEBUG "Enable debug output system" ON)  # OFF by default for produ
 option(ENABLE_FLOATING "Enable floating point word set" ON)
 option(ENABLE_TOOLS "Enable programming tools word set" ON)  # Default ON for development
 
-if (BUILD_FOR_PICO)
+# Add after the existing platform selection options
+option(BUILD_FOR_WINDOWS "Cross-compile for Windows" OFF)
+
+if (BUILD_FOR_WINDOWS)
+    # Windows cross-compilation setup
+    set(CMAKE_SYSTEM_NAME Windows)
+    set(CMAKE_C_COMPILER x86_64-w64-mingw32-gcc)
+    set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)
+    set(CMAKE_RC_COMPILER x86_64-w64-mingw32-windres)
+
+    # Set static linking to avoid DLL dependencies
+    set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc")
+
+    project(kisforth VERSION 0.0.1 LANGUAGES C)
+    set(CMAKE_C_STANDARD 11)
+    set(CMAKE_C_STANDARD_REQUIRED ON)
+    message(STATUS "Cross-compiling for Windows")
+elseif (BUILD_FOR_PICO)
     # Pico-specific setup
     set(PICO_BOARD pico)  # Change to pico_w if using Pico W
     include(pico/pico_sdk_import.cmake)

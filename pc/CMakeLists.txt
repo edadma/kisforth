@@ -7,8 +7,13 @@ add_executable(kisforth
 target_link_libraries(kisforth PRIVATE kisforth_core)
 
 # Platform-specific libraries for PC
-if (UNIX AND NOT APPLE)
-    # Linux - might need readline later
+if (BUILD_FOR_WINDOWS)
+    # Windows-specific settings
+    set_target_properties(kisforth PROPERTIES
+            OUTPUT_NAME "kisforth"
+            SUFFIX ".exe"
+    )
+elseif (UNIX AND NOT APPLE)    # Linux - might need readline later
     # target_link_libraries(kisforth PRIVATE readline)
 endif ()
 
@@ -22,6 +27,5 @@ endif ()
 
 # Set executable properties
 set_target_properties(kisforth PROPERTIES
-        OUTPUT_NAME "kisforth"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
