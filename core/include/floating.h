@@ -25,9 +25,13 @@ bool try_parse_float(const char* token, double* result);
 void create_floating_primitives(void);
 void create_floating_definitions(void);
 
-// Primitive implementations (initial set)
+// Primitive implementations
 void f_fdrop(struct word* self);     // FDROP ( F: r -- )
+void f_fdup(struct word* self);      // FDUP ( F: r -- r r )
 void f_f_plus(struct word* self);    // F+ ( F: r1 r2 -- r3 )
+void f_f_minus(struct word* self);   // F- ( F: r1 r2 -- r3 )
+void f_f_multiply(struct word* self); // F* ( F: r1 r2 -- r3 )
+void f_f_divide(struct word* self);  // F/ ( F: r1 r2 -- r3 )
 void f_f_dot(struct word* self);     // F. ( F: r -- )
 
 #endif // FORTH_ENABLE_FLOATING

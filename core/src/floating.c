@@ -92,12 +92,52 @@ void f_fdrop(struct word* self) {
     float_pop();
 }
 
+// FDUP ( F: r -- r r ) Duplicate top float
+void f_fdup(struct word* self) {
+    (void)self;
+    double r = float_peek();
+    float_push(r);
+}
+
 // F+ ( F: r1 r2 -- r3 ) Add two floats
 void f_f_plus(struct word* self) {
     (void)self;
     double r2 = float_pop();
     double r1 = float_pop();
     float_push(r1 + r2);
+}
+
+// F- ( F: r1 r2 -- r3 ) Subtract r2 from r1
+void f_f_minus(struct word* self) {
+    (void)self;
+    double r2 = float_pop();
+    double r1 = float_pop();
+    float_push(r1 - r2);
+}
+
+// F* ( F: r1 r2 -- r3 ) Multiply two floats
+void f_f_multiply(struct word* self) {
+    (void)self;
+    double r2 = float_pop();
+    double r1 = float_pop();
+    float_push(r1 * r2);
+}
+
+// F/ ( F: r1 r2 -- r3 ) Divide r1 by r2
+void f_f_divide(struct word* self) {
+    (void)self;
+    double r2 = float_pop();
+    double r1 = float_pop();
+
+    // Check for division by zero
+    if (r2 == 0.0) {
+        printf("ERROR: Floating-point division by zero\n");
+        // Push NaN or handle error - for simplicity, push 0
+        float_push(0.0);
+        return;
+    }
+
+    float_push(r1 / r2);
 }
 
 // F. ( F: r -- ) Display a float and remove from stack
@@ -111,7 +151,11 @@ void f_f_dot(struct word* self) {
 // Create all floating-point primitives
 void create_floating_primitives(void) {
     create_primitive_word("FDROP", f_fdrop);
+    create_primitive_word("FDUP", f_fdup);
     create_primitive_word("F+", f_f_plus);
+    create_primitive_word("F-", f_f_minus);
+    create_primitive_word("F*", f_f_multiply);
+    create_primitive_word("F/", f_f_divide);
     create_primitive_word("F.", f_f_dot);
 
     debug("Floating-point primitives created");
