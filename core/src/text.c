@@ -206,6 +206,36 @@ void compile_literal(cell_t value) {
     debug("Compiled literal: %d", value);
 }
 
+#ifdef FORTH_ENABLE_FLOATING
+
+// Compile a float literal using FLIT
+void compile_float_literal(double value) {
+    if (current_def_addr == 0) error("Not compiling");
+
+    // Find FLIT word address
+    word_t* flit_word = find_word("FLIT");
+    if (!flit_word) error("FLIT word not found");
+
+    debug("Found FLIT word at address %u", word_to_addr(flit_word));
+
+    // Compile FLIT followed by the 8-byte double value
+    compile_token(word_to_addr(flit_word));
+
+    // Store double as two consecutive 32-bit cells
+    union {
+        double d;
+        uint32_t cells[2];
+    } converter;
+    converter.d = value;
+
+    compile_token((forth_addr_t)converter.cells[0]);
+    compile_token((forth_addr_t)converter.cells[1]);
+
+    debug("Compiled float literal: %g", value);
+}
+
+#endif // FORTH_ENABLE_FLOATING
+
 // ANS Forth compliant text interpreter
 // Implements the algorithm from section 3.4 of the standard
 // Enhanced to support both interpretation and compilation modes
@@ -277,9 +307,8 @@ void interpret(void) {
                         float_push(float_number);
                     } else {
                         // c3.2) if compiling, compile float literal (not implemented yet)
-                        debug(" (compiling), float literal compilation not yet implemented");
-                        printf(" -> ERROR: Float literal compilation not yet implemented\n");
-                        return;
+                        debug(" (compiling), compiling float literal");
+                        compile_float_literal(float_number);
                     }
                 } else {
 #endif

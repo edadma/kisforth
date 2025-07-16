@@ -18,6 +18,8 @@ double float_pop(void);
 double float_peek(void);
 int float_depth(void);
 
+void compile_float_literal(double value);
+
 // Float parsing
 bool try_parse_float(const char* token, double* result);
 
@@ -33,6 +35,7 @@ void f_f_minus(struct word* self);   // F- ( F: r1 r2 -- r3 )
 void f_f_multiply(struct word* self); // F* ( F: r1 r2 -- r3 )
 void f_f_divide(struct word* self);  // F/ ( F: r1 r2 -- r3 )
 void f_f_dot(struct word* self);     // F. ( F: r -- )
+void f_flit(word_t* self);              // FLIT ( F: -- r ) [float value follows]
 
 #endif // FORTH_ENABLE_FLOATING
 #endif // FLOATING_H
