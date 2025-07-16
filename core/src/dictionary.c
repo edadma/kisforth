@@ -47,8 +47,8 @@ static int case_insensitive_strcmp(const char* a, const char* b) {
 word_t* find_word(const char* name) {
     word_t* word = search_word(name);
 
-    if (word) return word;
-    else error("Word not found: %s", name);
+    if (!word) error("Word not found: %s", name);
+    return word;
 }
 
 word_t* search_word(const char* name) {
