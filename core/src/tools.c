@@ -126,11 +126,7 @@ void create_tools_definitions(void) {
         cell_t saved_state = *state_ptr;
         interpret_text(tools_definitions[i]);
 
-        if (*state_ptr != 0) {
-            printf("ERROR: Tools definition left system in compilation state: %s\n",
-                   tools_definitions[i]);
-            *state_ptr = 0;
-        }
+        if (*state_ptr != 0) error("Tools definition left system in compilation state: %s", tools_definitions[i]);
 
         if (saved_state == 0 && *state_ptr != 0) {
             *state_ptr = saved_state;

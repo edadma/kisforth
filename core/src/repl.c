@@ -36,13 +36,14 @@ void f_abort(word_t* self) {
     f_quit(self);
 }
 
-void exception(const char* format, ...) {
+void error(const char* format, ...) {
     va_list args;
     va_start(args, format);
+    printf("ERROR: ");
     vprintf(format, args);
     va_end(args);
 
-    printf("\n");
+    putchar('\n');
     fflush(stdout);
     f_abort(NULL);
 }

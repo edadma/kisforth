@@ -131,10 +131,7 @@ void f_f_divide(struct word* self) {
 
     // Check for division by zero
     if (r2 == 0.0) {
-        printf("ERROR: Floating-point division by zero\n");
-        // Push NaN or handle error - for simplicity, push 0
-        float_push(0.0);
-        return;
+        error("Floating-point division by zero");
     }
 
     float_push(r1 / r2);
@@ -211,9 +208,7 @@ void create_floating_definitions(void) {
         interpret_text(floating_definitions[i]);
 
         if (*state_ptr != 0) {
-            printf("ERROR: Floating-point definition left system in compilation state: %s\n",
-                   floating_definitions[i]);
-            *state_ptr = 0;
+            error("Floating-point definition left system in compilation state: %s", floating_definitions[i]);
         }
 
         if (saved_state == 0 && *state_ptr != 0) {

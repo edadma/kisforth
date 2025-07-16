@@ -399,10 +399,9 @@ forth_addr_t defining_word(void (*cfunc)(struct word* self)) {
 
     // Parse the name for the new definition
     char* name = parse_name(name_buffer, sizeof(name_buffer));
-    if (!name) {
-        printf("ERROR: Missing name after :\n");
-        return 0;
-    }
+
+    if (!name) error("Missing name after ':'");
+
 
     debug("Starting colon definition: %s", name);
 
@@ -432,10 +431,8 @@ void f_colon(word_t* self) {
 
     // Parse the name for the new definition
     char* name = parse_name(name_buffer, sizeof(name_buffer));
-    if (!name) {
-        printf("ERROR: Missing name after :\n");
-        return;
-    }
+
+    if (!name)  error("Missing name after ':'");
 
     debug("Starting colon definition: %s", name);
 
@@ -463,21 +460,14 @@ void f_colon(word_t* self) {
 void f_semicolon(word_t* self) {
     (void)self;
 
-    if (*state_ptr == 0) {
-        printf("ERROR: ; without matching :\n");
-        return;
-    }
+    if (*state_ptr == 0) error("';' without matching :");
 
     debug("Ending colon definition, compiling EXIT");
 
     // Compile EXIT as the last token
     word_t* exit_word = find_word("EXIT");
-    if (exit_word) {
-        compile_token(word_to_addr(exit_word));
-    } else {
-        printf("ERROR: EXIT word not found\n");
-        return;
-    }
+
+    compile_token(word_to_addr(exit_word));
 
     // Link the completed word into dictionary
     word_t* word = addr_to_word(current_def_addr);
@@ -514,11 +504,7 @@ void f_exit(word_t* self) {
 void f_lit(word_t* self) {
     (void)self;
 
-    if (current_ip == 0) {
-        printf("ERROR: LIT called outside colon definition\n");
-        data_push(0);  // Fallback for safety
-        return;
-    }
+    if (current_ip == 0) error("LIT called outside colon definition");
 
     // Read the literal value from the instruction stream
     cell_t literal = forth_fetch(current_ip);
@@ -748,10 +734,7 @@ void f_m_star(word_t* self) {
 void f_immediate(word_t* self) {
     (void)self;
 
-    if (dictionary_head == NULL) {
-        printf("ERROR: No word to make immediate\n");
-        return;
-    }
+    if (dictionary_head == NULL) error("No word to make immediate");
 
     // Set immediate flag on most recently defined word
     dictionary_head->flags |= WORD_FLAG_IMMEDIATE;
@@ -772,10 +755,7 @@ void f_roll(word_t* self) {
         return;
     }
 
-    if (data_depth() < u + 1) {
-        printf("ERROR: ROLL stack underflow\n");
-        return;
-    }
+    if (data_depth() < u + 1) error("ROLL stack underflow");
 
     // Get the item that's u positions down
     cell_t xu = data_stack[data_stack_ptr - 1 - u];
@@ -823,10 +803,7 @@ forth_addr_t store_counted_string(const char* str, int length) {
 void f_dot_quote_runtime(word_t* self) {
     (void)self;
 
-    if (current_ip == 0) {
-        printf("ERROR: .( called outside colon definition\n");
-        return;
-    }
+    if (current_ip == 0) error("'.(' called outside colon definition");
 
     // Read string length from parameter field
     byte_t length = (byte_t)forth_fetch(current_ip);
@@ -854,10 +831,7 @@ void f_abort_quote_runtime(word_t* self) {
 
     cell_t flag = data_pop();
 
-    if (current_ip == 0) {
-        printf("ERROR: (ABORT called outside colon definition\n");
-        return;
-    }
+    if (current_ip == 0) error("(ABORT called outside colon definition");
 
     // Read string length from parameter field
     byte_t length = (byte_t)forth_fetch(current_ip);
@@ -902,13 +876,8 @@ void f_dot_quote(word_t* self) {
               string_buffer, length);
 
         word_t* runtime_word = find_word("(.\"");
-        if (runtime_word) {
-            compile_token(word_to_addr(runtime_word));
-        } else {
-            printf("ERROR: (. word not found\n");
-            return;
-        }
 
+        compile_token(word_to_addr(runtime_word));
         compile_token((forth_addr_t)length);
 
         for (int i = 0; i < length; i++) {
@@ -932,10 +901,7 @@ void f_abort_quote(word_t* self) {
 
     if (*state_ptr == 0) {
         // Interpretation mode - check flag and abort immediately
-        if (data_depth() < 1) {
-            printf("ERROR: ABORT\" requires a flag on the stack\n");
-            return;
-        }
+        if (data_depth() < 1) error("ABORT\" requires a flag on the stack");
 
         cell_t flag = data_pop();
         if (flag != 0) {
@@ -948,12 +914,8 @@ void f_abort_quote(word_t* self) {
 
         // 1. Compile the runtime word
         word_t* runtime_word = find_word("(ABORT\"");
-        if (runtime_word) {
-            compile_token(word_to_addr(runtime_word));
-        } else {
-            printf("ERROR: (ABORT word not found\n");
-            return;
-        }
+
+        compile_token(word_to_addr(runtime_word));
 
         // 2. Compile the string length
         compile_token((forth_addr_t)length);
@@ -1132,11 +1094,7 @@ void create_builtin_definitions(void) {
         interpret_text(builtin_definitions[i]);
 
         // Verify we're back in interpretation state
-        if (*state_ptr != 0) {
-            printf("ERROR: Built-in definition left system in compilation state: %s\n",
-                   builtin_definitions[i]);
-            *state_ptr = 0;  // Force back to interpretation
-        }
+        if (*state_ptr != 0) error("Built-in definition left system in compilation state: %s", builtin_definitions[i]);
 
         // Restore state if it was somehow changed
         if (saved_state == 0 && *state_ptr != 0) {

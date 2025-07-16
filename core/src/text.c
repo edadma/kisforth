@@ -182,10 +182,7 @@ int parse_string(char quote_char, char* dest, size_t max_len) {
 
 // Compile a token (word address) into current definition
 void compile_token(forth_addr_t token) {
-    if (current_def_addr == 0) {
-        printf("ERROR: Not compiling\n");
-        return;
-    }
+    if (current_def_addr == 0) error("Not compiling");
 
     // Align and store the token
     forth_align();
@@ -199,10 +196,8 @@ void compile_token(forth_addr_t token) {
 void compile_literal(cell_t value) {
     // Find LIT word address
     word_t* lit_word = find_word("LIT");
-    if (!lit_word) {
-        printf("ERROR: LIT word not found\n");
-        return;
-    }
+
+    error("LIT word not found");
 
     debug("Found LIT word at address %u", word_to_addr(lit_word));
 
@@ -239,6 +234,7 @@ void interpret(void) {
 
         // b) Search the dictionary name space
         word_t* word = find_word(name);
+
         if (word) {
             debug(" -> found word");
 
@@ -290,8 +286,7 @@ void interpret(void) {
                 } else {
 #endif
                     // d) If unsuccessful, ambiguous condition (error)
-                    printf(" -> ERROR: '%s' not found and not a number\n", name);
-                    return;  // Stop interpretation on error
+                    error("'%s' not found and not a number", name);
 #ifdef FORTH_ENABLE_FLOATING
                 }
 #endif

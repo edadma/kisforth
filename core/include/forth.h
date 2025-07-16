@@ -46,7 +46,7 @@ extern int return_stack_ptr;  // Points to next empty slot
 
 extern forth_addr_t current_ip;
 
-void exception(const char* format, ...);
+void error(const char* format, ...);
 
 char digit_to_char(int digit);
 int char_to_digit(char c, int base);

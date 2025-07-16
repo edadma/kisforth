@@ -54,7 +54,7 @@ word_t* find_word(const char* name) {
         current = current->link;  // Move to next word in chain
     }
 
-    return NULL;  // Not found
+    error("Word not found: %s", name);
 }
 
 // Debug helper - show all words in dictionary
