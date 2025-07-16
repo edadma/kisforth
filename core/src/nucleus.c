@@ -118,8 +118,8 @@ word_t* create_immediate_primitive_word(const char* name, void (*cfunc)(word_t* 
 
 // Execute a word by calling its cfunc
 void execute_word(word_t* word) {
-    assert(word != NULL);
-    assert(word->cfunc != NULL);
+    require(word != NULL);
+    require(word->cfunc != NULL);
     word->cfunc(word);
 }
 
@@ -315,8 +315,8 @@ void f_pick(word_t* self) {
     cell_t u = data_pop();
 
     // Bounds check: u must be >= 0 and < stack depth
-    assert(u >= 0);
-    assert(u < data_depth());
+    require(u >= 0);
+    require(u < data_depth());
 
     // Use data_peek_at to get the u-th item from top
     cell_t xu = data_peek_at(u);
@@ -339,7 +339,7 @@ void f_allot(word_t* self) {
     // Handle negative allot (deallocation) carefully
     if (n < 0) {
         // Negative allot - check bounds to prevent underflow
-        assert(here >= (forth_addr_t)(-n));
+        require(here >= (forth_addr_t)(-n));
         here += n;  // n is negative, so this subtracts
     } else {
         // Positive allot - normal allocation
@@ -526,7 +526,7 @@ void f_sm_rem(word_t* self) {
 
     // Pop divisor (single cell)
     cell_t divisor = data_pop();
-    assert(divisor != 0);  // Division by zero check
+    require(divisor != 0);  // Division by zero check
 
     // Pop dividend (double cell: high cell first, then low cell)
     cell_t dividend_hi = data_pop();
@@ -541,8 +541,8 @@ void f_sm_rem(word_t* self) {
     int64_t remainder = dividend % div;  // C remainder has sign of dividend
 
     // Ensure results fit in 32-bit cells
-    assert(quotient >= INT32_MIN && quotient <= INT32_MAX);
-    assert(remainder >= INT32_MIN && remainder <= INT32_MAX);
+    require(quotient >= INT32_MIN && quotient <= INT32_MAX);
+    require(remainder >= INT32_MIN && remainder <= INT32_MAX);
 
     // Push remainder first, then quotient
     data_push((cell_t)remainder);
@@ -557,7 +557,7 @@ void f_fm_mod(word_t* self) {
 
     // Pop divisor (single cell)
     cell_t divisor = data_pop();
-    assert(divisor != 0);  // Division by zero check
+    require(divisor != 0);  // Division by zero check
 
     // Pop dividend (double cell: high cell first, then low cell)
     cell_t dividend_hi = data_pop();
@@ -579,8 +579,8 @@ void f_fm_mod(word_t* self) {
     }
 
     // Ensure results fit in 32-bit cells
-    assert(quotient >= INT32_MIN && quotient <= INT32_MAX);
-    assert(remainder >= INT32_MIN && remainder <= INT32_MAX);
+    require(quotient >= INT32_MIN && quotient <= INT32_MAX);
+    require(remainder >= INT32_MIN && remainder <= INT32_MAX);
 
     // Push remainder first, then quotient
     data_push((cell_t)remainder);
@@ -709,7 +709,7 @@ void f_r_fetch(word_t* self) {
     (void)self;
 
     // Make sure there's something to peek at
-    assert(return_depth() > 0);
+    require(return_depth() > 0);
 
     // Peek at top of return stack without removing it
     cell_t x = return_stack[return_stack_ptr - 1];

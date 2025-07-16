@@ -19,6 +19,14 @@ typedef uint32_t forth_addr_t; // Forth address (always 32-bit)
 #define RETURN_STACK_SIZE 48           // Per standard minimum
 #define INPUT_BUFFER_SIZE 256          // Text input buffer
 
+#define require(condition, ...) \
+    do { \
+        if (!(condition)) { \
+            error("Requirement failed: %s at %s:%d - " __VA_ARGS__, \
+                  #condition, __FILE__, __LINE__); \
+        } \
+    } while(0)
+
 // Word structure
 typedef struct word {
     struct word* link;          // Link to previous word (C pointer)

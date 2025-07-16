@@ -21,20 +21,20 @@ void float_stack_init(void) {
 
 // Float stack operations
 void float_push(double value) {
-    assert(float_stack_ptr < FLOAT_STACK_SIZE);  // Stack overflow check
+    require(float_stack_ptr < FLOAT_STACK_SIZE);  // Stack overflow check
     float_stack[float_stack_ptr++] = value;
     debug("Float pushed: %g (depth now %d)", value, float_stack_ptr);
 }
 
 double float_pop(void) {
-    assert(float_stack_ptr > 0);  // Stack underflow check
+    require(float_stack_ptr > 0);  // Stack underflow check
     double value = float_stack[--float_stack_ptr];
     debug("Float popped: %g (depth now %d)", value, float_stack_ptr);
     return value;
 }
 
 double float_peek(void) {
-    assert(float_stack_ptr > 0);  // Stack underflow check
+    require(float_stack_ptr > 0);  // Stack underflow check
     return float_stack[float_stack_ptr - 1];
 }
 

@@ -16,23 +16,23 @@ void stack_init(void) {
 
 // Data stack operations
 void data_push(cell_t value) {
-    assert(data_stack_ptr < DATA_STACK_SIZE);  // Stack overflow check
+    require(data_stack_ptr < DATA_STACK_SIZE, "Stack overflow");
     data_stack[data_stack_ptr++] = value;
 }
 
 cell_t data_pop(void) {
-    assert(data_stack_ptr > 0);  // Stack underflow check
+    require(data_stack_ptr > 0, "Stack underflow");
     return data_stack[--data_stack_ptr];
 }
 
 cell_t data_peek(void) {
-    assert(data_stack_ptr > 0);  // Stack underflow check
+    require(data_stack_ptr > 0, "Stack underflow");
     return data_stack[data_stack_ptr - 1];
 }
 
 // Peek at specific stack position (0 = top, 1 = second from top, etc.)
 cell_t data_peek_at(int offset) {
-    assert(data_stack_ptr > offset);  // Bounds check
+    require(data_stack_ptr > offset);  // Bounds check
     return data_stack[data_stack_ptr - 1 - offset];
 }
 
@@ -42,12 +42,12 @@ int data_depth(void) {
 
 // Return stack operations
 void return_push(cell_t value) {
-    assert(return_stack_ptr < RETURN_STACK_SIZE);  // Stack overflow check
+    require(return_stack_ptr < RETURN_STACK_SIZE, "Return stack overflow");
     return_stack[return_stack_ptr++] = value;
 }
 
 cell_t return_pop(void) {
-    assert(return_stack_ptr > 0);  // Stack underflow check
+    require(return_stack_ptr > 0, "Return stack underflow");
     return return_stack[--return_stack_ptr];
 }
 
