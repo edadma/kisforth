@@ -1,5 +1,6 @@
 #include "forth.h"
 #include "debug.h"
+#include "floating.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -270,9 +271,30 @@ void interpret(void) {
                     compile_literal(number);
                 }
             } else {
-                // d) If unsuccessful, ambiguous condition (error)
-                printf(" -> ERROR: '%s' not found and not a number\n", name);
-                return;  // Stop interpretation on error
+#ifdef FORTH_ENABLE_FLOATING
+                // c3) Try parsing as floating-point number
+                double float_number;
+                if (try_parse_float(name, &float_number)) {
+                    debug(" -> float %g", float_number);
+
+                    if (*state_ptr == 0) {
+                        // c3.1) if interpreting, place float on float stack
+                        debug(" (interpreting), pushing to float stack");
+                        float_push(float_number);
+                    } else {
+                        // c3.2) if compiling, compile float literal (not implemented yet)
+                        debug(" (compiling), float literal compilation not yet implemented");
+                        printf(" -> ERROR: Float literal compilation not yet implemented\n");
+                        return;
+                    }
+                } else {
+#endif
+                    // d) If unsuccessful, ambiguous condition (error)
+                    printf(" -> ERROR: '%s' not found and not a number\n", name);
+                    return;  // Stop interpretation on error
+#ifdef FORTH_ENABLE_FLOATING
+                }
+#endif
             }
         }
     }

@@ -23,6 +23,13 @@ if (ENABLE_TOOLS)
     message(STATUS "Programming tools word set enabled")
 endif ()
 
+# Conditionally add floating point system
+if (ENABLE_FLOATING)
+    target_sources(kisforth_core PRIVATE src/floating.c)
+    target_compile_definitions(kisforth_core PUBLIC FORTH_ENABLE_FLOATING=1)
+    message(STATUS "Floating point word set enabled")
+endif ()
+
 # Include directories
 target_include_directories(kisforth_core
         PUBLIC include

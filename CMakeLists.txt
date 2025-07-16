@@ -5,9 +5,8 @@ option(BUILD_FOR_PICO "Build for Raspberry Pi Pico" OFF)
 
 # Extension options
 option(ENABLE_TESTS "Enable unit testing system" ON)  # Default ON for development
-option(ENABLE_DEBUG "Enable debug output system" OFF)  # OFF by default for production
-
-option(ENABLE_FLOATING "Enable floating point word set" OFF)
+option(ENABLE_DEBUG "Enable debug output system" ON)  # OFF by default for production
+option(ENABLE_FLOATING "Enable floating point word set" ON)
 option(ENABLE_TOOLS "Enable programming tools word set" ON)  # Default ON for development
 
 if (BUILD_FOR_PICO)
@@ -51,12 +50,6 @@ endif ()
 
 # Core library (always built)
 add_subdirectory(core)
-
-# Extensions (optional)
-if (ENABLE_FLOATING)
-    add_subdirectory(extensions/floating)
-    message(STATUS "Floating point extension enabled")
-endif ()
 
 # Platform-specific executables
 if (BUILD_FOR_PICO)

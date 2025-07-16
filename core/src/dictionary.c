@@ -1,5 +1,6 @@
 #include "forth.h"
 #include "tools.h"
+#include "floating.h"
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -16,6 +17,12 @@ void dictionary_init(void) {
     #ifdef FORTH_ENABLE_TOOLS
     create_tools_primitives();
     create_tools_definitions();
+    #endif
+
+    #ifdef FORTH_ENABLE_FLOATING
+    float_stack_init();
+    create_floating_primitives();
+    create_floating_definitions();
     #endif
 }
 
