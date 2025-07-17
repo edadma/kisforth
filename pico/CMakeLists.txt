@@ -3,9 +3,9 @@ add_executable(kisforth_pico
         src/main.c
 )
 
-# Link against core library and Pico SDK
+# Link against interpreter library and Pico SDK
 target_link_libraries(kisforth_pico
-        kisforth_core
+        kisforth_interpreter
         pico_stdlib
 )
 

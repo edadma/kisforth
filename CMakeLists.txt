@@ -66,7 +66,7 @@ if (ENABLE_DEBUG)
 endif ()
 
 # Core library (always built)
-add_subdirectory(core)
+add_subdirectory(interpreter)
 
 # Platform-specific executables
 if (BUILD_FOR_PICO)

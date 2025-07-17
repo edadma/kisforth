@@ -1,4 +1,3 @@
-// In core/src/repl.c
 #include "forth.h"
 #include <stdio.h>
 #include <string.h>

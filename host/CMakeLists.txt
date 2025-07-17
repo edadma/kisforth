@@ -3,8 +3,8 @@ add_executable(kisforth
         src/main.c
 )
 
-# Link with core library
-target_link_libraries(kisforth PRIVATE kisforth_core)
+# Link with interpreter library
+target_link_libraries(kisforth PRIVATE kisforth_interpreter)
 
 # Platform-specific libraries for host
 if (BUILD_FOR_WINDOWS)
