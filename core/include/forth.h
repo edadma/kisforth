@@ -19,6 +19,8 @@ typedef uint32_t forth_addr_t; // Forth address (always 32-bit)
 #define RETURN_STACK_SIZE 48           // Per standard minimum
 #define INPUT_BUFFER_SIZE 256          // Text input buffer
 
+#define FORTH_PAD_SIZE 1024
+
 #define require(condition, ...) \
     do { \
         if (!(condition)) { \

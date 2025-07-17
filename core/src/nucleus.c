@@ -4,8 +4,6 @@
 #include <assert.h>
 #include <stdio.h>
 
-#define FORTH_PAD_SIZE 1024
-
 // Global STATE pointer for efficient access
 cell_t* state_ptr = NULL;
 
