@@ -395,11 +395,9 @@ word_t* defining_word(void (*cfunc)(struct word* self)) {
 
     if (!name) error("Missing name after ':'");
 
-
-    debug("Starting colon definition: %s", name);
+    debug("Creating word: %s", name);
 
     // Create word header but don't link it yet (hidden until ; is executed)
-    forth_align();
     forth_addr_t word_addr = forth_allot(sizeof(word_t));
     word_t* word = addr_to_ptr(word_addr);
 
@@ -419,27 +417,7 @@ word_t* defining_word(void (*cfunc)(struct word* self)) {
 void f_colon(word_t* self) {
     (void)self;
 
-    char name_buffer[32];
-
-    // Parse the name for the new definition
-    char* name = parse_name(name_buffer, sizeof(name_buffer));
-
-    if (!name) error("Missing name after ':'");
-
-    debug("Starting colon definition: %s", name);
-
-    // Create word header but don't link it yet (hidden until ; is executed)
-    forth_addr_t word_addr = forth_allot(sizeof(word_t));
-    word_t* word = addr_to_ptr(word_addr);
-
-    // Initialize word header
-    strncpy(word->name, name, sizeof(word->name) - 1);
-    word->name[sizeof(word->name) - 1] = '\0';
-    word->flags = 0;
-    word->cfunc = execute_colon;
-    word->param_field = here;  // Set parameter field to point to definition
-
-    link_word(word);
+    definig_word(execute_colon);
 
     // Enter compilation state
     *state_ptr = -1;
