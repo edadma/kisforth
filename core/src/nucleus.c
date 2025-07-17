@@ -952,6 +952,20 @@ void f_branch(word_t* self) {
     current_ip = target;  // Always branch
 }
 
+// U< ( u1 u2 -- flag )  Unsigned less than comparison
+void f_u_less(word_t* self) {
+    (void)self;
+
+    cell_t n2 = data_pop();
+    cell_t n1 = data_pop();
+
+    // Cast to unsigned for comparison
+    uint32_t u1 = (uint32_t)n1;
+    uint32_t u2 = (uint32_t)n2;
+
+    data_push(u1 < u2 ? -1 : 0);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -993,6 +1007,7 @@ void create_all_primitives(void) {
     create_primitive_word("R>", f_r_from);
     create_primitive_word("R@", f_r_fetch);
     create_primitive_word("M*", f_m_star);
+    create_primitive_word("U<", f_u_less);
 
     // Create STATE variable (0 = interpret, -1 = compile)
     state_ptr = create_variable_word("STATE", 0);
@@ -1061,7 +1076,9 @@ static const char* builtin_definitions[] = {
 	": 0<> 0 <> ;",
 	": <= > NOT ;",
 	": >= < NOT ;",
-
+    ": U> SWAP U< ;",           // Unsigned greater than
+    ": U<= U> NOT ;",           // Unsigned less than or equal
+    ": U>= U< NOT ;",           // Unsigned greater than or equal
     ": 2* DUP + ;",
     ": 2/ 2 / ;",
 
@@ -1095,6 +1112,29 @@ static const char* builtin_definitions[] = {
     ": ELSE  ['] BRANCH ,  HERE  0 ,  SWAP  HERE  SWAP  ! ; IMMEDIATE",
 
     ": t if .\" true\" else .\" false\" then cr ;",
+    ": nt DUP IF DUP 1 = IF .\" one\" ELSE .\" other positive\" THEN ELSE .\" zero or negative\" THEN DROP CR ;",
+
+    // ?DUP ( x -- 0 | x x ) - Duplicate if non-zero
+    ": ?DUP DUP IF DUP THEN ;",
+
+    // ABS ( n -- u ) - Absolute value
+    ": ABS DUP 0< IF NEGATE THEN ;",
+
+    // MIN ( n1 n2 -- n3 ) - Return the lesser value
+    ": MIN 2DUP > IF SWAP THEN DROP ;",
+
+    // MAX ( n1 n2 -- n3 ) - Return the greater value
+    ": MAX 2DUP < IF SWAP THEN DROP ;",
+
+    // WITHIN ( n1|u1 n2|u2 n3|u3 -- flag ) - Core Extension but very useful
+    // Returns true if n2 <= n1 < n3 (when n2 < n3) or if n2 <= n1 OR n1 < n3 (when n2 >= n3)
+    ": WITHIN OVER - >R - R> U< ;",
+
+    // SIGNUM ( n -- -1|0|1 ) - Not required but helpful
+    ": SIGNUM DUP 0< IF DROP -1 ELSE 0> IF 1 ELSE 0 THEN THEN ;",
+
+    // BOUNDS ( addr1 u -- addr2 addr1 ) - Not required but useful for loops
+    ": BOUNDS OVER + SWAP ;",
 
     NULL  // End marker
 };

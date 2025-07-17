@@ -185,6 +185,7 @@ void f_abort_quote_runtime(word_t* self);
 void f_bracket_tick(word_t* self);
 void f_0branch(word_t* self);
 void f_branch(word_t* self);
+void f_u_less(word_t* self);
 
 // I/O interface - platform abstraction
 typedef struct {
