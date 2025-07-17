@@ -4,17 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include "types.h"
 
-// Core data types from design document
-typedef int32_t cell_t;        // 32-bit cell
-typedef uint32_t ucell_t;      // Unsigned cell
-typedef uint8_t byte_t;        // Byte for C@ C! operations
-typedef uint32_t forth_addr_t; // Forth address (always 32-bit)
-
-// Memory layout constants (can be overridden by CMake for different platforms)
-#ifndef FORTH_MEMORY_SIZE
-#define FORTH_MEMORY_SIZE (64 * 1024)  // 64KB virtual memory (default)
-#endif
 #define DATA_STACK_SIZE 64             // Per standard minimum
 #define RETURN_STACK_SIZE 48           // Per standard minimum
 #define INPUT_BUFFER_SIZE 256          // Text input buffer
@@ -29,24 +20,8 @@ typedef uint32_t forth_addr_t; // Forth address (always 32-bit)
         } \
     } while(0)
 
-// Word structure
-typedef struct word {
-    struct word* link;          // Link to previous word (C pointer)
-    char name[32];              // Word name (31 chars max per standard)
-    uint32_t flags;             // Immediate flag, etc.
-    void (*cfunc)(struct word* self);  // C function for ALL word types
-    // DUAL-PURPOSE PARAMETER FIELD:
-    // - For most words: Forth address pointing to parameter space
-    // - For variables:  Direct storage of the variable's value
-    uint32_t param_field;       // either value or Forth address
-} word_t;
-
-// Word flags
-#define WORD_FLAG_IMMEDIATE 0x01
 
 // Global memory
-extern uint8_t forth_memory[FORTH_MEMORY_SIZE];
-extern forth_addr_t here;  // Data space pointer
 extern cell_t* state_ptr;  // C pointer to STATE variable for efficiency
 extern cell_t* base_ptr;  // BASE variable pointer
 

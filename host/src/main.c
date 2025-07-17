@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "forth.h"
+#include "memory.h"
 #include "debug.h"
 #include "version.h"
 

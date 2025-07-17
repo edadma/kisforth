@@ -1,4 +1,5 @@
 #include "forth.h"
+#include "types.h"
 #include <assert.h>
 #include <stdio.h>
 

@@ -1,3 +1,4 @@
+#include "memory.h"
 #include "forth.h"
 #include "debug.h"
 #include <assert.h>

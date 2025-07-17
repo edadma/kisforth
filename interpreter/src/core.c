@@ -1,4 +1,5 @@
 #include "forth.h"
+#include "memory.h"
 #include "debug.h"
 #include <string.h>
 #include <assert.h>

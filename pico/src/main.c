@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "forth.h"
+#include "memory.h"
 #include "version.h"
 
 int main() {
