@@ -988,6 +988,23 @@ void f_tick(word_t* self) {
     debug("' found word %s at address %u", name, xt);
 }
 
+// EXECUTE ( i*x xt -- j*x )  Execute the word whose execution token is xt
+void f_execute(word_t* self) {
+    (void)self;
+
+    forth_addr_t xt = (forth_addr_t)data_pop();
+
+    debug("EXECUTE: executing token at address %u", xt);
+
+    // Convert execution token back to word pointer
+    word_t* word = addr_to_ptr(xt);
+
+    debug("EXECUTE: found word %s", word->name);
+
+    // Execute the word
+    execute_word(word);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -1060,6 +1077,7 @@ void create_all_primitives(void) {
 	create_primitive_word("BRANCH", f_branch);
     create_immediate_primitive_word("[']", f_bracket_tick);
     create_primitive_word("'", f_tick);
+    create_primitive_word("EXECUTE", f_execute);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);

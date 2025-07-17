@@ -187,6 +187,7 @@ void f_0branch(word_t* self);
 void f_branch(word_t* self);
 void f_u_less(word_t* self);
 void f_tick(word_t* self);          // ' ( "<spaces>name" -- xt )
+void f_execute(word_t* self);       // EXECUTE ( i*x xt -- j*x )
 
 // I/O interface - platform abstraction
 typedef struct {
