@@ -80,10 +80,6 @@ word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
     word->flags = 0;
     word->cfunc = cfunc;
     word->param_field = here;
-
-    // Primitives have no parameter field (zero bytes allocated)
-
-    // Automatically link into dictionary
     link_word(word);
 
     return word;
