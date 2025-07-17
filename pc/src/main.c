@@ -8,6 +8,7 @@
 int main(int argc, char* argv[]) {
     printf("KISForth v%s - PC Development Version\n", KISFORTH_VERSION_STRING);
     printf("Memory size: %d bytes\n", FORTH_MEMORY_SIZE);
+    //printf("word_t size = %lu\n", sizeof(word_t));
 
     // Initialize the Forth system
     stack_init();
