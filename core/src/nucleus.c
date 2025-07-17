@@ -1139,6 +1139,12 @@ static const char* builtin_definitions[] = {
     ": WHILE  ['] 0BRANCH , HERE 0 , SWAP ; IMMEDIATE",
     ": REPEAT ['] BRANCH , , HERE SWAP ! ; IMMEDIATE",
 
+    ": SPACE BL EMIT ;",
+    ": SPACES BEGIN DUP WHILE SPACE 1- REPEAT DROP ;",
+
+    ": ALIGN HERE 3 + 3 INVERT AND HERE - ALLOT ;",
+    ": ALIGNED 3 + 3 INVERT AND ;",
+
     NULL  // End marker
 };
 
