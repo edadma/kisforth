@@ -35,11 +35,11 @@ elseif (BUILD_FOR_PICO)
     pico_sdk_init()
     message(STATUS "Building for Raspberry Pi Pico")
 else ()
-    # PC build setup
+    # Host build setup
     project(kisforth VERSION 0.0.1 LANGUAGES C)
     set(CMAKE_C_STANDARD 11)
     set(CMAKE_C_STANDARD_REQUIRED ON)
-    message(STATUS "Building for PC development")
+    message(STATUS "Building for host development")
 endif ()
 
 # Compiler settings - use GCC for consistency
@@ -52,7 +52,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif ()
 
-# Common compiler flags (only for PC builds - Pico SDK manages its own flags)
+# Common compiler flags (only for Host builds - Pico SDK manages its own flags)
 if (NOT BUILD_FOR_PICO)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
     set(CMAKE_C_FLAGS_DEBUG "-g -O0 -DDEBUG")
@@ -72,7 +72,7 @@ add_subdirectory(core)
 if (BUILD_FOR_PICO)
     add_subdirectory(pico)
 else ()
-    add_subdirectory(pc)
+    add_subdirectory(host)
 endif ()
 
 # Status summary

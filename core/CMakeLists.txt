@@ -52,7 +52,7 @@ if (BUILD_FOR_PICO)
     )
 else ()
     target_compile_definitions(kisforth_core PUBLIC
-            FORTH_TARGET_PC=1
+            FORTH_TARGET_HOST=1
     )
 endif ()
 

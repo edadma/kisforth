@@ -1,4 +1,4 @@
-# PC version of KISForth
+# Host version of KISForth
 add_executable(kisforth
         src/main.c
 )
@@ -6,7 +6,7 @@ add_executable(kisforth
 # Link with core library
 target_link_libraries(kisforth PRIVATE kisforth_core)
 
-# Platform-specific libraries for PC
+# Platform-specific libraries for host
 if (BUILD_FOR_WINDOWS)
     # Windows-specific settings
     set_target_properties(kisforth PROPERTIES

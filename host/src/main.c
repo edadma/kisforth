@@ -6,7 +6,7 @@
 #include "version.h"
 
 int main(int argc, char* argv[]) {
-    printf("KISForth v%s - PC Development Version\n", KISFORTH_VERSION_STRING);
+    printf("KISForth v%s - Host Development Version\n", KISFORTH_VERSION_STRING);
     printf("Memory size: %d bytes\n", FORTH_MEMORY_SIZE);
     //printf("word_t size = %lu\n", sizeof(word_t));
 
