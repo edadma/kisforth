@@ -773,9 +773,7 @@ void f_dot_quote_runtime(word_t* self) {
     }
 
     fflush(stdout);
-
-    current_ip += length;
-    current_ip = (current_ip + sizeof(cell_t) - 1) & ~(sizeof(cell_t) - 1);  // Align
+    current_ip = align_up(current_ip + length, sizeof(cell_t));
 
     debug("(. runtime: displayed string, IP now at %u", current_ip);
 }
@@ -795,8 +793,7 @@ void f_abort_quote_runtime(word_t* self) {
 
 	cell_t start = current_ip;
 
-	current_ip += length;
-    current_ip = (current_ip + sizeof(cell_t) - 1) & ~(sizeof(cell_t) - 1);  // Align
+    current_ip = align_up(current_ip + length, sizeof(cell_t));
 
     debug("(ABORT runtime: flag=%d, string length=%d", flag, length);
 

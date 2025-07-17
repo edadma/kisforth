@@ -61,11 +61,13 @@ forth_addr_t forth_allot(size_t bytes) {
     return old_here;
 }
 
+inline uintptr_t align_up(uintptr_t addr, size_t alignment) {
+    return (addr + alignment - 1) & ~(alignment - 1);
+}
+
 // Align HERE to cell boundary (4 bytes)
 void forth_align(void) {
-    int misalignment = here % sizeof(cell_t);
-
-    if (misalignment > 0) here += sizeof(cell_t) - misalignment;
+    here = align_up(here, sizeof(cell_t));
 }
 
 // Convert Forth address to C pointer

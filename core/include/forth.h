@@ -56,6 +56,8 @@ extern int return_stack_ptr;  // Points to next empty slot
 
 extern forth_addr_t current_ip;
 
+uintptr_t align_up(uintptr_t addr, size_t alignment);
+
 void error(const char* format, ...);
 
 char digit_to_char(int digit);
