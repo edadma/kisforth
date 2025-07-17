@@ -966,6 +966,28 @@ void f_u_less(word_t* self) {
     data_push(u1 < u2 ? -1 : 0);
 }
 
+// ' ( "<spaces>name" -- xt )  Parse name and return execution token
+void f_tick(word_t* self) {
+    (void)self;
+
+    char name_buffer[32];
+    char* name = parse_name(name_buffer, sizeof(name_buffer));
+
+    if (!name) {
+        error("' expects a name");
+    }
+
+    debug("' looking for word: %s", name);
+
+    word_t* word = find_word(name);  // This will error if not found
+
+    // Convert word pointer to execution token (forth address)
+    forth_addr_t xt = ptr_to_addr(word);
+    data_push((cell_t)xt);
+
+    debug("' found word %s at address %u", name, xt);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -1037,6 +1059,7 @@ void create_all_primitives(void) {
 	create_primitive_word("0BRANCH", f_0branch);
 	create_primitive_word("BRANCH", f_branch);
     create_immediate_primitive_word("[']", f_bracket_tick);
+    create_primitive_word("'", f_tick);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);
