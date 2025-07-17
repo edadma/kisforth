@@ -115,15 +115,6 @@ void execute_word(word_t* word) {
     word->cfunc(word);
 }
 
-void f_address(word_t* self) {
-    // Parameter field is right after the word structure in memory
-    forth_addr_t word_addr = ptr_to_addr(self);
-    forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
-
-    // Push the Forth address of the parameter field
-    data_push(param_addr);
-}
-
 // Arithmetic primitives - these operate on the data stack
 
 // + ( n1 n2 -- n3 )  Add n1 and n2, leaving sum n3
@@ -907,6 +898,19 @@ void f_variable(word_t* self) {
 	defining_word(f_address)->param_field = 0; // initialize variable to 0
 }
 
+// VARIABLE runtime behavior: Push address OF the param_field
+// (param_field contains the variable's value directly)
+void f_address(word_t* self) {
+    // Parameter field is right after the word structure in memory
+    forth_addr_t word_addr = ptr_to_addr(self);
+    forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
+
+    // Push the Forth address of the parameter field
+    data_push(param_addr);
+}
+
+// CREATE runtime behavior: Push address IN the param_field
+// (param_field contains a Forth address pointing to data space)
 void f_param_field(word_t* self) {
     data_push(self->param_field);  // Push the value stored in param_field
 }

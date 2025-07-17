@@ -33,6 +33,9 @@ typedef struct word {
     char name[32];              // Word name (31 chars max per standard)
     uint32_t flags;             // Immediate flag, etc.
     void (*cfunc)(struct word* self);  // C function for ALL word types
+    // DUAL-PURPOSE PARAMETER FIELD:
+    // - For most words: Forth address pointing to parameter space
+    // - For variables:  Direct storage of the variable's value
     uint32_t param_field;       // either value or Forth address
 } word_t;
 
