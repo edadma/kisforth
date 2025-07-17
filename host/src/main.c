@@ -5,6 +5,7 @@
 #include "memory.h"
 #include "debug.h"
 #include "stack.h"
+#include "dictionary.h"
 #include "version.h"
 
 int main(int argc, char* argv[]) {

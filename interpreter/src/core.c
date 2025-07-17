@@ -3,6 +3,7 @@
 #include "error.h"
 #include "debug.h"
 #include "stack.h"
+#include "dictionary.h"
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
@@ -66,54 +67,6 @@ void print_number_in_base(cell_t value, cell_t base) {
     }
 
     printf("%s", ptr);
-}
-
-// Create a primitive word in virtual memory
-word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
-    // Allocate space for the word structure
-    forth_addr_t word_addr = forth_allot(sizeof(word_t));
-    word_t* word = addr_to_ptr(word_addr);
-
-    // Initialize the word structure
-    word->link = NULL;  // Will be set by link_word()
-    strncpy(word->name, name, sizeof(word->name) - 1);
-    word->name[sizeof(word->name) - 1] = '\0';  // Ensure null termination
-    word->flags = 0;
-    word->cfunc = cfunc;
-    word->param_field = here;
-    link_word(word);
-
-    return word;
-}
-
-void create_area_word(const char* name) {
-	create_primitive_word(name, f_address);
-}
-
-cell_t* create_variable_word(const char* name, cell_t initial_value) {
-    // Create the word header with f_address cfunc
-    word_t* word = create_primitive_word(name, f_address);
-
-    word->param_field = initial_value;  // Store value directly
-
-    // Return C pointer to the parameter field for efficiency
-    forth_addr_t word_addr = ptr_to_addr(word);
-    forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
-    return (cell_t*)&forth_memory[param_addr];
-}
-
-// Simple helper function
-word_t* create_immediate_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
-    word_t* word = create_primitive_word(name, cfunc);
-    word->flags |= WORD_FLAG_IMMEDIATE;
-    return word;
-}
-
-// Execute a word by calling its cfunc
-void execute_word(word_t* word) {
-    require(word != NULL);
-    require(word->cfunc != NULL);
-    word->cfunc(word);
 }
 
 // Arithmetic primitives - these operate on the data stack
@@ -377,31 +330,6 @@ void execute_colon(word_t* self) {
     }
 
     debug("Colon definition execution complete");
-}
-
-word_t* defining_word(void (*cfunc)(struct word* self)) {
-    char name_buffer[32];
-
-    // Parse the name for the new definition
-    char* name = parse_name(name_buffer, sizeof(name_buffer));
-
-    if (!name) error("Missing name after ':'");
-
-    debug("Creating word: %s", name);
-
-    // Create word header but don't link it yet (hidden until ; is executed)
-    forth_addr_t word_addr = forth_allot(sizeof(word_t));
-    word_t* word = addr_to_ptr(word_addr);
-
-    // Initialize word header
-    strncpy(word->name, name, sizeof(word->name) - 1);
-    word->name[sizeof(word->name) - 1] = '\0';
-    word->flags = 0;
-    word->cfunc = cfunc;
-    word->param_field = here;  // Set parameter field to point to next free space
-    link_word(word);
-
-	return word;
 }
 
 // : (colon) - start colon definition
@@ -894,23 +822,6 @@ void f_variable(word_t* self) {
     (void)self;
 
 	defining_word(f_address)->param_field = 0; // initialize variable to 0
-}
-
-// VARIABLE runtime behavior: Push address OF the param_field
-// (param_field contains the variable's value directly)
-void f_address(word_t* self) {
-    // Parameter field is right after the word structure in memory
-    forth_addr_t word_addr = ptr_to_addr(self);
-    forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
-
-    // Push the Forth address of the parameter field
-    data_push(param_addr);
-}
-
-// CREATE runtime behavior: Push address IN the param_field
-// (param_field contains a Forth address pointing to data space)
-void f_param_field(word_t* self) {
-    data_push(self->param_field);  // Push the value stored in param_field
 }
 
 // ['] ( "name" -- ) Compilation: ( -- ) Runtime: ( -- xt )

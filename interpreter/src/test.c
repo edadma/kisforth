@@ -1,8 +1,9 @@
+#include <string.h>
+#include <stdio.h>
 #include "forth.h"
 #include "memory.h"
 #include "stack.h"
-#include <string.h>
-#include <stdio.h>
+#include "dictionary.h"
 
 #ifdef FORTH_ENABLE_TESTS
 

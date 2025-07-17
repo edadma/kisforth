@@ -5,6 +5,7 @@
 #include "error.h"
 #include "tools.h"
 #include "stack.h"
+#include "dictionary.h"
 
 #ifdef FORTH_ENABLE_TOOLS
 

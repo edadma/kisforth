@@ -3,6 +3,7 @@
 #include "forth.h"
 #include "memory.h"
 #include "stack.h"
+#include "dictionary.h"
 #include "version.h"
 
 int main() {

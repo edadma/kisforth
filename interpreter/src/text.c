@@ -8,6 +8,7 @@
 #include "floating.h"
 #include "error.h"
 #include "stack.h"
+#include "dictionary.h"
 
 // Set the input buffer (ANS Forth compliant version)
 // This function sets up the input buffer in Forth memory space

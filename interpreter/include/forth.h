@@ -65,14 +65,6 @@ void interpret_text(const char* text);  // Convenience: set_input_buffer + inter
 
 void create_builtin_definitions(void);
 
-// Word creation and execution
-word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self));
-cell_t* create_variable_word(const char* name, cell_t initial_value);
-void create_area_word(const char* name);
-word_t* create_immediate_primitive_word(const char* name, void (*cfunc)(word_t* self));
-void execute_word(word_t* word);
-word_t* defining_word(void (*cfunc)(struct word* self));
-
 // Compilation support
 void compile_token(forth_addr_t token);
 void compile_literal(cell_t value);
@@ -81,7 +73,6 @@ void compile_literal(cell_t value);
 void f_colon(word_t* self);        // : ( C: "<spaces>name" -- colon-sys )
 void f_semicolon(word_t* self);    // ; ( C: colon-sys -- )
 void f_exit(word_t* self);         // EXIT ( -- ) ( R: nest-sys -- )
-void execute_colon(word_t* self);  // Generic colon definition executor
 
 // Primitive word implementations
 void f_plus(word_t* self);
@@ -119,7 +110,6 @@ void f_to_r(word_t* self);      // >R ( x -- ) ( R: -- x )
 void f_r_from(word_t* self);    // R> ( -- x ) ( R: x -- )
 void f_r_fetch(word_t* self);   // R@ ( -- x ) ( R: x -- x )
 void f_m_star(word_t* self);    // M* ( n1 n2 -- d )
-void f_address(word_t* self);       // Variable execution ( -- addr )
 void f_immediate(word_t* self);      // IMMEDIATE ( -- )
 void f_roll(word_t* self);
 void f_display_counted_string(word_t* self);
@@ -134,6 +124,8 @@ void f_u_less(word_t* self);
 void f_tick(word_t* self);          // ' ( "<spaces>name" -- xt )
 void f_execute(word_t* self);       // EXECUTE ( i*x xt -- j*x )
 void f_find(word_t* self);          // FIND ( c-addr -- c-addr 0 | xt 1 | xt -1 )
+
+void execute_colon(word_t* self);
 
 // I/O interface - platform abstraction
 typedef struct {
@@ -153,7 +145,6 @@ void f_debug_off(word_t* self);     // DEBUG-OFF ( -- )
 
 void f_create(word_t* self);
 void f_variable(word_t* self);
-void f_param_field(word_t* self);
 
 // System management
 void forth_reset(void);         // Complete system reset

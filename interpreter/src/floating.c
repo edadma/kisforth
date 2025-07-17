@@ -2,6 +2,7 @@
 #include "floating.h"
 #include "debug.h"
 #include "error.h"
+#include "dictionary.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
