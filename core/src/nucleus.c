@@ -910,6 +910,48 @@ void f_param_field(word_t* self) {
     data_push(self->param_field);  // Push the value stored in param_field
 }
 
+// ['] ( "name" -- ) Compilation: ( -- ) Runtime: ( -- xt )
+// Parse name, find it, compile its execution token as literal
+void f_bracket_tick(word_t* self) {
+    (void)self;
+
+    char name_buffer[32];
+    char* name = parse_name(name_buffer, sizeof(name_buffer));
+    if (!name) error("Missing name after [']");
+
+    word_t* word = find_word(name);
+    if (!word) error("Word not found in [']");
+
+    // Compile the word's address as a literal
+    compile_literal(ptr_to_addr(word));
+
+    debug("['] compiled literal for %s: %u", name, ptr_to_addr(word));
+}
+
+// 0BRANCH ( x -- ) - conditional branch
+// If x is zero, branch to address stored at current_ip
+// Always advances current_ip past the address
+void f_0branch(word_t* self) {
+    (void)self;
+
+    cell_t x = data_pop();
+    forth_addr_t target = forth_fetch(current_ip);
+    current_ip += sizeof(cell_t);
+
+    if (x == 0) {
+        current_ip = target;  // Branch taken
+    }
+    // If x != 0, continue (branch not taken)
+}
+
+// BRANCH ( -- ) - unconditional branch
+void f_branch(word_t* self) {
+    (void)self;
+
+    forth_addr_t target = forth_fetch(current_ip);
+    current_ip = target;  // Always branch
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -977,6 +1019,10 @@ void create_all_primitives(void) {
 	create_primitive_word("CREATE", f_create);
 	create_primitive_word("VARIABLE", f_variable);
 
+	create_primitive_word("0BRANCH", f_0branch);
+	create_primitive_word("BRANCH", f_branch);
+    create_immediate_primitive_word("[']", f_bracket_tick);
+
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);
     create_primitive_word("DEBUG-OFF", f_debug_off);
@@ -1043,6 +1089,12 @@ static const char* builtin_definitions[] = {
 
 	": BL 32 ;",
 	": CR 10 EMIT ;",
+
+    ": IF    ['] 0BRANCH ,  HERE  0 , ; IMMEDIATE",
+    ": THEN  HERE  SWAP  ! ; IMMEDIATE",
+    ": ELSE  ['] BRANCH ,  HERE  0 ,  SWAP  HERE  SWAP  ! ; IMMEDIATE",
+
+    ": t if .\" true\" else .\" false\" then cr ;",
 
     NULL  // End marker
 };
