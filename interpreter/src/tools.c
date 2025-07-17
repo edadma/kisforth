@@ -3,6 +3,8 @@
 #include "debug.h"
 #include "tools.h"
 #include "error.h"
+#include "tools.h"
+#include "stack.h"
 
 #ifdef FORTH_ENABLE_TOOLS
 

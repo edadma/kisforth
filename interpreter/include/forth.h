@@ -6,8 +6,6 @@
 #include <stdbool.h>
 #include "types.h"
 
-#define DATA_STACK_SIZE 64             // Per standard minimum
-#define RETURN_STACK_SIZE 48           // Per standard minimum
 #define INPUT_BUFFER_SIZE 256          // Text input buffer
 
 #define FORTH_PAD_SIZE 1024
@@ -15,12 +13,6 @@
 // Global memory
 extern cell_t* state_ptr;  // C pointer to STATE variable for efficiency
 extern cell_t* base_ptr;  // BASE variable pointer
-
-// Stack structures
-extern cell_t data_stack[DATA_STACK_SIZE];
-extern cell_t return_stack[RETURN_STACK_SIZE];
-extern int data_stack_ptr;    // Points to next empty slot
-extern int return_stack_ptr;  // Points to next empty slot
 
 extern forth_addr_t current_ip;
 
@@ -48,17 +40,6 @@ void forth_store(forth_addr_t addr, cell_t value);    // !
 cell_t forth_fetch(forth_addr_t addr);                // @
 void forth_c_store(forth_addr_t addr, byte_t value);  // C!
 byte_t forth_c_fetch(forth_addr_t addr);              // C@
-
-// Stack operations
-void stack_init(void);
-void data_push(cell_t value);
-cell_t data_pop(void);
-cell_t data_peek(void);
-cell_t data_peek_at(int offset);  // Peek at stack[depth-1-offset]
-int data_depth(void);
-void return_push(cell_t value);
-cell_t return_pop(void);
-int return_depth(void);
 
 // Dictionary management
 extern word_t* dictionary_head;  // Points to most recently defined word

@@ -1,5 +1,6 @@
 #include "error.h"
 #include "forth.h"
+#include "stack.h"
 #include <stdio.h>
 #include <stdarg.h>
 

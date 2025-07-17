@@ -4,6 +4,7 @@
 #include "forth.h"
 #include "memory.h"
 #include "debug.h"
+#include "stack.h"
 #include "version.h"
 
 int main(int argc, char* argv[]) {

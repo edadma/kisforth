@@ -2,6 +2,7 @@
 #include "pico/stdlib.h"
 #include "forth.h"
 #include "memory.h"
+#include "stack.h"
 #include "version.h"
 
 int main() {

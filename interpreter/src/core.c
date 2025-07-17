@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "error.h"
 #include "debug.h"
+#include "stack.h"
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>

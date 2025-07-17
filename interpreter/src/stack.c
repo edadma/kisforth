@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
-#include "forth.h"
-#include "types.h"
+#include "stack.h"
 #include "error.h"
 
 // Stack storage
