@@ -130,7 +130,7 @@ void f_f_divide(struct word* self) {
     double r1 = float_pop();
 
     // Check for division by zero
-    if (r2 == 0.0) error("Floating-point division by zero");
+    if (r2 == 0.0) error("Floating-point division by zero in 'F/'");
 
     float_push(r1 / r2);
 }

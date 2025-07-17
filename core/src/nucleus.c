@@ -151,7 +151,7 @@ void f_divide(word_t* self) {
     cell_t n2 = data_pop();
     cell_t n1 = data_pop();
 
-    if (n2 == 0) error("Division by zero");
+    if (n2 == 0) error("Division by zero in '/'");
 
     data_push(n1 / n2);
 }

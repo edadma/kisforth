@@ -3,7 +3,13 @@
 #include <assert.h>
 #include <string.h>
 
-// Global virtual memory
+/*
+ * Virtual Memory
+ * ==============
+ * All Forth addresses are indices into forth_memory[].
+ * This provides memory protection and 32-bit address consistency
+ * across platforms, regardless of native pointer size.
+ */
 uint8_t forth_memory[FORTH_MEMORY_SIZE];
 forth_addr_t here = 0;  // Data space pointer starts at beginning
 
@@ -47,6 +53,7 @@ byte_t forth_c_fetch(forth_addr_t addr) {
 
 // Allocate bytes in virtual memory and advance HERE
 forth_addr_t forth_allot(size_t bytes) {
+    // Ensure allocation starts on aligned boundary
 	forth_align();
 
     require(here + bytes <= FORTH_MEMORY_SIZE);  // Simple bounds check
@@ -56,6 +63,11 @@ forth_addr_t forth_allot(size_t bytes) {
 
     // Zero the allocated memory
     memset(&forth_memory[old_here], 0, bytes);
+
+    // Ensure HERE remains aligned for future allocations
+    // This maintains the invariant that HERE always points to an
+    // aligned address, preventing alignment issues in subsequent
+    // cell allocations regardless of the size of this allocation
     forth_align();
 
     return old_here;
