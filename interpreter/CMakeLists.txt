@@ -2,7 +2,7 @@
 add_library(kisforth_interpreter STATIC
         src/memory.c
         src/stack.c
-        src/nucleus.c
+        src/core.c
         src/dictionary.c
         src/text.c
         src/debug.c

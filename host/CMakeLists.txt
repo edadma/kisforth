@@ -27,5 +27,4 @@ endif ()
 
 # Set executable properties
 set_target_properties(kisforth PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-)
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
