@@ -1,3 +1,5 @@
+set(KISFORTH_VERSION "0.0.1")
+
 cmake_minimum_required(VERSION 3.13)
 
 # Platform selection
@@ -22,7 +24,7 @@ if (BUILD_FOR_WINDOWS)
     # Set static linking to avoid DLL dependencies
     set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc")
 
-    project(kisforth VERSION 0.0.1 LANGUAGES C)
+    project(kisforth VERSION ${KISFORTH_VERSION} LANGUAGES C)
     set(CMAKE_C_STANDARD 11)
     set(CMAKE_C_STANDARD_REQUIRED ON)
     message(STATUS "Cross-compiling for Windows")
@@ -30,16 +32,16 @@ elseif (BUILD_FOR_PICO)
     # Pico-specific setup
     set(PICO_BOARD pico)  # Change to pico_w if using Pico W
     include(pico/pico_sdk_import.cmake)
-    project(kisforth VERSION 0.0.1 LANGUAGES C CXX ASM)
+    project(kisforth VERSION ${KISFORTH_VERSION} LANGUAGES C CXX ASM)
     set(CMAKE_C_STANDARD 11)
     pico_sdk_init()
     message(STATUS "Building for Raspberry Pi Pico")
 else ()
-    # Host build setup
-    project(kisforth VERSION 0.0.1 LANGUAGES C)
+    # *nix hosts (Linux, macOS, BSD, etc.)
+    project(kisforth VERSION ${KISFORTH_VERSION} LANGUAGES C)
     set(CMAKE_C_STANDARD 11)
     set(CMAKE_C_STANDARD_REQUIRED ON)
-    message(STATUS "Building for host development")
+    message(STATUS "Building for *nix host development")
 endif ()
 
 # Compiler settings - use GCC for consistency
