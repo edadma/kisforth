@@ -417,12 +417,12 @@ word_t* defining_word(void (*cfunc)(struct word* self)) {
 void f_colon(word_t* self) {
     (void)self;
 
-    definig_word(execute_colon);
+    word_t* word = defining_word(execute_colon);
 
     // Enter compilation state
     *state_ptr = -1;
 
-    debug("Colon definition header created at %u, entering compilation mode", word_addr);
+    debug("Colon definition header created at %u, entering compilation mode", ptr_to_addr(word));
 }
 
 // ; (semicolon) - end colon definition
