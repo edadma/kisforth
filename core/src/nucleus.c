@@ -1050,6 +1050,10 @@ void create_all_primitives(void) {
 
 // Built-in Forth definitions (created after primitives are available)
 static const char* builtin_definitions[] = {
+    ": IF    ['] 0BRANCH ,  HERE  0 , ; IMMEDIATE",
+    ": THEN  HERE  SWAP  ! ; IMMEDIATE",
+    ": ELSE  ['] BRANCH ,  HERE  0 ,  SWAP  HERE  SWAP  ! ; IMMEDIATE",
+
     // Stack manipulation words
     ": DUP 0 PICK ;",
     ": OVER 1 PICK ;",
@@ -1059,7 +1063,7 @@ static const char* builtin_definitions[] = {
     ": 2DROP DROP DROP ;",
     ": 2SWAP ROT >R ROT R> ;",
     ": 2OVER 3 PICK 3 PICK ;",
-    //": ?DUP DUP IF DUP THEN ;",
+    ": ?DUP DUP IF DUP THEN ;",
 
     ": TRUE -1 ;",
     ": FALSE 0 ;",
@@ -1081,10 +1085,6 @@ static const char* builtin_definitions[] = {
     ": U>= U< NOT ;",           // Unsigned greater than or equal
     ": 2* DUP + ;",
     ": 2/ 2 / ;",
-
-    ": IF    ['] 0BRANCH ,  HERE  0 , ; IMMEDIATE",
-    ": THEN  HERE  SWAP  ! ; IMMEDIATE",
-    ": ELSE  ['] BRANCH ,  HERE  0 ,  SWAP  HERE  SWAP  ! ; IMMEDIATE",
 
     ": MOD SM/REM DROP ;",
     ": /MOD DUP >R 0 SWAP SM/REM R> 0< IF SWAP NEGATE SWAP THEN ;",
