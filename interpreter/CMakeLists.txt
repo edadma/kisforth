@@ -1,12 +1,13 @@
 # KISForth interpreter library - portable Forth interpreter
 add_library(kisforth_interpreter STATIC
-        src/memory.c
-        src/stack.c
         src/core.c
-        src/dictionary.c
-        src/text.c
         src/debug.c
+        src/dictionary.c
+        src/error.c
+        src/memory.c
         src/repl.c
+        src/stack.c
+        src/text.c
 )
 
 # Conditionally add test system

@@ -12,15 +12,6 @@
 
 #define FORTH_PAD_SIZE 1024
 
-#define require(condition, ...) \
-    do { \
-        if (!(condition)) { \
-            error("Requirement failed: %s at %s:%d - " __VA_ARGS__, \
-                  #condition, __FILE__, __LINE__); \
-        } \
-    } while(0)
-
-
 // Global memory
 extern cell_t* state_ptr;  // C pointer to STATE variable for efficiency
 extern cell_t* base_ptr;  // BASE variable pointer
@@ -34,8 +25,6 @@ extern int return_stack_ptr;  // Points to next empty slot
 extern forth_addr_t current_ip;
 
 uintptr_t align_up(uintptr_t addr, size_t alignment);
-
-void error(const char* format, ...);
 
 char digit_to_char(int digit);
 int char_to_digit(char c, int base);
@@ -176,7 +165,6 @@ typedef struct {
 // REPL system
 void forth_repl(void);
 void f_quit(word_t* self);
-void f_abort(word_t* self);
 void f_bye(word_t* self);
 
 void f_debug_on(word_t* self);      // DEBUG-ON ( -- )

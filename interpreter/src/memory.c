@@ -1,8 +1,9 @@
+#include <assert.h>
+#include <string.h>
 #include "memory.h"
 #include "forth.h"
 #include "debug.h"
-#include <assert.h>
-#include <string.h>
+#include "error.h"
 
 /*
  * Virtual Memory

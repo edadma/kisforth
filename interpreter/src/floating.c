@@ -1,6 +1,7 @@
 #include "forth.h"
 #include "floating.h"
 #include "debug.h"
+#include "error.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>

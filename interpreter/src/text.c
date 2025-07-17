@@ -1,11 +1,12 @@
-#include "forth.h"
-#include "memory.h"
-#include "debug.h"
-#include "floating.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "forth.h"
+#include "memory.h"
+#include "debug.h"
+#include "floating.h"
+#include "error.h"
 
 // Set the input buffer (ANS Forth compliant version)
 // This function sets up the input buffer in Forth memory space

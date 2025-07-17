@@ -2,6 +2,7 @@
 #include "forth.h"
 #include "debug.h"
 #include "tools.h"
+#include "error.h"
 
 #ifdef FORTH_ENABLE_TOOLS
 

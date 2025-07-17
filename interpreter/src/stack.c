@@ -1,7 +1,8 @@
-#include "forth.h"
-#include "types.h"
 #include <assert.h>
 #include <stdio.h>
+#include "forth.h"
+#include "types.h"
+#include "error.h"
 
 // Stack storage
 cell_t data_stack[DATA_STACK_SIZE];

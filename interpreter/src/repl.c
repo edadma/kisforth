@@ -27,26 +27,6 @@ void f_quit(word_t* self) {
     }
 }
 
-void f_abort(word_t* self) {
-    // Empty data stack
-    data_stack_ptr = 0;
-
-    // Call QUIT for cleanup
-    f_quit(self);
-}
-
-void error(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    printf("ERROR: ");
-    vprintf(format, args);
-    va_end(args);
-
-    putchar('\n');
-    fflush(stdout);
-    f_abort(NULL);
-}
-
 // BYE word - exit the system
 void f_bye(word_t* self) {
     (void)self;
