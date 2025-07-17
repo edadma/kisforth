@@ -69,12 +69,9 @@ void print_number_in_base(cell_t value, cell_t base) {
 
 // Create a primitive word in virtual memory
 word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
-    // Align to word boundary
-    forth_align();
-
     // Allocate space for the word structure
     forth_addr_t word_addr = forth_allot(sizeof(word_t));
-    word_t* word = addr_to_word(word_addr);
+    word_t* word = addr_to_ptr(word_addr);
 
     // Initialize the word structure
     word->link = NULL;  // Will be set by link_word()
@@ -82,6 +79,7 @@ word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
     word->name[sizeof(word->name) - 1] = '\0';  // Ensure null termination
     word->flags = 0;
     word->cfunc = cfunc;
+    word->param_field = here;
 
     // Primitives have no parameter field (zero bytes allocated)
 
@@ -97,15 +95,13 @@ void create_area_word(const char* name) {
 
 cell_t* create_variable_word(const char* name, cell_t initial_value) {
     // Create the word header with f_address cfunc
-    create_primitive_word(name, f_address);
+    word_t* word = create_primitive_word(name, f_address);
 
-    // Now allocate space for the parameter field (one cell)
-    forth_addr_t param_addr = forth_allot(sizeof(cell_t));
-
-    // Store the initial value
-    forth_store(param_addr, initial_value);
+    word->param_field = initial_value;  // Store value directly
 
     // Return C pointer to the parameter field for efficiency
+    forth_addr_t word_addr = ptr_to_addr(word);
+    forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
     return (cell_t*)&forth_memory[param_addr];
 }
 
@@ -125,8 +121,8 @@ void execute_word(word_t* word) {
 
 void f_address(word_t* self) {
     // Parameter field is right after the word structure in memory
-    forth_addr_t word_addr = word_to_addr(self);
-    forth_addr_t param_addr = word_addr + sizeof(word_t);
+    forth_addr_t word_addr = ptr_to_addr(self);
+    forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
 
     // Push the Forth address of the parameter field
     data_push(param_addr);
@@ -366,8 +362,7 @@ void f_comma(word_t* self) {
 // Execute a colon definition using the return stack
 void execute_colon(word_t* self) {
     // Parameter field contains array of tokens (word addresses)
-    forth_addr_t word_addr = word_to_addr(self);
-    forth_addr_t tokens_addr = word_addr + sizeof(word_t);
+    forth_addr_t tokens_addr = self->param_field; // parameter field points to actual parameter space (word definition)
 
     debug("Executing colon definition: %s", self->name);
 
@@ -386,7 +381,7 @@ void execute_colon(word_t* self) {
         current_ip += sizeof(cell_t);  // Advance to next token
 
         // Execute the word at token_addr
-        word_t* word = addr_to_word(token_addr);
+        word_t* word = addr_to_ptr(token_addr);
         debug("  Executing token: %s", word->name);
         execute_word(word);
 
@@ -409,9 +404,8 @@ forth_addr_t defining_word(void (*cfunc)(struct word* self)) {
 
     // Create word header but don't link it yet (hidden until ; is executed)
     forth_align();
-    current_def_addr = here;
     forth_addr_t word_addr = forth_allot(sizeof(word_t));
-    word_t* word = addr_to_word(word_addr);
+    word_t* word = addr_to_ptr(word_addr);
 
     // Initialize word header
     word->link = NULL;  // Will be set by ; when definition is complete
@@ -434,22 +428,22 @@ void f_colon(word_t* self) {
     // Parse the name for the new definition
     char* name = parse_name(name_buffer, sizeof(name_buffer));
 
-    if (!name)  error("Missing name after ':'");
+    if (!name) error("Missing name after ':'");
 
     debug("Starting colon definition: %s", name);
 
     // Create word header but don't link it yet (hidden until ; is executed)
-    forth_align();
-    current_def_addr = here;
     forth_addr_t word_addr = forth_allot(sizeof(word_t));
-    word_t* word = addr_to_word(word_addr);
+    word_t* word = addr_to_ptr(word_addr);
 
     // Initialize word header
-    word->link = NULL;  // Will be set by ; when definition is complete
     strncpy(word->name, name, sizeof(word->name) - 1);
     word->name[sizeof(word->name) - 1] = '\0';
     word->flags = 0;
     word->cfunc = execute_colon;
+    word->param_field = here;  // Set parameter field to point to definition
+
+    link_word(word);
 
     // Enter compilation state
     *state_ptr = -1;
@@ -469,15 +463,10 @@ void f_semicolon(word_t* self) {
     // Compile EXIT as the last token
     word_t* exit_word = find_word("EXIT");
 
-    compile_token(word_to_addr(exit_word));
-
-    // Link the completed word into dictionary
-    word_t* word = addr_to_word(current_def_addr);
-    link_word(word);
+    compile_token(ptr_to_addr(exit_word));
 
     // Exit compilation state
     *state_ptr = 0;
-    current_def_addr = 0;
 
     debug("Colon definition complete, exiting compilation mode");
 }
@@ -879,7 +868,7 @@ void f_dot_quote(word_t* self) {
 
         word_t* runtime_word = find_word("(.\"");
 
-        compile_token(word_to_addr(runtime_word));
+        compile_token(ptr_to_addr(runtime_word));
         compile_token((forth_addr_t)length);
 
         for (int i = 0; i < length; i++) {
@@ -917,7 +906,7 @@ void f_abort_quote(word_t* self) {
         // 1. Compile the runtime word
         word_t* runtime_word = find_word("(ABORT\"");
 
-        compile_token(word_to_addr(runtime_word));
+        compile_token(ptr_to_addr(runtime_word));
 
         // 2. Compile the string length
         compile_token((forth_addr_t)length);
@@ -935,7 +924,7 @@ void f_abort_quote(word_t* self) {
 void f_create(word_t* self) {
     (void)self;
 
-	defining_word(f_address);
+	defining_word(f_param_field);
 }
 
 void f_variable(word_t* self) {
@@ -943,6 +932,10 @@ void f_variable(word_t* self) {
 
 	defining_word(f_address);
 	forth_allot(sizeof(cell_t));
+}
+
+void f_param_field(word_t* self) {
+    data_push(self->param_field);  // Push the value stored in param_field
 }
 
 // Create all primitive words - called during system initialization

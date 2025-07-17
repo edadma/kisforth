@@ -33,7 +33,7 @@ typedef struct word {
     char name[32];              // Word name (31 chars max per standard)
     uint32_t flags;             // Immediate flag, etc.
     void (*cfunc)(struct word* self);  // C function for ALL word types
-    // Parameter field follows immediately after this structure
+    uint32_t param_field;       // either value or Forth address
 } word_t;
 
 // Word flags
@@ -43,7 +43,6 @@ typedef struct word {
 extern uint8_t forth_memory[FORTH_MEMORY_SIZE];
 extern forth_addr_t here;  // Data space pointer
 extern cell_t* state_ptr;  // C pointer to STATE variable for efficiency
-extern forth_addr_t current_def_addr;  // Address of current definition being compiled
 extern cell_t* base_ptr;  // BASE variable pointer
 
 // Stack structures
@@ -70,8 +69,8 @@ void set_input_buffer(const char* text);  // Set input buffer content
 // Basic memory management functions
 forth_addr_t forth_allot(size_t bytes);
 void forth_align(void);
-word_t* addr_to_word(forth_addr_t addr);
-forth_addr_t word_to_addr(word_t* word);
+word_t* addr_to_ptr(forth_addr_t addr);
+forth_addr_t ptr_to_addr(word_t* word);
 
 // Memory access functions (needed for @, !, C@, C!)
 void forth_store(forth_addr_t addr, cell_t value);    // !
@@ -196,6 +195,7 @@ void f_debug_off(word_t* self);     // DEBUG-OFF ( -- )
 
 void f_create(word_t* self);
 void f_variable(word_t* self);
+void f_param_field(word_t* self);
 
 // System management
 void forth_reset(void);         // Complete system reset

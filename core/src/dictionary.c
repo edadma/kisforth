@@ -71,7 +71,7 @@ void show_dictionary(void) {
     int count = 0;
 
     while (current != NULL) {
-        printf("  %d: %s (addr=%u)\n", count++, current->name, word_to_addr(current));
+        printf("  %d: %s (addr=%u)\n", count++, current->name, ptr_to_addr(current));
         current = current->link;
     }
 

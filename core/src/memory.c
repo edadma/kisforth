@@ -56,6 +56,7 @@ forth_addr_t forth_allot(size_t bytes) {
 
     // Zero the allocated memory
     memset(&forth_memory[old_here], 0, bytes);
+    forth_align();
 
     return old_here;
 }
@@ -68,14 +69,14 @@ void forth_align(void) {
 }
 
 // Convert Forth address to C pointer
-word_t* addr_to_word(forth_addr_t addr) {
-    debug("addr_to_word: converting address %u", addr);
+word_t* addr_to_ptr(forth_addr_t addr) {
+    debug("addr_to_ptr: converting address %u", addr);
     require(addr < FORTH_MEMORY_SIZE);
     return (word_t*)&forth_memory[addr];
 }
 
 // Convert C pointer to Forth address
-forth_addr_t word_to_addr(word_t* word) {
+forth_addr_t ptr_to_addr(word_t* word) {
     uint8_t* word_ptr = (uint8_t*)word;
     require(word_ptr >= forth_memory);
     require(word_ptr < forth_memory + FORTH_MEMORY_SIZE);

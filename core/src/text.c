@@ -6,9 +6,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// Global compilation state
-forth_addr_t current_def_addr = 0;  // Address of current definition being compiled
-
 // Set the input buffer (ANS Forth compliant version)
 // This function sets up the input buffer in Forth memory space
 void set_input_buffer(const char* text) {
@@ -182,7 +179,7 @@ int parse_string(char quote_char, char* dest, size_t max_len) {
 
 // Compile a token (word address) into current definition
 void compile_token(forth_addr_t token) {
-    if (current_def_addr == 0) error("Not compiling");
+    if (*state_ptr == 0) error("Not compiling");
 
     // Align and store the token
     forth_align();
@@ -197,10 +194,10 @@ void compile_literal(cell_t value) {
     // Find LIT word address
     word_t* lit_word = find_word("LIT");
 
-    debug("Found LIT word at address %u", word_to_addr(lit_word));
+    debug("Found LIT word at address %u", ptr_to_addr(lit_word));
 
     // Compile LIT followed by the literal value
-    compile_token(word_to_addr(lit_word));
+    compile_token(ptr_to_addr(lit_word));
     compile_token((forth_addr_t)value);
 
     debug("Compiled literal: %d", value);
@@ -210,16 +207,16 @@ void compile_literal(cell_t value) {
 
 // Compile a float literal using FLIT
 void compile_float_literal(double value) {
-    if (current_def_addr == 0) error("Not compiling");
+    if (*state_ptr == 0) error("Not compiling");
 
     // Find FLIT word address
     word_t* flit_word = find_word("FLIT");
     if (!flit_word) error("FLIT word not found");
 
-    debug("Found FLIT word at address %u", word_to_addr(flit_word));
+    debug("Found FLIT word at address %u", ptr_to_addr(flit_word));
 
     // Compile FLIT followed by the 8-byte double value
-    compile_token(word_to_addr(flit_word));
+    compile_token(ptr_to_addr(flit_word));
 
     // Store double as two consecutive 32-bit cells
     union {
@@ -277,7 +274,7 @@ void interpret(void) {
             } else {
                 // b.2) if compiling, perform compilation semantics
                 debug(" (compiling), compiling token");
-                compile_token(word_to_addr(word));
+                compile_token(ptr_to_addr(word));
             }
         } else {
             // c) Not found, attempt to convert string to number
