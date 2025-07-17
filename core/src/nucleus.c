@@ -1082,8 +1082,12 @@ static const char* builtin_definitions[] = {
     ": 2* DUP + ;",
     ": 2/ 2 / ;",
 
+    ": IF    ['] 0BRANCH ,  HERE  0 , ; IMMEDIATE",
+    ": THEN  HERE  SWAP  ! ; IMMEDIATE",
+    ": ELSE  ['] BRANCH ,  HERE  0 ,  SWAP  HERE  SWAP  ! ; IMMEDIATE",
+
     ": MOD SM/REM DROP ;",
-    //": /MOD DUP >R 0 SWAP SM/REM R> 0< IF SWAP NEGATE SWAP THEN ;",
+    ": /MOD DUP >R 0 SWAP SM/REM R> 0< IF SWAP NEGATE SWAP THEN ;",
     ": */ >R M* R> FM/MOD SWAP DROP ;",
     ": */MOD >R M* R> FM/MOD ;",
 
@@ -1106,10 +1110,6 @@ static const char* builtin_definitions[] = {
 
 	": BL 32 ;",
 	": CR 10 EMIT ;",
-
-    ": IF    ['] 0BRANCH ,  HERE  0 , ; IMMEDIATE",
-    ": THEN  HERE  SWAP  ! ; IMMEDIATE",
-    ": ELSE  ['] BRANCH ,  HERE  0 ,  SWAP  HERE  SWAP  ! ; IMMEDIATE",
 
     // ?DUP ( x -- 0 | x x ) - Duplicate if non-zero
     ": ?DUP DUP IF DUP THEN ;",
