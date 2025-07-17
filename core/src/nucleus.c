@@ -1005,6 +1005,55 @@ void f_execute(word_t* self) {
     execute_word(word);
 }
 
+// FIND ( c-addr -- c-addr 0 | xt 1 | xt -1 )  Find word in dictionary
+void f_find(word_t* self) {
+    (void)self;
+
+    forth_addr_t c_addr = (forth_addr_t)data_pop();
+
+    // Get the counted string: first byte is length, followed by characters
+    byte_t length = forth_c_fetch(c_addr);
+
+    // Convert counted string to null-terminated C string
+    char name_buffer[32];
+    if (length >= sizeof(name_buffer)) {
+        // String too long, not found
+        data_push((cell_t)c_addr);
+        data_push(0);
+        return;
+    }
+
+    for (int i = 0; i < length; i++) {
+        name_buffer[i] = forth_c_fetch(c_addr + 1 + i);
+    }
+    name_buffer[length] = '\0';
+
+    debug("FIND looking for word: %s", name_buffer);
+
+    // Search for the word
+    word_t* word = search_word(name_buffer);
+
+    if (!word) {
+        // Not found: return c-addr 0
+        data_push((cell_t)c_addr);
+        data_push(0);
+        debug("FIND: word not found");
+    } else {
+        // Found: return xt and flag
+        forth_addr_t xt = ptr_to_addr(word);
+        data_push((cell_t)xt);
+
+        // Check if immediate
+        if (word->flags & WORD_FLAG_IMMEDIATE) {
+            data_push(-1);  // Immediate word
+            debug("FIND: found immediate word %s at %u", name_buffer, xt);
+        } else {
+            data_push(1);   // Normal word
+            debug("FIND: found normal word %s at %u", name_buffer, xt);
+        }
+    }
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -1078,6 +1127,7 @@ void create_all_primitives(void) {
     create_immediate_primitive_word("[']", f_bracket_tick);
     create_primitive_word("'", f_tick);
     create_primitive_word("EXECUTE", f_execute);
+    create_primitive_word("FIND", f_find);
 
 	#ifdef FORTH_DEBUG_ENABLED
     create_primitive_word("DEBUG-ON", f_debug_on);
