@@ -1111,9 +1111,6 @@ static const char* builtin_definitions[] = {
     ": THEN  HERE  SWAP  ! ; IMMEDIATE",
     ": ELSE  ['] BRANCH ,  HERE  0 ,  SWAP  HERE  SWAP  ! ; IMMEDIATE",
 
-    ": t if .\" true\" else .\" false\" then cr ;",
-    ": nt DUP IF DUP 1 = IF .\" one\" ELSE .\" other positive\" THEN ELSE .\" zero or negative\" THEN DROP CR ;",
-
     // ?DUP ( x -- 0 | x x ) - Duplicate if non-zero
     ": ?DUP DUP IF DUP THEN ;",
 
@@ -1135,6 +1132,12 @@ static const char* builtin_definitions[] = {
 
     // BOUNDS ( addr1 u -- addr2 addr1 ) - Not required but useful for loops
     ": BOUNDS OVER + SWAP ;",
+
+    ": BEGIN  HERE ; IMMEDIATE",
+    ": AGAIN  ['] BRANCH , , ; IMMEDIATE",
+    ": UNTIL  ['] 0BRANCH , , ; IMMEDIATE",
+    ": WHILE  ['] 0BRANCH , HERE 0 , SWAP ; IMMEDIATE",
+    ": REPEAT ['] BRANCH , , HERE SWAP ! ; IMMEDIATE",
 
     NULL  // End marker
 };
