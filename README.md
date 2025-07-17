@@ -11,7 +11,7 @@ KISForth (Keep It Simple Forth) prioritizes simplicity and correctness over perf
 - **Portable design**: Carefully chosen types and abstractions ensure immediate portability to 32-bit microcontrollers
   like the Raspberry Pi Pico
 - **Standards compliance**: Implements the ANS Forth required word set plus floating-point extensions
-- **Clean architecture**: Separation between core interpreter and platform-specific code
+- **Clean architecture**: Separation between interpreter and platform-specific code
 
 ## Features
 
@@ -28,9 +28,9 @@ KISForth (Keep It Simple Forth) prioritizes simplicity and correctness over perf
 
 ```
 kisforth/
-├── core/                   # Shared Forth interpreter core
-│   ├── src/               # Core implementation
-│   │   ├── nucleus.c      # Primitive words and colon definitions
+├── interpreter/           # Shared Forth interpreter
+│   ├── src/
+│   │   ├── core.c         # ANS Forth Core word set
 │   │   ├── dictionary.c   # Dictionary management
 │   │   ├── text.c         # Text interpreter
 │   │   ├── memory.c       # Memory management
