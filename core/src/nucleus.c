@@ -391,7 +391,7 @@ void execute_colon(word_t* self) {
     debug("Colon definition execution complete");
 }
 
-forth_addr_t defining_word(void (*cfunc)(struct word* self)) {
+word_t* defining_word(void (*cfunc)(struct word* self)) {
     char name_buffer[32];
 
     // Parse the name for the new definition
@@ -408,14 +408,14 @@ forth_addr_t defining_word(void (*cfunc)(struct word* self)) {
     word_t* word = addr_to_ptr(word_addr);
 
     // Initialize word header
-    word->link = NULL;  // Will be set by ; when definition is complete
     strncpy(word->name, name, sizeof(word->name) - 1);
     word->name[sizeof(word->name) - 1] = '\0';
     word->flags = 0;
     word->cfunc = cfunc;
+    word->param_field = here;  // Set parameter field to point to next free space
     link_word(word);
 
-	return word_addr + sizeof(word_t);
+	return word;
 }
 
 // : (colon) - start colon definition
@@ -930,8 +930,7 @@ void f_create(word_t* self) {
 void f_variable(word_t* self) {
     (void)self;
 
-	defining_word(f_address);
-	forth_allot(sizeof(cell_t));
+	defining_word(f_address)->param_field = 0; // initialize variable to 0
 }
 
 void f_param_field(word_t* self) {

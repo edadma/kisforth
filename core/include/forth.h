@@ -119,7 +119,7 @@ cell_t* create_variable_word(const char* name, cell_t initial_value);
 void create_area_word(const char* name);
 word_t* create_immediate_primitive_word(const char* name, void (*cfunc)(word_t* self));
 void execute_word(word_t* word);
-forth_addr_t defining_word(void (*cfunc)(struct word* self));
+word_t* defining_word(void (*cfunc)(struct word* self));
 
 // Compilation support
 void compile_token(forth_addr_t token);
