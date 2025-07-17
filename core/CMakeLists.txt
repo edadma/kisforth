@@ -33,6 +33,7 @@ endif ()
 # Include directories
 target_include_directories(kisforth_core
         PUBLIC include
+        PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include  # For generated version.h
         PRIVATE src
 )
 
@@ -59,11 +60,4 @@ endif ()
 configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/include/version.h.in"
         "${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
-)
-
-# Include directories
-target_include_directories(kisforth_core
-        PUBLIC include
-        PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include  # For generated version.h
-        PRIVATE src
 )
