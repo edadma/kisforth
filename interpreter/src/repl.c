@@ -8,6 +8,7 @@
 #include "core.h"
 #include "stack.h"
 #include "text.h"
+#include "line_editor.h"
 
 static char input_line[INPUT_BUFFER_SIZE];
 
@@ -38,6 +39,7 @@ void f_bye(word_t* self) {
 }
 
 // Character-by-character input with backspace support
+/*
 static void get_line(void) {
     char *ptr = input_line;
     int c;
@@ -71,6 +73,11 @@ static void get_line(void) {
     if (ptr >= input_line + INPUT_BUFFER_SIZE - 1) {
         *ptr = '\0';
     }
+}
+*/
+
+static void get_line(void) {
+    enhanced_get_line(input_line, INPUT_BUFFER_SIZE);
 }
 
 // Simplified REPL with setjmp for QUIT support
