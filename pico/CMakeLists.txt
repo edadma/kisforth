@@ -17,7 +17,8 @@ target_include_directories(kisforth_pico PRIVATE
 target_link_libraries(kisforth_pico
         kisforth_interpreter
         pico_stdlib
-        pico_cyw43_arch_lwip_poll
+        pico_cyw43_arch_none
+        pico_lwip_nosys
 )
 
 # Enable USB stdio, disable UART stdio
