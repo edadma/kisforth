@@ -1,7 +1,6 @@
 #include "line_editor.h"
 #include <stdio.h>
 #include <string.h>
-#include "text.h"
 
 // Terminal control sequences
 #define CURSOR_SAVE    "\033[s"
@@ -41,19 +40,17 @@ static void delete_char_at_cursor(line_buffer_t* line) {
     line->cursor_pos--;
 }
 
-static void redraw_line(line_buffer_t* line, const char* prompt) {
-    // Move cursor to beginning of line
-    printf("\r");
-
-    // Clear line and redraw prompt + buffer
-    printf("%s%.*s", prompt, (int)line->length, line->buffer);
-
-    // Clear any remaining characters
+static void redraw_from_cursor(line_buffer_t* line) {
+    // Clear from cursor to end of line
     printf(CLEAR_EOL);
 
-    // Position cursor correctly
-    size_t chars_from_end = line->length - line->cursor_pos;
-    for (size_t i = 0; i < chars_from_end; i++) {
+    // Print remaining characters from cursor position
+    printf("%.*s", (int)(line->length - line->cursor_pos),
+           line->buffer + line->cursor_pos);
+
+    // Move cursor back to original position
+    size_t chars_printed = line->length - line->cursor_pos;
+    for (size_t i = 0; i < chars_printed; i++) {
         printf(CURSOR_LEFT);
     }
 
@@ -92,19 +89,23 @@ static void move_cursor_to_end(line_buffer_t* line) {
     fflush(stdout);
 }
 
-static void handle_backspace(line_buffer_t* line, const char* prompt) {
+static void handle_backspace(line_buffer_t* line) {
     if (line->cursor_pos > 0) {
         delete_char_at_cursor(line);
-        redraw_line(line, prompt);
+        // Move cursor back and redraw from new position
+        printf(CURSOR_LEFT);
+        redraw_from_cursor(line);
     }
 }
 
-static void handle_key_event(line_buffer_t* line, key_event_t event, const char* prompt) {
+static void handle_key_event(line_buffer_t* line, key_event_t event) {
     switch (event.type) {
         case KEY_NORMAL:
             if (event.character >= 32 && event.character < 127) {
                 insert_char_at_cursor(line, event.character);
-                redraw_line(line, prompt);
+                // Print the character and redraw rest of line
+                printf("%c", event.character);
+                redraw_from_cursor(line);
             }
             break;
 
@@ -125,7 +126,7 @@ static void handle_key_event(line_buffer_t* line, key_event_t event, const char*
             break;
 
         case KEY_BACKSPACE:
-            handle_backspace(line, prompt);
+            handle_backspace(line);
             break;
 
         case KEY_ENTER:
@@ -138,9 +139,6 @@ static void handle_key_event(line_buffer_t* line, key_event_t event, const char*
 void enhanced_get_line(char* buffer, size_t max_len) {
     line_buffer_t line = {0};
 
-    // Use a simple prompt for testing
-    const char* prompt = "";
-
     terminal_raw_mode_enter();
 
     while (1) {
@@ -150,7 +148,7 @@ void enhanced_get_line(char* buffer, size_t max_len) {
             break;
         }
 
-        handle_key_event(&line, event, prompt);
+        handle_key_event(&line, event);
     }
 
     terminal_raw_mode_exit();
