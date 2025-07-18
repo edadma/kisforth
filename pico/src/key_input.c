@@ -10,7 +10,7 @@ void terminal_raw_mode_exit(void) {
     // No-op on Pico
 }
 
-// Parse Pico escape sequences (based on your minicom output)
+// Parse Pico escape sequences
 key_event_t parse_key_sequence(void) {
     key_event_t event = {0};
     int c = getchar();
@@ -30,55 +30,66 @@ key_event_t parse_key_sequence(void) {
         return event;
     }
 
-    // Check for escape sequences without ESC prefix
-    // Based on your minicom output: [D, [C, [1~, OF
-    if (c == '[') {
+    if (c == '\033') {  // ESC
+        // Read '['
         c = getchar();
-        switch (c) {
-            case 'D':
-                event.type = KEY_LEFT;
-                break;
-            case 'C':
-                event.type = KEY_RIGHT;
-                break;
-            case '1':
-                // Handle [1~ (Home key)
-                c = getchar();
-                if (c == '~') {
+        if (c == '[') {
+            // Read the command character
+            c = getchar();
+            switch (c) {
+                case 'D':
+                    event.type = KEY_LEFT;
+                    break;
+                case 'C':
+                    event.type = KEY_RIGHT;
+                    break;
+                case 'H':
                     event.type = KEY_HOME;
-                } else {
-                    // Unknown sequence - treat as normal
+                    break;
+                case 'F':
+                    event.type = KEY_END;
+                    break;
+                case '1':
+                    // Handle sequences like ESC[1~ (Home key variant)
+                    c = getchar();
+                    if (c == '~') {
+                        event.type = KEY_HOME;
+                    } else {
+                        // Unknown sequence - treat as normal
+                        event.type = KEY_NORMAL;
+                        event.character = c;
+                    }
+                    break;
+                case '3':
+                    // Handle sequences like ESC[3~ (Delete key)
+                    c = getchar();
+                    if (c == '~') {
+                        event.type = KEY_DELETE;
+                    } else {
+                        // Unknown sequence - treat as normal
+                        event.type = KEY_NORMAL;
+                        event.character = c;
+                    }
+                    break;
+                case '4':
+                    // Handle sequences like ESC[4~ (End key variant)
+                    c = getchar();
+                    if (c == '~') {
+                        event.type = KEY_END;
+                    } else {
+                        // Unknown sequence - treat as normal
+                        event.type = KEY_NORMAL;
+                        event.character = c;
+                    }
+                    break;
+                default:
+                    // Unknown escape sequence - treat as normal
                     event.type = KEY_NORMAL;
                     event.character = c;
-                }
-                break;
-            case '3':
-                // Handle [3~ (Delete key)
-                c = getchar();
-                if (c == '~') {
-                    event.type = KEY_DELETE;
-                } else {
-                    // Unknown sequence - treat as normal
-                    event.type = KEY_NORMAL;
-                    event.character = c;
-                }
-                break;
-            default:
-                // Unknown [ sequence - treat as normal
-                event.type = KEY_NORMAL;
-                event.character = c;
-                break;
-        }
-        return event;
-    }
-
-    // Check for 'O' sequences (End key shows as 'OF')
-    if (c == 'O') {
-        c = getchar();
-        if (c == 'F') {
-            event.type = KEY_END;
+                    break;
+            }
         } else {
-            // Unknown O sequence - treat as normal
+            // Not a [ sequence - treat as normal
             event.type = KEY_NORMAL;
             event.character = c;
         }
