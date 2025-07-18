@@ -20,6 +20,61 @@ cell_t* base_ptr = NULL;
 // Global instruction pointer for colon definition execution
 forth_addr_t current_ip = 0;  // 0 means not executing
 
+#define MAX_LOOP_LEAVES 32
+#define MAX_NESTED_LOOPS 8
+
+typedef struct {
+    forth_addr_t loop_start_addr;               // Address for backward branch from LOOP
+    forth_addr_t leave_addrs[MAX_LOOP_LEAVES];  // Forward branches from LEAVE
+    int leave_count;                            // Number of pending LEAVEs
+} loop_frame_t;
+
+// Loop compilation stack
+static loop_frame_t loop_stack[MAX_NESTED_LOOPS];
+static int loop_stack_depth = 0;
+
+// Loop compilation stack management functions
+static void push_loop_frame(forth_addr_t start_addr) {
+    if (loop_stack_depth >= MAX_NESTED_LOOPS) {
+        error("Loop nesting too deep (max %d)", MAX_NESTED_LOOPS);
+    }
+
+    loop_frame_t* frame = &loop_stack[loop_stack_depth];
+    frame->loop_start_addr = start_addr;
+    frame->leave_count = 0;
+    loop_stack_depth++;
+
+    debug("Push loop frame: depth=%d, start_addr=%d", loop_stack_depth, start_addr);
+}
+
+static loop_frame_t* current_loop_frame(void) {
+    if (loop_stack_depth == 0) {
+        error("No active loop for LEAVE");
+    }
+    return &loop_stack[loop_stack_depth - 1];
+}
+
+static void add_leave_addr(forth_addr_t leave_addr) {
+    loop_frame_t* frame = current_loop_frame();
+
+    if (frame->leave_count >= MAX_LOOP_LEAVES) {
+        error("Too many LEAVE statements in loop (max %d)", MAX_LOOP_LEAVES);
+    }
+
+    frame->leave_addrs[frame->leave_count++] = leave_addr;
+    debug("Add LEAVE addr: %d (count now %d)", leave_addr, frame->leave_count);
+}
+
+static loop_frame_t pop_loop_frame(void) {
+    if (loop_stack_depth == 0) {
+        error("No active loop to close");
+    }
+
+    loop_frame_t frame = loop_stack[--loop_stack_depth];
+    debug("Pop loop frame: depth now %d, had %d LEAVEs", loop_stack_depth, frame.leave_count);
+    return frame;
+}
+
 // Arithmetic primitives - these operate on the data stack
 
 // + ( n1 n2 -- n3 )  Add n1 and n2, leaving sum n3
@@ -864,6 +919,300 @@ void f_unused(word_t* self) {
     data_push(unused_bytes);
 }
 
+// DO runtime: ( limit start -- ) ( R: -- loop-sys )
+// Sets up loop parameters on return stack
+void f_do_runtime(word_t* self) {
+    (void)self;  // Unused parameter
+
+    if (data_depth() < 2) {
+        error("DO requires 2 items on stack");
+    }
+
+    cell_t start = data_pop();   // Loop index (start value)
+    cell_t limit = data_pop();   // Loop limit
+
+    // Push loop parameters onto return stack: limit first, then index
+    return_push(limit);
+    return_push(start);
+
+    debug("DO: limit=%d, start=%d", limit, start);
+}
+
+// LOOP runtime: ( -- ) ( R: loop-sys1 -- | loop-sys2 )
+// Increment index by 1, test for loop termination
+void f_loop_runtime(word_t* self) {
+    (void)self;  // Unused parameter
+
+    if (return_depth() < 2) {
+        error("LOOP: missing loop parameters on return stack");
+    }
+
+    // Get loop parameters from return stack
+    cell_t index = return_pop();
+    cell_t limit = return_pop();
+
+    // Increment index
+    index++;
+
+    debug("LOOP: index=%d, limit=%d", index, limit);
+
+    // Check for loop termination
+    if (index == limit) {
+        // Loop finished - don't restore parameters, continue after loop
+        debug("LOOP: finished");
+        return;
+    }
+
+    // Continue loop - restore parameters and branch back
+    return_push(limit);
+    return_push(index);
+
+    // The backward branch address follows this instruction
+    forth_addr_t branch_target = forth_fetch(current_ip);
+    current_ip = branch_target;
+    debug("LOOP: continue to %d", branch_target);
+}
+
+// +LOOP runtime: ( n -- ) ( R: loop-sys1 -- | loop-sys2 )
+// Increment index by n, test for loop termination with boundary crossing
+void f_plus_loop_runtime(word_t* self) {
+    (void)self;  // Unused parameter
+
+    if (data_depth() < 1) {
+        error("+LOOP requires 1 item on stack");
+    }
+
+    if (return_depth() < 2) {
+        error("+LOOP: missing loop parameters on return stack");
+    }
+
+    cell_t increment = data_pop();
+
+    // Get loop parameters from return stack
+    cell_t index = return_pop();
+    cell_t limit = return_pop();
+
+    cell_t old_index = index;
+    index += increment;
+
+    debug("+LOOP: old_index=%d, increment=%d, new_index=%d, limit=%d",
+          old_index, increment, index, limit);
+
+    // Check for boundary crossing (ANS Forth standard)
+    // Loop terminates when index crosses the boundary between limit-1 and limit
+    bool crossed = false;
+
+    if (increment > 0) {
+        // Positive increment: terminate if we crossed from below limit to >= limit
+        crossed = (old_index < limit && index >= limit);
+    } else if (increment < 0) {
+        // Negative increment: terminate if we crossed from >= limit to < limit
+        crossed = (old_index >= limit && index < limit);
+    }
+    // If increment is 0, never terminate (infinite loop)
+
+    if (crossed) {
+        // Loop finished - don't restore parameters
+        debug("+LOOP: boundary crossed, finished");
+        return;
+    }
+
+    // Continue loop - restore parameters and branch back
+    return_push(limit);
+    return_push(index);
+
+    // The backward branch address follows this instruction
+    forth_addr_t branch_target = forth_fetch(current_ip);
+    current_ip = branch_target;
+    debug("+LOOP: continue to %d", branch_target);
+}
+
+// I: ( -- n ) ( R: loop-sys -- loop-sys )
+// Return current loop index
+void f_i(word_t* self) {
+    (void)self;  // Unused parameter
+
+    if (return_depth() < 2) {
+        error("I: no loop parameters on return stack");
+    }
+
+    // Index is on top of return stack, limit is below it
+    cell_t index = return_stack_peek(0);  // Top of return stack
+    data_push(index);
+
+    debug("I: index=%d", index);
+}
+
+// J: ( -- n ) ( R: loop-sys1 loop-sys2 -- loop-sys1 loop-sys2 )
+// Return outer loop index (for nested loops)
+void f_j(word_t* self) {
+    (void)self;  // Unused parameter
+
+    if (return_depth() < 4) {
+        error("J: no outer loop parameters on return stack");
+    }
+
+    // Return stack layout: [outer_limit] [outer_index] [inner_limit] [inner_index]
+    // J needs the outer_index, which is at position 2 from top (0-indexed)
+    cell_t outer_index = return_stack_peek(2);
+    data_push(outer_index);
+
+    debug("J: outer_index=%d", outer_index);
+}
+
+// LEAVE runtime: ( -- ) ( R: loop-sys -- )
+// Remove loop parameters and branch to after loop
+void f_leave_runtime(word_t* self) {
+    (void)self;  // Unused parameter
+
+    if (return_depth() < 2) {
+        error("LEAVE: no loop parameters on return stack");
+    }
+
+    // Remove loop parameters
+    return_pop();  // index
+    return_pop();  // limit
+
+    // The branch target address follows this instruction
+    forth_addr_t branch_target = forth_fetch(current_ip);
+    current_ip = branch_target;
+
+    debug("LEAVE: branch to %d", branch_target);
+}
+
+// UNLOOP: ( -- ) ( R: loop-sys -- )
+// Remove loop parameters without branching
+void f_unloop(word_t* self) {
+    (void)self;  // Unused parameter
+
+    if (return_depth() < 2) {
+        error("UNLOOP: no loop parameters on return stack");
+    }
+
+    // Remove loop parameters
+    return_pop();  // index
+    return_pop();  // limit
+
+    debug("UNLOOP: removed loop parameters");
+}
+
+// DO: ( C: -- do-sys )
+// Compilation: Push loop frame, compile DO runtime
+void f_do(word_t* self) {
+    (void)self;  // Unused parameter
+
+    if (*state_ptr == 0) {
+        error("DO can only be used in compilation mode");
+    }
+
+    // Compile the DO runtime primitive
+    word_t* do_runtime = find_word("(DO)");
+    if (!do_runtime) {
+        error("DO: (DO) runtime primitive not found");
+    }
+    compile_word(do_runtime);
+
+    // Push loop frame with current address as loop start
+    forth_addr_t loop_start = here;
+    push_loop_frame(loop_start);
+
+    debug("DO: compiled, loop starts at %d", loop_start);
+}
+
+// LOOP: ( C: do-sys -- )
+// Compilation: Resolve LEAVEs, compile LOOP runtime and backward branch
+void f_loop(word_t* self) {
+    (void)self;  // Unused parameter
+
+    if (*state_ptr == 0) {
+        error("LOOP can only be used in compilation mode");
+    }
+
+    // Get and pop the loop frame
+    loop_frame_t frame = pop_loop_frame();
+
+    // Compile the LOOP runtime primitive
+    word_t* loop_runtime = find_word("(LOOP)");
+    if (!loop_runtime) {
+        error("LOOP: (LOOP) runtime primitive not found");
+    }
+    compile_word(loop_runtime);
+
+    // Compile backward branch target (loop start address)
+    compile_cell(frame.loop_start_addr);
+
+    // Resolve all LEAVE addresses to point here (after the loop)
+    forth_addr_t after_loop = here;
+    for (int i = 0; i < frame.leave_count; i++) {
+        forth_addr_t addr = frame.leave_addrs[i];
+        cell_t* cell_ptr = (cell_t*)addr_to_ptr(addr);
+        *cell_ptr = after_loop;
+        debug("LOOP: resolved LEAVE at %d to %d", addr, after_loop);
+    }
+
+    debug("LOOP: compiled, %d LEAVEs resolved to %d", frame.leave_count, after_loop);
+}
+
+// +LOOP: ( C: do-sys -- )
+// Compilation: Resolve LEAVEs, compile +LOOP runtime and backward branch
+void f_plus_loop(word_t* self) {
+    (void)self;  // Unused parameter
+
+    if (*state_ptr == 0) {
+        error("+LOOP can only be used in compilation mode");
+    }
+
+    // Get and pop the loop frame
+    loop_frame_t frame = pop_loop_frame();
+
+    // Compile the +LOOP runtime primitive
+    word_t* plus_loop_runtime = find_word("(+LOOP)");
+    if (!plus_loop_runtime) {
+        error("+LOOP: (+LOOP) runtime primitive not found");
+    }
+    compile_word(plus_loop_runtime);
+
+    // Compile backward branch target (loop start address)
+    compile_cell(frame.loop_start_addr);
+
+    // Resolve all LEAVE addresses to point here (after the loop)
+    forth_addr_t after_loop = here;
+    for (int i = 0; i < frame.leave_count; i++) {
+        forth_addr_t addr = frame.leave_addrs[i];
+        cell_t* cell_ptr = (cell_t*)addr_to_ptr(addr);
+        *cell_ptr = after_loop;
+        debug("+LOOP: resolved LEAVE at %d to %d", addr, after_loop);
+    }
+
+    debug("+LOOP: compiled, %d LEAVEs resolved to %d", frame.leave_count, after_loop);
+}
+
+// LEAVE: ( C: -- )
+// Compilation: Compile LEAVE runtime and add branch address for later resolution
+void f_leave(word_t* self) {
+    (void)self;  // Unused parameter
+
+    if (*state_ptr == 0) {
+        error("LEAVE can only be used in compilation mode");
+    }
+
+    // Compile the LEAVE runtime primitive
+    word_t* leave_runtime = find_word("(LEAVE)");
+    if (!leave_runtime) {
+        error("LEAVE: (LEAVE) runtime primitive not found");
+    }
+    compile_word(leave_runtime);
+
+    // Compile placeholder for branch target (will be resolved by LOOP/+LOOP)
+    forth_addr_t placeholder_addr = here;
+    compile_cell(0);  // Placeholder address
+
+    // Add this address to the current loop frame for later resolution
+    add_leave_addr(placeholder_addr);
+
+    debug("LEAVE: compiled with placeholder at %d", placeholder_addr);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -939,6 +1288,21 @@ void create_all_primitives(void) {
     create_primitive_word("EXECUTE", f_execute);
     create_primitive_word("FIND", f_find);
     create_primitive_word("UNUSED", f_unused);
+
+    // Runtime primitives (not immediate)
+    create_primitive_word("(DO)", f_do_runtime);
+    create_primitive_word("(LOOP)", f_loop_runtime);
+    create_primitive_word("(+LOOP)", f_plus_loop_runtime);
+    create_primitive_word("(LEAVE)", f_leave_runtime);
+    create_primitive_word("I", f_i);
+    create_primitive_word("J", f_j);
+    create_primitive_word("UNLOOP", f_unloop);
+
+    // Compilation words (immediate)
+    create_immediate_primitive_word("DO", f_do);
+    create_immediate_primitive_word("LOOP", f_loop);
+    create_immediate_primitive_word("+LOOP", f_plus_loop);
+    create_immediate_primitive_word("LEAVE", f_leave);
 }
 
 // Built-in Forth definitions (created after primitives are available)

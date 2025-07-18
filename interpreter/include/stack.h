@@ -27,5 +27,8 @@ int data_depth(void);
 void return_push(cell_t value);
 cell_t return_pop(void);
 int return_depth(void);
+cell_t return_stack_peek(int offset);
+cell_t* return_stack_data(void);
+cell_t return_stack_peek_alternative(int offset);
 
 #endif // STACK_H

@@ -143,6 +143,30 @@ word_t* create_immediate_primitive_word(const char* name, void (*cfunc)(word_t* 
     return word;
 }
 
+// Compile a word reference into the current definition
+void compile_word(word_t* word) {
+    if (!word) {
+        error("Cannot compile NULL word");
+    }
+
+    // Get the word's execution token (address)
+    forth_addr_t xt = ptr_to_addr(word);
+
+    // Compile the execution token
+    compile_cell(xt);
+
+    debug("Compiled word '%s' at XT=%d", word->name ? word->name : "unnamed", xt);
+}
+
+// Compile a cell value into the current definition
+void compile_cell(cell_t value) {
+    // Store the value at HERE and advance HERE
+    forth_store(here, value);
+    here += sizeof(cell_t);
+
+    debug("Compiled cell value %d at address %d", value, here - sizeof(cell_t));
+}
+
 // Helper function for creating new word definitions
 word_t* defining_word(void (*cfunc)(struct word* self)) {
     char name_buffer[32];

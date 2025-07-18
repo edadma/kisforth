@@ -79,6 +79,21 @@ void f_create(word_t* self);
 void f_variable(word_t* self);
 void f_unused(word_t* self);
 
+// DO/LOOP runtime primitive functions
+void f_do_runtime(word_t* self);        // (DO) ( limit start -- ) ( R: -- loop-sys )
+void f_loop_runtime(word_t* self);      // (LOOP) ( -- ) ( R: loop-sys1 -- | loop-sys2 )
+void f_plus_loop_runtime(word_t* self); // (+LOOP) ( n -- ) ( R: loop-sys1 -- | loop-sys2 )
+void f_i(word_t* self);                 // I ( -- n ) ( R: loop-sys -- loop-sys )
+void f_j(word_t* self);                 // J ( -- n ) ( R: loop-sys1 loop-sys2 -- loop-sys1 loop-sys2 )
+void f_leave_runtime(word_t* self);     // (LEAVE) ( -- ) ( R: loop-sys -- )
+void f_unloop(word_t* self);            // UNLOOP ( -- ) ( R: loop-sys -- )
+
+// DO/LOOP immediate compilation words
+void f_do(word_t* self);                // DO ( C: -- do-sys )
+void f_loop(word_t* self);              // LOOP ( C: do-sys -- )
+void f_plus_loop(word_t* self);         // +LOOP ( C: do-sys -- )
+void f_leave(word_t* self);             // LEAVE ( C: -- )
+
 void create_all_primitives(void); // Create all primitive words
 
 #endif // CORE_H
