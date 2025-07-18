@@ -103,8 +103,7 @@ static void handle_key_event(line_buffer_t* line, key_event_t event) {
         case KEY_NORMAL:
             if (event.character >= 32 && event.character < 127) {
                 insert_char_at_cursor(line, event.character);
-                // Print the character and redraw rest of line
-                printf("%c", event.character);
+                putchar(event.character);
                 redraw_from_cursor(line);
             }
             break;
