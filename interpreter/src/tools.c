@@ -68,7 +68,7 @@ void f_dump(word_t* self) {
         // ASCII representation
         for (int i = 0; i < 16 && offset + i < u; i++) {
             byte_t ch = forth_c_fetch(addr + offset + i);
-            printf("%c", (ch >= 32 && ch <= 126) ? ch : '.');
+            putchar((ch >= 32 && ch <= 126) ? ch : '.');
         }
 
         printf("|\n");

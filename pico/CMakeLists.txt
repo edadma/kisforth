@@ -29,3 +29,7 @@ pico_add_extra_outputs(kisforth_pico)
 set_target_properties(kisforth_pico PROPERTIES
         LINK_FLAGS "-Wl,--print-memory-usage"
 )
+
+target_sources(kisforth_pico PRIVATE
+        src/key_input.c
+)

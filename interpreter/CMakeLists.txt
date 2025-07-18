@@ -4,6 +4,7 @@ add_library(kisforth_interpreter STATIC
         src/debug.c
         src/dictionary.c
         src/error.c
+        src/line_editor.c
         src/memory.c
         src/repl.c
         src/stack.c
