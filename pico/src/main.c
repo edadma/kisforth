@@ -5,6 +5,7 @@
 #include "dictionary.h"
 #include "repl.h"
 #include "floating.h"
+#include "debug.h"
 #include "version.h"
 
 int main() {
