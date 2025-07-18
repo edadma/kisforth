@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "forth.h"
+#include "core.h"
 #include "floating.h"
 #include "debug.h"
 #include "error.h"

@@ -2,6 +2,7 @@
 #define FORTH_DEBUG_H
 
 #include <stdbool.h>
+#include "types.h"
 
 // Debug module - zero overhead when disabled at compile time
 // Enable with -DFORTH_DEBUG_ENABLED in CMake
@@ -40,5 +41,8 @@ debug_raw(fmt, ##__VA_ARGS__); \
 #else
 #define debug_with_buffer(buffer_name, size, setup_code, fmt, ...) ((void)0)
 #endif
+
+void f_debug_on(word_t* self);
+void f_debug_off(word_t* self);
 
 #endif // FORTH_DEBUG_H

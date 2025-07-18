@@ -1,7 +1,7 @@
 #include "debug.h"
-#include "forth.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include "types.h"
 
 #ifdef FORTH_DEBUG_ENABLED
 

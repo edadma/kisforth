@@ -1,7 +1,7 @@
+#include "core.h"
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
-#include "forth.h"
 #include "memory.h"
 #include "error.h"
 #include "debug.h"
@@ -14,11 +14,11 @@
 // Global STATE pointer for efficient access
 cell_t* state_ptr = NULL;
 
-// Global instruction pointer for colon definition execution
-forth_addr_t current_ip = 0;  // 0 means not executing
-
 // Global BASE pointer for efficient access
 cell_t* base_ptr = NULL;
+
+// Global instruction pointer for colon definition execution
+forth_addr_t current_ip = 0;  // 0 means not executing
 
 // Arithmetic primitives - these operate on the data stack
 

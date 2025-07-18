@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+#define INPUT_BUFFER_SIZE 256
+
 // Main REPL system
 void repl(void);
 

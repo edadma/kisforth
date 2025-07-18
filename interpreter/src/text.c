@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "forth.h"
+#include "repl.h"
 #include "memory.h"
 #include "debug.h"
 #include "floating.h"
@@ -11,6 +11,7 @@
 #include "stack.h"
 #include "dictionary.h"
 #include "util.h"
+#include "core.h"
 
 // Set the input buffer (ANS Forth compliant version)
 // This function sets up the input buffer in Forth memory space

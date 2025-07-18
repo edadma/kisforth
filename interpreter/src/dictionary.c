@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stddef.h>
-#include "forth.h"
+#include "core.h"
 #include "memory.h"
 #include "stack.h"
 #include "error.h"

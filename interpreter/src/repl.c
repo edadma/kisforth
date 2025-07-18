@@ -4,11 +4,10 @@
 #include <setjmp.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "forth.h"
+#include "types.h"
+#include "core.h"
 #include "stack.h"
 #include "text.h"
-
-#define INPUT_BUFFER_SIZE 256
 
 static char input_line[INPUT_BUFFER_SIZE];
 

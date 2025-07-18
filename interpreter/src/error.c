@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "error.h"
-#include "forth.h"
+#include "types.h"
 #include "stack.h"
 #include "repl.h"
 

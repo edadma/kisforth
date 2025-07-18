@@ -1,12 +1,10 @@
-#ifndef FORTH_H
-#define FORTH_H
+#ifndef CORE_H
+#define CORE_H
 
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include "types.h"
-
-#define INPUT_BUFFER_SIZE 256          // Text input buffer
 
 #define FORTH_PAD_SIZE 1024
 
@@ -82,4 +80,4 @@ void f_variable(word_t* self);
 
 void create_all_primitives(void); // Create all primitive words
 
-#endif // FORTH_H
+#endif // CORE_H

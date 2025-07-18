@@ -1,6 +1,6 @@
 #include "tools.h"
 #include <stdio.h>
-#include "forth.h"
+#include "types.h"
 #include "debug.h"
 #include "error.h"
 #include "tools.h"
@@ -9,6 +9,7 @@
 #include "util.h"
 #include "memory.h"
 #include "text.h"
+#include "core.h"
 
 #ifdef FORTH_ENABLE_TOOLS
 

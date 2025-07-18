@@ -3,8 +3,7 @@
 
 #ifdef FORTH_ENABLE_FLOATING
 
-// Forward declaration (word_t defined in forth.h)
-struct word;
+#include "types.h"
 
 // Float stack
 #define FLOAT_STACK_SIZE 32
@@ -28,13 +27,13 @@ void create_floating_primitives(void);
 void create_floating_definitions(void);
 
 // Primitive implementations
-void f_fdrop(struct word* self);     // FDROP ( F: r -- )
-void f_fdup(struct word* self);      // FDUP ( F: r -- r r )
-void f_f_plus(struct word* self);    // F+ ( F: r1 r2 -- r3 )
-void f_f_minus(struct word* self);   // F- ( F: r1 r2 -- r3 )
-void f_f_multiply(struct word* self); // F* ( F: r1 r2 -- r3 )
-void f_f_divide(struct word* self);  // F/ ( F: r1 r2 -- r3 )
-void f_f_dot(struct word* self);     // F. ( F: r -- )
+void f_fdrop(word_t* self);     // FDROP ( F: r -- )
+void f_fdup(word_t* self);      // FDUP ( F: r -- r r )
+void f_f_plus(word_t* self);    // F+ ( F: r1 r2 -- r3 )
+void f_f_minus(word_t* self);   // F- ( F: r1 r2 -- r3 )
+void f_f_multiply(word_t* self); // F* ( F: r1 r2 -- r3 )
+void f_f_divide(word_t* self);  // F/ ( F: r1 r2 -- r3 )
+void f_f_dot(word_t* self);     // F. ( F: r -- )
 void f_flit(word_t* self);              // FLIT ( F: -- r ) [float value follows]
 
 #endif // FORTH_ENABLE_FLOATING
