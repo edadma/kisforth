@@ -222,9 +222,17 @@ void run_all_tests(void) {
     printf("Total:  %d\n", test_stats.total);
 
     if (test_stats.failed == 0) {
+#ifdef _WIN32
+        printf("All tests passed!\n");
+#else
         printf("🎉 All tests passed!\n");
+#endif
     } else {
+#ifdef _WIN32
+        printf("FAILED: %d test(s) failed\n", test_stats.failed);
+#else
         printf("❌ %d test(s) failed\n", test_stats.failed);
+#endif
     }
 
     forth_reset();
