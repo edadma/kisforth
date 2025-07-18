@@ -5,6 +5,7 @@
 #include "memory.h"
 #include "stack.h"
 #include "dictionary.h"
+#include "text.h"
 
 #ifdef FORTH_ENABLE_TESTS
 

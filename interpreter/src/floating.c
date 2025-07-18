@@ -10,6 +10,7 @@
 #include "error.h"
 #include "dictionary.h"
 #include "memory.h"
+#include "text.h"
 
 #ifdef FORTH_ENABLE_FLOATING
 

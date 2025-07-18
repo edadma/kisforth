@@ -1,13 +1,14 @@
+#include "tools.h"
 #include <stdio.h>
 #include "forth.h"
 #include "debug.h"
-#include "tools.h"
 #include "error.h"
 #include "tools.h"
 #include "stack.h"
 #include "dictionary.h"
 #include "util.h"
 #include "memory.h"
+#include "text.h"
 
 #ifdef FORTH_ENABLE_TOOLS
 

@@ -3,6 +3,8 @@
 
 #ifdef FORTH_ENABLE_TOOLS
 
+#include "types.h"
+
 // Tools word set functions
 void f_dot_s(word_t* self);
 void f_dump(word_t* self);

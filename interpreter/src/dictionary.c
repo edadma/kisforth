@@ -11,6 +11,7 @@
 #include "tools.h"
 #include "floating.h"
 #include "test.h"
+#include "text.h"
 
 // Dictionary head points to the most recently defined word
 word_t* dictionary_head = NULL;

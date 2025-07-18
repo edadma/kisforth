@@ -16,28 +16,7 @@ extern cell_t* base_ptr;  // BASE variable pointer
 
 extern forth_addr_t current_ip;
 
-// Test accessor functions for Forth memory input system:
-cell_t get_current_to_in(void);
-cell_t get_current_input_length(void);
-forth_addr_t get_current_input_buffer_addr(void);
-
-void set_input_buffer(const char* text);  // Set input buffer content
-
-// Input buffer management (ANS Forth standard)
-void input_system_init(void);
-
-// Text interpreter (ANS Forth compliant)
-void skip_spaces(void);
-char* parse_name(char* dest, size_t max_len);
-bool try_parse_number(const char* token, cell_t* result);
-void interpret(void);  // Standard interpreter loop
-void interpret_text(const char* text);  // Convenience: set_input_buffer + interpret
-
 void create_builtin_definitions(void);
-
-// Compilation support
-void compile_token(forth_addr_t token);
-void compile_literal(cell_t value);
 
 // Colon definition words
 void f_colon(word_t* self);        // : ( C: "<spaces>name" -- colon-sys )

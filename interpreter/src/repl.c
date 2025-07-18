@@ -1,3 +1,4 @@
+#include "repl.h"
 #include <stdio.h>
 #include <string.h>
 #include <setjmp.h>
@@ -5,7 +6,7 @@
 #include <stdarg.h>
 #include "forth.h"
 #include "stack.h"
-#include "repl.h"
+#include "text.h"
 
 #define INPUT_BUFFER_SIZE 256
 
