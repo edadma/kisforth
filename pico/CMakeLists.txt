@@ -20,3 +20,15 @@ pico_add_extra_outputs(kisforth_pico)
 set_target_properties(kisforth_pico PROPERTIES
         LINK_FLAGS "-Wl,--print-memory-usage"
 )
+
+# Include shared application code
+include(../shared/CMakeLists.txt)
+
+add_executable(kisforth_pico
+        src/main.c
+        ${KISFORTH_SHARED_SOURCES}
+)
+
+target_include_directories(kisforth_pico PRIVATE
+        ${KISFORTH_SHARED_INCLUDES}
+)

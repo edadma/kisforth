@@ -77,8 +77,6 @@ static void get_line(void) {
 void repl(void) {
     repl_running = true;
 
-    printf("KISForth REPL - Type BYE to exit, QUIT to restart\n");
-
     // Set restart point for QUIT
     if (setjmp(repl_restart) != 0) {
         printf("Restarted.\n");
