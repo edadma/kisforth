@@ -4,18 +4,20 @@ include(../shared/CMakeLists.txt)
 # Pico executable
 add_executable(kisforth_pico
         src/main.c
-        ${KISFORTH_SHARED_SOURCES}  # Add this line
+        ${KISFORTH_SHARED_SOURCES}
 )
 
 # Add shared includes (add this block)
 target_include_directories(kisforth_pico PRIVATE
         ${KISFORTH_SHARED_INCLUDES}
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # Link against interpreter library and Pico SDK
 target_link_libraries(kisforth_pico
         kisforth_interpreter
         pico_stdlib
+        pico_cyw43_arch_lwip_poll
 )
 
 # Enable USB stdio, disable UART stdio
