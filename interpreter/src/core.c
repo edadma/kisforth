@@ -1,12 +1,13 @@
+#include <string.h>
+#include <assert.h>
+#include <stdio.h>
 #include "forth.h"
 #include "memory.h"
 #include "error.h"
 #include "debug.h"
 #include "stack.h"
 #include "dictionary.h"
-#include <string.h>
-#include <assert.h>
-#include <stdio.h>
+#include "repl.h"
 
 // Global STATE pointer for efficient access
 cell_t* state_ptr = NULL;

@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "stack.h"
 #include "dictionary.h"
+#include "repl.h"
 #include "version.h"
 
 int main() {
@@ -31,7 +32,7 @@ int main() {
     printf("Connect via USB serial (minicom, screen, etc.)\n");
 
     // Start interactive REPL
-    forth_repl();
+    repl();
 
     return 0;
 }

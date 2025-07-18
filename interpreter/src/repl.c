@@ -1,10 +1,11 @@
-#include "forth.h"
-#include "stack.h"
 #include <stdio.h>
 #include <string.h>
 #include <setjmp.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include "forth.h"
+#include "stack.h"
+#include "repl.h"
 
 #define INPUT_BUFFER_SIZE 256
 
@@ -73,7 +74,7 @@ static void get_line(void) {
 }
 
 // Simplified REPL with setjmp for QUIT support
-void forth_repl(void) {
+void repl(void) {
     repl_running = true;
 
     printf("KISForth REPL - Type BYE to exit, QUIT to restart\n");

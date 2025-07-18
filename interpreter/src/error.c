@@ -1,8 +1,9 @@
+#include <stdio.h>
+#include <stdarg.h>
 #include "error.h"
 #include "forth.h"
 #include "stack.h"
-#include <stdio.h>
-#include <stdarg.h>
+#include "repl.h"
 
 void error(const char* format, ...) {
     va_list args;

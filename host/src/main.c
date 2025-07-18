@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "stack.h"
 #include "dictionary.h"
+#include "repl.h"
 #include "version.h"
 
 int main(int argc, char* argv[]) {
@@ -31,7 +32,7 @@ int main(int argc, char* argv[]) {
         execute_word(test_word);
     } else {
         // Start interactive REPL
-        forth_repl();
+        repl();
     }
 
     return 0;
