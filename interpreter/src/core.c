@@ -9,6 +9,7 @@
 #include "dictionary.h"
 #include "repl.h"
 #include "util.h"
+#include "text.h"
 
 // Global STATE pointer for efficient access
 cell_t* state_ptr = NULL;

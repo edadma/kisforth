@@ -101,11 +101,6 @@ void f_debug_off(word_t* self);     // DEBUG-OFF ( -- )
 void f_create(word_t* self);
 void f_variable(word_t* self);
 
-// System management
-void forth_reset(void);         // Complete system reset
 void create_all_primitives(void); // Create all primitive words
-
-int parse_string(char quote_char, char* dest, size_t max_len);
-void set_current_to_in(cell_t value);
 
 #endif // FORTH_H

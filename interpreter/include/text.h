@@ -7,6 +7,7 @@
 
 // Input buffer management
 void set_input_buffer(const char* text);
+void set_current_to_in(cell_t value);
 
 // Text parsing functions
 void skip_spaces(void);
