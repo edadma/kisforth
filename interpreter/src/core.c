@@ -959,6 +959,7 @@ void f_loop_runtime(word_t* self) {
     // Check for loop termination
     if (index == limit) {
         // Loop finished - don't restore parameters, continue after loop
+        current_ip += sizeof(cell_t);  // Skip over the branch target address
         debug("LOOP: finished");
         return;
     }
@@ -1013,6 +1014,7 @@ void f_plus_loop_runtime(word_t* self) {
 
     if (crossed) {
         // Loop finished - don't restore parameters
+        current_ip += sizeof(cell_t);  // Skip over the branch target address
         debug("+LOOP: boundary crossed, finished");
         return;
     }
