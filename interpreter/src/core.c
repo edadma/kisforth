@@ -1215,6 +1215,142 @@ void f_leave(word_t* self) {
     debug("LEAVE: compiled with placeholder at %d", placeholder_addr);
 }
 
+
+// WORD ( char "<chars>cchar<chars>" -- c-addr )
+// Skip leading delimiters, parse until next delimiter, store as counted string in PAD
+void f_word(word_t* self) {
+    (void)self;
+
+    // Get delimiter character from stack
+    cell_t delimiter = data_pop();
+    char delim_char = (char)(delimiter & 0xFF);
+
+    // Get current input state
+    cell_t current_to_in = forth_fetch(to_in_addr);
+    cell_t current_length = forth_fetch(input_length_addr);
+
+    // Skip leading delimiters
+    while (current_to_in < current_length) {
+        char ch = (char)forth_c_fetch(input_buffer_addr + current_to_in);
+        if (ch != delim_char) {
+            break;  // Found non-delimiter
+        }
+        current_to_in++;
+    }
+
+    // Parse until next delimiter or end of input
+    cell_t start_pos = current_to_in;
+    while (current_to_in < current_length) {
+        char ch = (char)forth_c_fetch(input_buffer_addr + current_to_in);
+        if (ch == delim_char) {
+            break;  // Found delimiter
+        }
+        current_to_in++;
+    }
+
+    // Calculate length of parsed string
+    cell_t length = current_to_in - start_pos;
+
+    // Ensure length fits in a byte (ANS Forth requirement)
+    if (length > 255) {
+        length = 255;
+    }
+
+    // Update >IN to position after delimiter (if found)
+    if (current_to_in < current_length) {
+        current_to_in++;  // Skip the delimiter
+    }
+    forth_store(to_in_addr, current_to_in);
+
+    // Get PAD address by executing PAD word
+    word_t* pad_word = search_word("PAD");
+    if (!pad_word) {
+        error("WORD: PAD not found");
+    }
+    pad_word->cfunc(pad_word);  // Execute PAD to get address
+    forth_addr_t pad_addr = (forth_addr_t)data_pop();
+
+    // Store counted string in PAD
+    forth_c_store(pad_addr, (byte_t)length);  // Store length byte
+
+    // Copy characters from input buffer to PAD
+    for (cell_t i = 0; i < length; i++) {
+        char ch = (char)forth_c_fetch(input_buffer_addr + start_pos + i);
+        forth_c_store(pad_addr + 1 + i, (byte_t)ch);
+    }
+
+    // Return PAD address
+    data_push((cell_t)pad_addr);
+
+    debug("WORD: delimiter='%c', parsed \"%.*s\" (length %d)",
+          delim_char, (int)length,
+          (char*)&forth_memory[input_buffer_addr + start_pos], (int)length);
+}
+
+// ACCEPT ( c-addr +n1 -- +n2 )
+// Read up to +n1 characters into buffer at c-addr, return actual count
+void f_accept(word_t* self) {
+    (void)self;
+
+    // Get parameters from stack
+    cell_t max_chars = data_pop();
+    forth_addr_t buffer_addr = (forth_addr_t)data_pop();
+
+    // Validate parameters
+    if (max_chars < 0) {
+        data_push(0);
+        return;
+    }
+
+    cell_t count = 0;
+
+    debug("ACCEPT: reading up to %d characters into buffer at %u", max_chars, buffer_addr);
+
+    while (count < max_chars) {
+        // Read one character using KEY
+        word_t* key_word = search_word("KEY");
+        if (!key_word) {
+            error("ACCEPT: KEY not found");
+        }
+        key_word->cfunc(key_word);  // Execute KEY
+        cell_t char_value = data_pop();
+
+        char ch = (char)(char_value & 0xFF);
+
+        // Check for line terminators
+        if (ch == '\r' || ch == '\n') {
+            // End of line - stop reading
+            break;
+        }
+
+        // Check for backspace/delete
+        if (ch == '\b' || ch == '\x7F') {
+            if (count > 0) {
+                count--;
+                // Echo backspace sequence: backspace, space, backspace
+                putchar('\b');
+                putchar(' ');
+                putchar('\b');
+                fflush(stdout);
+            }
+            continue;
+        }
+
+        // Store character in buffer
+        forth_c_store(buffer_addr + count, (byte_t)ch);
+        count++;
+
+        // Echo character to output (for interactive use)
+        putchar(ch);
+        fflush(stdout);
+    }
+
+    // Return actual count
+    data_push(count);
+
+    debug("ACCEPT: read %d characters", count);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -1305,6 +1441,9 @@ void create_all_primitives(void) {
     create_immediate_primitive_word("LOOP", f_loop);
     create_immediate_primitive_word("+LOOP", f_plus_loop);
     create_immediate_primitive_word("LEAVE", f_leave);
+
+    create_primitive_word("WORD", f_word);
+    create_primitive_word("ACCEPT", f_accept);
 }
 
 // Built-in Forth definitions (created after primitives are available)

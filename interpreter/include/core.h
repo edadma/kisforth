@@ -94,6 +94,9 @@ void f_loop(word_t* self);              // LOOP ( C: do-sys -- )
 void f_plus_loop(word_t* self);         // +LOOP ( C: do-sys -- )
 void f_leave(word_t* self);             // LEAVE ( C: -- )
 
+void f_word(word_t* self);      // WORD ( char "<chars>cchar<chars>" -- c-addr )
+void f_accept(word_t* self);    // ACCEPT ( c-addr +n1 -- +n2 )
+
 void create_all_primitives(void); // Create all primitive words
 
 #endif // CORE_H
