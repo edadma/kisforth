@@ -1,3 +1,4 @@
+#include "test.h"
 #include <string.h>
 #include <stdio.h>
 #include "forth.h"
@@ -250,3 +251,7 @@ void forth_reset(void) {
 }
 
 #endif
+
+void create_test_primitives(void) {
+    create_primitive_word("TEST", f_test);
+}

@@ -1,8 +1,8 @@
+#include "dictionary.h"
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <stddef.h>
-#include "dictionary.h"
 #include "forth.h"
 #include "memory.h"
 #include "stack.h"
@@ -10,6 +10,7 @@
 #include "debug.h"
 #include "tools.h"
 #include "floating.h"
+#include "test.h"
 
 // Dictionary head points to the most recently defined word
 word_t* dictionary_head = NULL;
@@ -26,9 +27,12 @@ void dictionary_init(void) {
     #endif
 
     #ifdef FORTH_ENABLE_FLOATING
-    float_stack_init();
     create_floating_primitives();
     create_floating_definitions();
+    #endif
+
+    #ifdef FORTH_ENABLE_TESTS
+    create_test_primitives();
     #endif
 }
 

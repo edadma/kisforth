@@ -7,6 +7,7 @@
 #include "stack.h"
 #include "dictionary.h"
 #include "repl.h"
+#include "floating.h"
 #include "version.h"
 
 int main(int argc, char* argv[]) {
@@ -20,6 +21,10 @@ int main(int argc, char* argv[]) {
 	#ifdef FORTH_DEBUG_ENABLED
    	debug_init();
 	#endif
+
+    #ifdef FORTH_ENABLE_FLOATING
+    float_stack_init();
+    #endif
 
     input_system_init();    // Initialize input buffers in Forth memory
     dictionary_init();
