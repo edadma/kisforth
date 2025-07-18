@@ -107,7 +107,6 @@ void create_all_primitives(void); // Create all primitive words
 
 int parse_string(char quote_char, char* dest, size_t max_len);
 void set_current_to_in(cell_t value);
-forth_addr_t store_counted_string(const char* str, int length);
 
 
 // Unit testing system

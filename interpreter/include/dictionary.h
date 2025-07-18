@@ -21,6 +21,7 @@ word_t* create_immediate_primitive_word(const char* name, void (*cfunc)(word_t* 
 word_t* defining_word(void (*cfunc)(struct word* self));
 void execute_word(word_t* word);
 void execute_colon(word_t* self);
+forth_addr_t store_counted_string(const char* str, int length);
 
 // Word execution semantics
 void f_address(word_t* self);       // Variable execution ( -- addr )

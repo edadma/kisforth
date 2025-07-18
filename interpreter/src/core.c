@@ -574,35 +574,6 @@ void f_roll(word_t* self) {
     debug("ROLL %d executed", u);
 }
 
-
-// Store string in Forth memory as counted string (ANS Forth style)
-// Returns Forth address of the counted string
-forth_addr_t store_counted_string(const char* str, int length) {
-    // Align for the string
-    forth_align();
-    forth_addr_t string_addr = here;
-
-    debug("store_counted_string: storing \"%s\" (length %d) at address %u",
-          str, length, string_addr);
-
-    // Allocate space for the entire counted string (length byte + characters)
-    forth_allot(1 + length);
-
-    // Store length byte first (counted string format)
-    forth_c_store(string_addr, (byte_t)length);
-
-    // Store the string characters
-    for (int i = 0; i < length; i++) {
-        forth_c_store(string_addr + 1 + i, (byte_t)str[i]);
-    }
-
-    // Align after string storage for next allocation
-    forth_align();
-
-    debug("store_counted_string: stored at %u, HERE now %u", string_addr, here);
-    return string_addr;
-}
-
 void f_dot_quote_runtime(word_t* self) {
     (void)self;
 
