@@ -95,8 +95,6 @@ void f_tick(word_t* self);          // ' ( "<spaces>name" -- xt )
 void f_execute(word_t* self);       // EXECUTE ( i*x xt -- j*x )
 void f_find(word_t* self);          // FIND ( c-addr -- c-addr 0 | xt 1 | xt -1 )
 
-void execute_colon(word_t* self);
-
 void f_debug_on(word_t* self);      // DEBUG-ON ( -- )
 void f_debug_off(word_t* self);     // DEBUG-OFF ( -- )
 

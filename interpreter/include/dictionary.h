@@ -20,6 +20,7 @@ void create_area_word(const char* name);
 word_t* create_immediate_primitive_word(const char* name, void (*cfunc)(word_t* self));
 word_t* defining_word(void (*cfunc)(struct word* self));
 void execute_word(word_t* word);
+void execute_colon(word_t* self);
 
 // Word execution semantics
 void f_address(word_t* self);       // Variable execution ( -- addr )

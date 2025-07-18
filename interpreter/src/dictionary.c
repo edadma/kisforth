@@ -166,6 +166,39 @@ void execute_word(word_t* word) {
     word->cfunc(word);
 }
 
+
+// Execute a colon definition using the return stack
+void execute_colon(word_t* self) {
+    // Parameter field contains array of tokens (word addresses)
+    forth_addr_t tokens_addr = self->param_field; // parameter field points to actual parameter space (word definition)
+
+    debug("Executing colon definition: %s", self->name);
+
+    // Save current instruction pointer on return stack (if executing)
+    if (current_ip != 0) {
+        return_push((cell_t)current_ip);
+        debug("  Saved IP on return stack");
+    }
+
+    // Set new instruction pointer to start of this definition's tokens
+    current_ip = tokens_addr;
+
+    // Execute tokens until EXIT is called (which will restore IP from return stack)
+    while (current_ip != 0) {
+        forth_addr_t token_addr = forth_fetch(current_ip);
+        current_ip += sizeof(cell_t);  // Advance to next token
+
+        // Execute the word at token_addr
+        word_t* word = addr_to_ptr(token_addr);
+        debug("  Executing token: %s", word->name);
+        execute_word(word);
+
+        // If EXIT was called, current_ip will have been updated
+    }
+
+    debug("Colon definition execution complete");
+}
+
 // ============================================================================
 // Word execution semantics
 // ============================================================================
