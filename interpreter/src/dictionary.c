@@ -22,19 +22,24 @@ void dictionary_init(void) {
     create_all_primitives();
     create_builtin_definitions();
 
-    #ifdef FORTH_ENABLE_TOOLS
+#ifdef FORTH_ENABLE_TOOLS
     create_tools_primitives();
     create_tools_definitions();
-    #endif
+#endif
 
-    #ifdef FORTH_ENABLE_FLOATING
+#ifdef FORTH_ENABLE_FLOATING
     create_floating_primitives();
     create_floating_definitions();
-    #endif
+#endif
 
-    #ifdef FORTH_ENABLE_TESTS
+#ifdef FORTH_ENABLE_TESTS
     create_test_primitives();
-    #endif
+#endif
+
+#ifdef FORTH_DEBUG_ENABLED
+    create_primitive_word("DEBUG-ON", f_debug_on);
+    create_primitive_word("DEBUG-OFF", f_debug_off);
+#endif
 }
 
 // Link a word into the dictionary (at the head of the linked list)

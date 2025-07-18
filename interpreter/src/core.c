@@ -858,6 +858,12 @@ void f_find(word_t* self) {
     }
 }
 
+void f_unused(word_t* self) {
+    (void)self;
+    cell_t unused_bytes = FORTH_MEMORY_SIZE - here;
+    data_push(unused_bytes);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
     create_primitive_word("+", f_plus);
@@ -932,11 +938,7 @@ void create_all_primitives(void) {
     create_primitive_word("'", f_tick);
     create_primitive_word("EXECUTE", f_execute);
     create_primitive_word("FIND", f_find);
-
-	#ifdef FORTH_DEBUG_ENABLED
-    create_primitive_word("DEBUG-ON", f_debug_on);
-    create_primitive_word("DEBUG-OFF", f_debug_off);
-	#endif
+    create_primitive_word("UNUSED", f_unused);
 }
 
 // Built-in Forth definitions (created after primitives are available)

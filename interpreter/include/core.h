@@ -77,6 +77,7 @@ void f_debug_off(word_t* self);     // DEBUG-OFF ( -- )
 
 void f_create(word_t* self);
 void f_variable(word_t* self);
+void f_unused(word_t* self);
 
 void create_all_primitives(void); // Create all primitive words
 
