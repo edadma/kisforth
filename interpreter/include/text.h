@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#define INPUT_BUFFER_SIZE 256
+
 // Input buffer management
 void set_input_buffer(const char* text);
 void set_current_to_in(cell_t value);

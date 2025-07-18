@@ -3,7 +3,6 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "repl.h"
 #include "memory.h"
 #include "debug.h"
 #include "floating.h"

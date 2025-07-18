@@ -3,7 +3,7 @@
 #include <string.h>
 #include "debug.h"
 #include "error.h"
-#include "repl.h"
+#include "text.h"
 
 /*
  * Virtual Memory
