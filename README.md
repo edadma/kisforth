@@ -39,9 +39,9 @@ kisforth/
 │   │   ├── tools.c        # Programming tools word set
 │   │   └── test.c         # Unit testing framework
 │   └── include/           # Public headers
-├── host/                   # Host development platform
+├── host/                  # Host development platform
 │   └── src/main.c         # Host application entry point
-├── pico/                   # Raspberry Pi Pico platform
+├── pico/                  # Raspberry Pi Pico platform
 │   └── src/main.c         # Pico application entry point
 ├── CMakeLists.txt         # Root build configuration
 └── README.md
