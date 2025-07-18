@@ -16,39 +16,12 @@ extern cell_t* base_ptr;  // BASE variable pointer
 
 extern forth_addr_t current_ip;
 
-uintptr_t align_up(uintptr_t addr, size_t alignment);
-
-char digit_to_char(int digit);
-int char_to_digit(char c, int base);
-void print_number_in_base(cell_t value, cell_t base);
-
 // Test accessor functions for Forth memory input system:
 cell_t get_current_to_in(void);
 cell_t get_current_input_length(void);
 forth_addr_t get_current_input_buffer_addr(void);
 
 void set_input_buffer(const char* text);  // Set input buffer content
-
-// Basic memory management functions
-forth_addr_t forth_allot(size_t bytes);
-void forth_align(void);
-word_t* addr_to_ptr(forth_addr_t addr);
-forth_addr_t ptr_to_addr(word_t* word);
-
-// Memory access functions (needed for @, !, C@, C!)
-void forth_store(forth_addr_t addr, cell_t value);    // !
-cell_t forth_fetch(forth_addr_t addr);                // @
-void forth_c_store(forth_addr_t addr, byte_t value);  // C!
-byte_t forth_c_fetch(forth_addr_t addr);              // C@
-
-// Dictionary management
-extern word_t* dictionary_head;  // Points to most recently defined word
-
-void dictionary_init(void);
-void link_word(word_t* word);
-word_t* find_word(const char* name);
-word_t* search_word(const char* name);
-void show_dictionary(void);  // Debug helper
 
 // Input buffer management (ANS Forth standard)
 void input_system_init(void);

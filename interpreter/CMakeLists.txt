@@ -8,6 +8,7 @@ add_library(kisforth_interpreter STATIC
         src/repl.c
         src/stack.c
         src/text.c
+        src/util.c
 )
 
 # Conditionally add test system

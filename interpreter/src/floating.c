@@ -1,14 +1,15 @@
-#include "forth.h"
-#include "floating.h"
-#include "debug.h"
-#include "error.h"
-#include "dictionary.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "forth.h"
+#include "floating.h"
+#include "debug.h"
+#include "error.h"
+#include "dictionary.h"
+#include "memory.h"
 
 #ifdef FORTH_ENABLE_FLOATING
 

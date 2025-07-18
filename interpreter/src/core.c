@@ -8,6 +8,7 @@
 #include "stack.h"
 #include "dictionary.h"
 #include "repl.h"
+#include "util.h"
 
 // Global STATE pointer for efficient access
 cell_t* state_ptr = NULL;
@@ -17,58 +18,6 @@ forth_addr_t current_ip = 0;  // 0 means not executing
 
 // Global BASE pointer for efficient access
 cell_t* base_ptr = NULL;
-
-// Digit conversion array for bases 2-36
-static const char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-// Helper function: convert digit value to character
-char digit_to_char(int digit) {
-    if (digit >= 0 && digit < 36) {
-        return digits[digit];
-    }
-    return '0';  // Fallback
-}
-
-// Helper function: convert character to digit value
-int char_to_digit(char c, int base) {
-    // Convert to uppercase for consistency
-    if (c >= 'a' && c <= 'z') {
-        c = c - 'a' + 'A';
-    }
-
-    // Find the digit value
-    for (int i = 0; i < base && i < 36; i++) {
-        if (digits[i] == c) {
-            return i;
-        }
-    }
-    return -1;  // Invalid digit for this base
-}
-
-// Helper function: print number in specified base
-void print_number_in_base(cell_t value, cell_t base) {
-    char buffer[34];  // Max for 32-bit binary + sign + null
-    char* ptr = buffer + sizeof(buffer) - 1;
-    *ptr = '\0';
-
-    bool negative = (value < 0);
-    uint32_t uvalue = negative ? -(uint32_t)value : (uint32_t)value;
-
-    // Convert digits (reverse order)
-    do {
-        --ptr;
-        *ptr = digits[uvalue % base];
-        uvalue /= base;
-    } while (uvalue > 0);
-
-    // Add sign if negative
-    if (negative) {
-        --ptr;
-        *ptr = '-';
-    }
-
-    printf("%s", ptr);
-}
 
 // Arithmetic primitives - these operate on the data stack
 

@@ -6,6 +6,8 @@
 #include "tools.h"
 #include "stack.h"
 #include "dictionary.h"
+#include "util.h"
+#include "memory.h"
 
 #ifdef FORTH_ENABLE_TOOLS
 
