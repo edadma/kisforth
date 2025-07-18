@@ -25,9 +25,6 @@ void set_input_buffer(const char* text);  // Set input buffer content
 
 // Input buffer management (ANS Forth standard)
 void input_system_init(void);
-extern forth_addr_t input_buffer_addr;
-extern forth_addr_t to_in_addr;
-extern forth_addr_t input_length_addr;
 
 // Text interpreter (ANS Forth compliant)
 void skip_spaces(void);
