@@ -12,6 +12,7 @@ typedef enum {
     KEY_HOME,
     KEY_END,
     KEY_BACKSPACE,
+    KEY_DELETE,
     KEY_ENTER
 } key_type_t;
 

@@ -1,6 +1,7 @@
 #include "line_editor.h"
 #include <stdio.h>
 #include <string.h>
+#include "text.h"
 
 // Terminal control sequences
 #define CURSOR_SAVE    "\033[s"
@@ -98,11 +99,34 @@ static void handle_backspace(line_buffer_t* line) {
     }
 }
 
+static void delete_char_forward(line_buffer_t* line) {
+    if (line->cursor_pos >= line->length) {
+        return; // Nothing to delete (cursor at end)
+    }
+
+    // Shift characters left from cursor position
+    for (size_t i = line->cursor_pos; i < line->length - 1; i++) {
+        line->buffer[i] = line->buffer[i + 1];
+    }
+
+    line->length--;
+    // Note: cursor_pos stays the same for forward delete
+}
+
+static void handle_delete(line_buffer_t* line) {
+    if (line->cursor_pos < line->length) {
+        delete_char_forward(line);
+        // Redraw from current position (cursor doesn't move)
+        redraw_from_cursor(line);
+    }
+}
+
 static void handle_key_event(line_buffer_t* line, key_event_t event) {
     switch (event.type) {
         case KEY_NORMAL:
             if (event.character >= 32 && event.character < 127) {
                 insert_char_at_cursor(line, event.character);
+                // Print the character and redraw rest of line
                 putchar(event.character);
                 redraw_from_cursor(line);
             }
@@ -126,6 +150,10 @@ static void handle_key_event(line_buffer_t* line, key_event_t event) {
 
         case KEY_BACKSPACE:
             handle_backspace(line);
+            break;
+
+        case KEY_DELETE:
+            handle_delete(line);
             break;
 
         case KEY_ENTER:

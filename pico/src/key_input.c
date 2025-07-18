@@ -52,6 +52,17 @@ key_event_t parse_key_sequence(void) {
                     event.character = c;
                 }
                 break;
+            case '3':
+                // Handle [3~ (Delete key)
+                c = getchar();
+                if (c == '~') {
+                    event.type = KEY_DELETE;
+                } else {
+                    // Unknown sequence - treat as normal
+                    event.type = KEY_NORMAL;
+                    event.character = c;
+                }
+                break;
             default:
                 // Unknown [ sequence - treat as normal
                 event.type = KEY_NORMAL;
