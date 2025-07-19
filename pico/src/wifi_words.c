@@ -2,9 +2,11 @@
 
 #include <stdio.h>
 
+#include "boards/pico_w.h"  // For CYW43_WL_GPIO_LED_PIN
 #include "dictionary.h"
 #include "error.h"
 #include "memory.h"
+#include "pico/cyw43_arch.h"
 #include "stack.h"
 #include "text.h"
 #include "wifi_support.h"
@@ -42,6 +44,34 @@ static void f_wifi_disconnect(word_t* self) {
 
   bool success = wifi_disconnect();
   data_push(success ? -1 : 0);  // Forth true/false convention
+}
+
+// LED-ON ( -- )
+// Turn on the onboard LED (requires WiFi init)
+static void f_led_on(word_t* self) {
+  (void)self;
+
+  // Set the onboard LED (GPIO 0 on CYW43 chip)
+  cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
+}
+
+// LED-OFF ( -- )
+// Turn off the onboard LED (requires WiFi init)
+static void f_led_off(word_t* self) {
+  (void)self;
+
+  // Clear the onboard LED (GPIO 0 on CYW43 chip)
+  cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
+}
+
+// LED-TOGGLE ( -- )
+// Toggle the onboard LED state
+static void f_led_toggle(word_t* self) {
+  (void)self;
+
+  // Read current state and toggle it
+  bool current_state = cyw43_arch_gpio_get(CYW43_WL_GPIO_LED_PIN);
+  cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, !current_state);
 }
 
 // WIFI-CONNECT ( c-addr1 u1 c-addr2 u2 -- flag )
@@ -94,5 +124,10 @@ void pico_register_wifi_words(void) {
   create_primitive_word("WIFI-DISCONNECT", f_wifi_disconnect);
   create_primitive_word("WIFI-CONNECT", f_wifi_connect);
 
-  printf("WiFi words registered\n");
+  // LED control words (require WiFi init)
+  create_primitive_word("LED-ON", f_led_on);
+  create_primitive_word("LED-OFF", f_led_off);
+  create_primitive_word("LED-TOGGLE", f_led_toggle);
+
+  printf("WiFi and LED words registered\n");
 }
