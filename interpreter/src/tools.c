@@ -135,7 +135,7 @@ void create_tools_definitions(void) {
     interpret_text(tools_definitions[i]);
 
     if (*state_ptr != 0)
-      error("Tools definition left system in compilation state: %s",
+      error(ctx, "Tools definition left system in compilation state: %s",
             tools_definitions[i]);
 
     if (saved_state == 0 && *state_ptr != 0) {

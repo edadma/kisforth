@@ -66,7 +66,7 @@ static int case_insensitive_strcmp(const char* a, const char* b) {
 word_t* find_word(const char* name) {
   word_t* word = search_word(name);
 
-  if (!word) error("Word not found: %s", name);
+  if (!word) error(ctx, "Word not found: %s", name);
   return word;
 }
 
@@ -153,7 +153,7 @@ word_t* create_immediate_primitive_word(const char* name,
 // Compile a word reference into the current definition
 void compile_word(word_t* word) {
   if (!word) {
-    error("Cannot compile NULL word");
+    error(ctx, "Cannot compile NULL word");
   }
 
   // Get the word's execution token (address)
@@ -181,7 +181,7 @@ word_t* defining_word(void (*cfunc)(struct word* self)) {
   // Parse the name for the new definition
   char* name = parse_name(name_buffer, sizeof(name_buffer));
 
-  if (!name) error("Missing name after ':'");
+  if (!name) error(ctx, "Missing name after ':'");
 
   debug("Creating word: %s", name);
 

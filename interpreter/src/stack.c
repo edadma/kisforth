@@ -45,7 +45,7 @@ int return_depth(void) { return return_stack_ptr; }
 // Return stack peek function - examine return stack without popping
 cell_t return_stack_peek(int offset) {
   if (return_depth() <= offset) {
-    error("Return stack underflow in peek at offset %d", offset);
+    error(ctx, "Return stack underflow in peek at offset %d", offset);
   }
   // Access return stack from top (offset 0 = top, 1 = second from top, etc.)
   return return_stack_data()[return_depth() - 1 - offset];
@@ -65,7 +65,7 @@ cell_t* return_stack_data(void) {
 // Use this if direct access to return_stack array is not available
 cell_t return_stack_peek_alternative(int offset) {
   if (return_depth() <= offset) {
-    error("Return stack underflow in peek at offset %d", offset);
+    error(ctx, "Return stack underflow in peek at offset %d", offset);
   }
 
   // Save current return stack contents

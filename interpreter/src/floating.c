@@ -130,7 +130,7 @@ void f_f_divide(struct word* self) {
   double r1 = float_pop();
 
   // Check for division by zero
-  if (r2 == 0.0) error("Floating-point division by zero in 'F/'");
+  if (r2 == 0.0) error(ctx, "Floating-point division by zero in 'F/'");
 
   float_push(r1 / r2);
 }
@@ -182,7 +182,7 @@ void f_f_dot(struct word* self) {
 void f_flit(word_t* self) {
   (void)self;
 
-  if (current_ip == 0) error("FLIT called outside colon definition");
+  if (current_ip == 0) error(ctx, "FLIT called outside colon definition");
 
   // Read the 8-byte double from instruction stream
   // Store it as two consecutive 32-bit cells, then convert back to double
@@ -233,7 +233,7 @@ void create_floating_definitions(void) {
     interpret_text(floating_definitions[i]);
 
     if (*state_ptr != 0) {
-      error("Floating-point definition left system in compilation state: %s",
+      error(ctx, "Floating-point definition left system in compilation state: %s",
             floating_definitions[i]);
     }
 

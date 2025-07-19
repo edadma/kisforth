@@ -7,7 +7,7 @@
 #include "stack.h"
 #include "types.h"
 
-void error(const char* format, ...) {
+void error(context_t* ctx, const char* format, ...) {
   va_list args;
   va_start(args, format);
   printf("ERROR: ");
@@ -16,13 +16,13 @@ void error(const char* format, ...) {
 
   putchar('\n');
   fflush(stdout);
-  f_abort(NULL);
+  f_abort(ctx, NULL);
 }
 
 void f_abort(context_t* ctx, word_t* self) {
   // Empty data stack
-  data_stack_ptr = 0;
+  ctx->data_stack_ptr = 0;
 
   // Call QUIT for cleanup
-  f_quit(self);
+  f_quit(ctx, self);
 }

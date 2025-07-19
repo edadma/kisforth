@@ -38,7 +38,7 @@ void* addr_to_ptr(context_t* ctx, forth_addr_t addr) {
     }
   }
 
-  error("Invalid Forth address: %u", addr);
+  error(ctx, "Invalid Forth address: %u", addr);
   return NULL;
 }
 

@@ -5,7 +5,7 @@
 #include "types.h"
 
 // Error reporting function
-void error(const char* format, ...);
+void error(context_t* ctx, const char* format, ...);
 
 // Forth ABORT word - clear data stack and restart
 void f_abort(context_t* ctx, word_t* self);

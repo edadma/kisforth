@@ -71,12 +71,16 @@ bool debug_is_enabled(void) {
 // DEBUG-ON ( -- ) Enable debug output
 void f_debug_on(context_t* ctx, word_t* self) {
   (void)self;
+  (void)ctx;
+
   debug_on();
 }
 
 // DEBUG-OFF ( -- ) Disable debug output
 void f_debug_off(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
+
   debug_off();
 }
 #endif

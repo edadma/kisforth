@@ -91,7 +91,7 @@ static void f_wifi_connect(word_t* self) {
 
   // Validate string lengths
   if (ssid_len <= 0 || ssid_len > 32 || pass_len < 0 || pass_len > 63) {
-    error("Invalid SSID or password length");
+    error(ctx, "Invalid SSID or password length");
     return;
   }
 

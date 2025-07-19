@@ -37,7 +37,7 @@ static int loop_stack_depth = 0;
 // Loop compilation stack management functions
 static void push_loop_frame(forth_addr_t start_addr) {
   if (loop_stack_depth >= MAX_NESTED_LOOPS) {
-    error("Loop nesting too deep (max %d)", MAX_NESTED_LOOPS);
+    error(ctx, "Loop nesting too deep (max %d)", MAX_NESTED_LOOPS);
   }
 
   loop_frame_t* frame = &loop_stack[loop_stack_depth];
@@ -51,7 +51,7 @@ static void push_loop_frame(forth_addr_t start_addr) {
 
 static loop_frame_t* current_loop_frame(void) {
   if (loop_stack_depth == 0) {
-    error("No active loop for LEAVE");
+    error(ctx, "No active loop for LEAVE");
   }
   return &loop_stack[loop_stack_depth - 1];
 }
@@ -60,7 +60,7 @@ static void add_leave_addr(forth_addr_t leave_addr) {
   loop_frame_t* frame = current_loop_frame();
 
   if (frame->leave_count >= MAX_LOOP_LEAVES) {
-    error("Too many LEAVE statements in loop (max %d)", MAX_LOOP_LEAVES);
+    error(ctx, "Too many LEAVE statements in loop (max %d)", MAX_LOOP_LEAVES);
   }
 
   frame->leave_addrs[frame->leave_count++] = leave_addr;
@@ -69,7 +69,7 @@ static void add_leave_addr(forth_addr_t leave_addr) {
 
 static loop_frame_t pop_loop_frame(void) {
   if (loop_stack_depth == 0) {
-    error("No active loop to close");
+    error(ctx, "No active loop to close");
   }
 
   loop_frame_t frame = loop_stack[--loop_stack_depth];
@@ -119,7 +119,7 @@ void f_divide(context_t* ctx, word_t* self) {
   cell_t n2 = data_pop();
   cell_t n1 = data_pop();
 
-  if (n2 == 0) error("Division by zero in '/'");
+  if (n2 == 0) error(ctx, "Division by zero in '/'");
 
   data_push(n1 / n2);
 }
@@ -354,7 +354,7 @@ void f_semicolon(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  if (*state_ptr == 0) error("';' without matching :");
+  if (*state_ptr == 0) error(ctx, "';' without matching :");
 
   debug("Ending colon definition, compiling EXIT");
 
@@ -395,7 +395,7 @@ void f_lit(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  if (current_ip == 0) error("LIT called outside colon definition");
+  if (current_ip == 0) error(ctx, "LIT called outside colon definition");
 
   // Read the literal value from the instruction stream
   cell_t literal = forth_fetch(current_ip);
@@ -614,7 +614,7 @@ void f_r_fetch(context_t* ctx, word_t* self) {
   require(return_depth() > 0);
 
   // Peek at top of return stack without removing it
-  cell_t x = return_stack[return_stack_ptr - 1];
+  cell_t x = ctx->return_stack[ctx->return_stack_ptr - 1];
   data_push(x);
 }
 
@@ -640,7 +640,7 @@ void f_immediate(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  if (dictionary_head == NULL) error("No word to make immediate");
+  if (dictionary_head == NULL) error(ctx, "No word to make immediate");
 
   // Set immediate flag on most recently defined word
   dictionary_head->flags |= WORD_FLAG_IMMEDIATE;
@@ -662,18 +662,18 @@ void f_roll(context_t* ctx, word_t* self) {
     return;
   }
 
-  if (data_depth() < u + 1) error("ROLL stack underflow");
+  if (data_depth() < u + 1) error(ctx, "ROLL stack underflow");
 
   // Get the item that's u positions down
-  cell_t xu = data_stack[data_stack_ptr - 1 - u];
+  cell_t xu = ctx->data_stack[ctx->data_stack_ptr - 1 - u];
 
   // Shift all items above it down by one position
-  for (int i = data_stack_ptr - 1 - u; i < data_stack_ptr - 1; i++) {
-    data_stack[i] = data_stack[i + 1];
+  for (int i = ctx->data_stack_ptr - 1 - u; i < ctx->data_stack_ptr - 1; i++) {
+    ctx->data_stack[i] = ctx->data_stack[i + 1];
   }
 
   // Put xu on top
-  data_stack[data_stack_ptr - 1] = xu;
+  ctx->data_stack[ctx->data_stack_ptr - 1] = xu;
 
   debug("ROLL %d executed", u);
 }
@@ -682,7 +682,7 @@ void f_dot_quote_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  if (current_ip == 0) error("'.(' called outside colon definition");
+  if (current_ip == 0) error(ctx, "'.(' called outside colon definition");
 
   // Read string length from parameter field
   byte_t length = (byte_t)forth_fetch(current_ip);
@@ -709,7 +709,7 @@ void f_abort_quote_runtime(context_t* ctx, word_t* self) {
 
   cell_t flag = data_pop();
 
-  if (current_ip == 0) error("(ABORT called outside colon definition");
+  if (current_ip == 0) error(ctx, "(ABORT called outside colon definition");
 
   // Read string length from parameter field
   byte_t length = (byte_t)forth_fetch(current_ip);
@@ -781,7 +781,7 @@ void f_abort_quote(context_t* ctx, word_t* self) {
 
   if (*state_ptr == 0) {
     // Interpretation mode - check flag and abort immediately
-    if (data_depth() < 1) error("ABORT\" requires a flag on the stack");
+    if (data_depth() < 1) error(ctx, "ABORT\" requires a flag on the stack");
 
     cell_t flag = data_pop();
     if (flag != 0) {
@@ -832,10 +832,10 @@ void f_bracket_tick(context_t* ctx, word_t* self) {
 
   char name_buffer[32];
   char* name = parse_name(name_buffer, sizeof(name_buffer));
-  if (!name) error("Missing name after [']");
+  if (!name) error(ctx, "Missing name after [']");
 
   word_t* word = find_word(name);
-  if (!word) error("Word not found in [']");
+  if (!word) error(ctx, "Word not found in [']");
 
   // Compile the word's address as a literal
   compile_literal(ptr_to_addr(word));
@@ -893,7 +893,7 @@ void f_tick(context_t* ctx, word_t* self) {
   char* name = parse_name(name_buffer, sizeof(name_buffer));
 
   if (!name) {
-    error("' expects a name");
+    error(ctx, "' expects a name");
   }
 
   debug("' looking for word: %s", name);
@@ -989,7 +989,7 @@ void f_do_runtime(context_t* ctx, word_t* self) {
   (void)self;  // Unused parameter
 
   if (data_depth() < 2) {
-    error("DO requires 2 items on stack");
+    error(ctx, "DO requires 2 items on stack");
   }
 
   cell_t start = data_pop();  // Loop index (start value)
@@ -1009,7 +1009,7 @@ void f_loop_runtime(context_t* ctx, word_t* self) {
   (void)self;  // Unused parameter
 
   if (return_depth() < 2) {
-    error("LOOP: missing loop parameters on return stack");
+    error(ctx, "LOOP: missing loop parameters on return stack");
   }
 
   // Get loop parameters from return stack
@@ -1046,11 +1046,11 @@ void f_plus_loop_runtime(context_t* ctx, word_t* self) {
   (void)self;  // Unused parameter
 
   if (data_depth() < 1) {
-    error("+LOOP requires 1 item on stack");
+    error(ctx, "+LOOP requires 1 item on stack");
   }
 
   if (return_depth() < 2) {
-    error("+LOOP: missing loop parameters on return stack");
+    error(ctx, "+LOOP: missing loop parameters on return stack");
   }
 
   cell_t increment = data_pop();
@@ -1102,7 +1102,7 @@ void f_i(context_t* ctx, word_t* self) {
   (void)self;  // Unused parameter
 
   if (return_depth() < 2) {
-    error("I: no loop parameters on return stack");
+    error(ctx, "I: no loop parameters on return stack");
   }
 
   // Index is on top of return stack, limit is below it
@@ -1119,7 +1119,7 @@ void f_j(context_t* ctx, word_t* self) {
   (void)self;  // Unused parameter
 
   if (return_depth() < 4) {
-    error("J: no outer loop parameters on return stack");
+    error(ctx, "J: no outer loop parameters on return stack");
   }
 
   // Return stack layout: [outer_limit] [outer_index] [inner_limit]
@@ -1138,7 +1138,7 @@ void f_leave_runtime(context_t* ctx, word_t* self) {
   (void)self;  // Unused parameter
 
   if (return_depth() < 2) {
-    error("LEAVE: no loop parameters on return stack");
+    error(ctx, "LEAVE: no loop parameters on return stack");
   }
 
   // Remove loop parameters
@@ -1159,7 +1159,7 @@ void f_unloop(context_t* ctx, word_t* self) {
   (void)self;  // Unused parameter
 
   if (return_depth() < 2) {
-    error("UNLOOP: no loop parameters on return stack");
+    error(ctx, "UNLOOP: no loop parameters on return stack");
   }
 
   // Remove loop parameters
@@ -1176,13 +1176,13 @@ void f_do(context_t* ctx, word_t* self) {
   (void)self;  // Unused parameter
 
   if (*state_ptr == 0) {
-    error("DO can only be used in compilation mode");
+    error(ctx, "DO can only be used in compilation mode");
   }
 
   // Compile the DO runtime primitive
   word_t* do_runtime = find_word("(DO)");
   if (!do_runtime) {
-    error("DO: (DO) runtime primitive not found");
+    error(ctx, "DO: (DO) runtime primitive not found");
   }
   compile_word(do_runtime);
 
@@ -1200,7 +1200,7 @@ void f_loop(context_t* ctx, word_t* self) {
   (void)self;  // Unused parameter
 
   if (*state_ptr == 0) {
-    error("LOOP can only be used in compilation mode");
+    error(ctx, "LOOP can only be used in compilation mode");
   }
 
   // Get and pop the loop frame
@@ -1209,7 +1209,7 @@ void f_loop(context_t* ctx, word_t* self) {
   // Compile the LOOP runtime primitive
   word_t* loop_runtime = find_word("(LOOP)");
   if (!loop_runtime) {
-    error("LOOP: (LOOP) runtime primitive not found");
+    error(ctx, "LOOP: (LOOP) runtime primitive not found");
   }
   compile_word(loop_runtime);
 
@@ -1236,7 +1236,7 @@ void f_plus_loop(context_t* ctx, word_t* self) {
   (void)self;  // Unused parameter
 
   if (*state_ptr == 0) {
-    error("+LOOP can only be used in compilation mode");
+    error(ctx, "+LOOP can only be used in compilation mode");
   }
 
   // Get and pop the loop frame
@@ -1245,7 +1245,7 @@ void f_plus_loop(context_t* ctx, word_t* self) {
   // Compile the +LOOP runtime primitive
   word_t* plus_loop_runtime = find_word("(+LOOP)");
   if (!plus_loop_runtime) {
-    error("+LOOP: (+LOOP) runtime primitive not found");
+    error(ctx, "+LOOP: (+LOOP) runtime primitive not found");
   }
   compile_word(plus_loop_runtime);
 
@@ -1273,13 +1273,13 @@ void f_leave(context_t* ctx, word_t* self) {
   (void)self;  // Unused parameter
 
   if (*state_ptr == 0) {
-    error("LEAVE can only be used in compilation mode");
+    error(ctx, "LEAVE can only be used in compilation mode");
   }
 
   // Compile the LEAVE runtime primitive
   word_t* leave_runtime = find_word("(LEAVE)");
   if (!leave_runtime) {
-    error("LEAVE: (LEAVE) runtime primitive not found");
+    error(ctx, "LEAVE: (LEAVE) runtime primitive not found");
   }
   compile_word(leave_runtime);
 
@@ -1344,7 +1344,7 @@ void f_word(context_t* ctx, word_t* self) {
   // Get PAD address by executing PAD word
   word_t* pad_word = search_word("PAD");
   if (!pad_word) {
-    error("WORD: PAD not found");
+    error(ctx, "WORD: PAD not found");
   }
   pad_word->cfunc(pad_word);  // Execute PAD to get address
   forth_addr_t pad_addr = (forth_addr_t)data_pop();
@@ -1391,7 +1391,7 @@ void f_accept(context_t* ctx, word_t* self) {
     // Read one character using KEY
     word_t* key_word = search_word("KEY");
     if (!key_word) {
-      error("ACCEPT: KEY not found");
+      error(ctx, "ACCEPT: KEY not found");
     }
     key_word->cfunc(key_word);  // Execute KEY
     cell_t char_value = data_pop();
@@ -1437,7 +1437,7 @@ void f_s_quote_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  if (current_ip == 0) error("(S\") called outside colon definition");
+  if (current_ip == 0) error(ctx, "(S\") called outside colon definition");
 
   // Read the string length from the instruction stream
   cell_t length = forth_fetch(current_ip);
@@ -1692,7 +1692,7 @@ void create_builtin_definitions(void) {
 
     // Verify we're back in interpretation state
     if (*state_ptr != 0)
-      error("Built-in definition left system in compilation state: %s",
+      error(ctx, "Built-in definition left system in compilation state: %s",
             builtin_definitions[i]);
 
     // Restore state if it was somehow changed

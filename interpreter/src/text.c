@@ -183,7 +183,7 @@ int parse_string(char quote_char, char* dest, size_t max_len) {
 
 // Compile a token (word address) into current definition
 void compile_token(forth_addr_t token) {
-  if (*state_ptr == 0) error("Not compiling");
+  if (*state_ptr == 0) error(ctx, "Not compiling");
 
   // Align and store the token
   forth_align();
@@ -211,11 +211,11 @@ void compile_literal(cell_t value) {
 
 // Compile a float literal using FLIT
 void compile_float_literal(double value) {
-  if (*state_ptr == 0) error("Not compiling");
+  if (*state_ptr == 0) error(ctx, "Not compiling");
 
   // Find FLIT word address
   word_t* flit_word = find_word("FLIT");
-  if (!flit_word) error("FLIT word not found");
+  if (!flit_word) error(ctx, "FLIT word not found");
 
   debug("Found FLIT word at address %u", ptr_to_addr(flit_word));
 
@@ -318,7 +318,7 @@ void interpret(void) {
         } else {
 #endif
           // d) If unsuccessful, ambiguous condition (error)
-          error("'%s' not found and not a number", name);
+          error(ctx, "'%s' not found and not a number", name);
 #ifdef FORTH_ENABLE_FLOATING
         }
 #endif
