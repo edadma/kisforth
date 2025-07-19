@@ -104,7 +104,8 @@ void show_dictionary(void) {
 // ============================================================================
 
 // Create a primitive word in virtual memory
-word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self)) {
+word_t* create_primitive_word(const char* name,
+                              void (*cfunc)(context_t* ctx, word_t* self)) {
   // Allocate space for the word structure
   forth_addr_t word_addr = forth_allot(sizeof(word_t));
   word_t* word = addr_to_ptr(word_addr);
@@ -141,7 +142,8 @@ void create_area_word(const char* name) {
 
 // Create an immediate primitive word
 word_t* create_immediate_primitive_word(const char* name,
-                                        void (*cfunc)(word_t* self)) {
+                                        void (*cfunc)(context_t* ctx,
+                                                      word_t* self)) {
   word_t* word = create_primitive_word(name, cfunc);
   word->flags |= WORD_FLAG_IMMEDIATE;
   return word;

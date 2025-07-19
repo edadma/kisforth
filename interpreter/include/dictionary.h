@@ -1,6 +1,7 @@
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
 
+#include "context.h"
 #include "types.h"
 
 // Dictionary head - points to most recently defined word
@@ -16,11 +17,13 @@ void compile_word(word_t* word);
 void compile_cell(cell_t value);
 
 // Word creation and execution utilities
-word_t* create_primitive_word(const char* name, void (*cfunc)(word_t* self));
+word_t* create_primitive_word(const char* name,
+                              void (*cfunc)(context_t* ctx, word_t* self));
 cell_t* create_variable_word(const char* name, cell_t initial_value);
 void create_area_word(const char* name);
 word_t* create_immediate_primitive_word(const char* name,
-                                        void (*cfunc)(word_t* self));
+                                        void (*cfunc)(context_t* ctx,
+                                                      word_t* self));
 
 word_t* defining_word(void (*cfunc)(struct word* self));
 void execute_word(word_t* word);

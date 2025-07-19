@@ -51,5 +51,6 @@ typedef struct context {
 
 // Context management functions
 void context_init(context_t* ctx, const char* name, bool is_interrupt_handler);
+void* addr_to_ptr(context_t* ctx, forth_addr_t addr);
 
 #endif  // CONTEXT_H
