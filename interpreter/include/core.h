@@ -99,6 +99,9 @@ void f_leave(word_t* self);      // LEAVE ( C: -- )
 void f_word(word_t* self);    // WORD ( char "<chars>cchar<chars>" -- c-addr )
 void f_accept(word_t* self);  // ACCEPT ( c-addr +n1 -- +n2 )
 
+void f_s_quote_runtime(word_t* self);
+void f_s_quote(word_t* self);
+
 void create_all_primitives(void);  // Create all primitive words
 
 #endif  // CORE_H

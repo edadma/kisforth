@@ -1,7 +1,6 @@
 #include "core.h"
 
 #include <stdio.h>
-#include <string.h>
 
 #include "debug.h"
 #include "dictionary.h"
@@ -1364,6 +1363,75 @@ void f_accept(word_t* self) {
   debug("ACCEPT: read %d characters", count);
 }
 
+// S" runtime implementation - pushes address and length of compiled string
+void f_s_quote_runtime(word_t* self) {
+  (void)self;
+
+  if (current_ip == 0) error("(S\") called outside colon definition");
+
+  // Read the string length from the instruction stream
+  cell_t length = forth_fetch(current_ip);
+  current_ip += sizeof(cell_t);
+
+  // Push the string address and length onto the data stack
+  data_push((cell_t)current_ip);  // c-addr
+  data_push(length);              // u
+
+  // Advance IP past the string data
+  current_ip += length;
+  current_ip =
+      (current_ip + sizeof(cell_t) - 1) & ~(sizeof(cell_t) - 1);  // Align
+
+  debug("(S\") pushed addr=%d length=%d", current_ip - length - sizeof(cell_t),
+        length);
+}
+
+// S" implementation - compiles inline string data
+void f_s_quote(word_t* self) {
+  (void)self;
+
+  // Parse the string
+  char string_buffer[256];
+  int length = parse_string('"', string_buffer, sizeof(string_buffer));
+
+  if (*state_ptr == 0) {
+    // Interpretation mode - store string temporarily and push address/length
+    debug("S\" interpretation: storing '%s' temporarily", string_buffer);
+    // Store string at PAD (temporary area)
+    forth_addr_t pad_addr = here - FORTH_PAD_SIZE;  // PAD is before HERE
+    for (int i = 0; i < length; i++) {
+      forth_c_store(pad_addr + i, string_buffer[i]);
+    }
+
+    // Push address and length
+    data_push((cell_t)pad_addr);  // c-addr
+    data_push(length);            // u
+
+  } else {
+    // Compilation mode - compile inline string data
+    debug("S\" compilation: compiling inline string \"%s\" (length %d)",
+          string_buffer, length);
+
+    // 1. Compile the runtime word
+    word_t* runtime_word = find_word("(S\")");
+    compile_word(runtime_word);
+
+    // 2. Compile the string length
+    compile_cell((cell_t)length);
+
+    // 3. Compile the string data
+    for (int i = 0; i < length; i++) {
+      forth_c_store(here + i, string_buffer[i]);
+    }
+
+    here += length;
+    forth_align();  // Align for next cell
+
+    debug("S\" compilation: compiled %d bytes + alignment",
+          length + sizeof(cell_t));
+  }
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
   create_primitive_word("+", f_plus);
@@ -1419,10 +1487,12 @@ void create_all_primitives(void) {
   create_primitive_word("IMMEDIATE", f_immediate);
 
   // Create helper words first (these are implementation details)
+  create_primitive_word("(S\")", f_s_quote_runtime);
   create_primitive_word("(.\"", f_dot_quote_runtime);
   create_primitive_word("(ABORT\"", f_abort_quote_runtime);
 
   // Create the user-visible immediate words
+  create_immediate_primitive_word("S\"", f_s_quote);
   create_immediate_primitive_word(".\"", f_dot_quote);
   create_immediate_primitive_word("ABORT\"", f_abort_quote);
 
