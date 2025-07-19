@@ -5,18 +5,6 @@
 
 #include "error.h"
 
-// Stack storage
-cell_t data_stack[DATA_STACK_SIZE];
-cell_t return_stack[RETURN_STACK_SIZE];
-int data_stack_ptr = 0;    // Points to next empty slot
-int return_stack_ptr = 0;  // Points to next empty slot
-
-// Initialize both stacks
-void stack_init(void) {
-  data_stack_ptr = 0;
-  return_stack_ptr = 0;
-}
-
 // Data stack operations
 void data_push(cell_t value) {
   require(data_stack_ptr < DATA_STACK_SIZE, "Stack overflow");

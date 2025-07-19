@@ -16,6 +16,7 @@ static char input_line[INPUT_BUFFER_SIZE];
 // REPL control for QUIT word
 static jmp_buf repl_restart;
 static bool repl_running = false;
+static context_t repl_context;
 
 // QUIT word - restart the REPL loop
 void f_quit(word_t* self) {
