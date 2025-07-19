@@ -20,13 +20,15 @@ bool wifi_init(void) {
   }
 
   // Initialize CYW43 architecture
-  if (cyw43_arch_init()) {
+  if (cyw43_arch_init_with_country(CYW43_COUNTRY_CANADA)) {
     printf("Failed to initialize CYW43 architecture\n");
     return false;
   }
 
   // Enable station mode
   cyw43_arch_enable_sta_mode();
+
+  cyw43_wifi_pm(&cyw43_state, 0xa11140);
 
   wifi_initialized = true;
   printf("WiFi initialized successfully\n");
@@ -43,7 +45,7 @@ bool wifi_connect(const char* ssid, const char* password) {
 
   // Attempt to connect
   int result = cyw43_arch_wifi_connect_timeout_ms(
-      ssid, password, CYW43_AUTH_WPA2_AES_PSK, 10000);
+      ssid, password, CYW43_AUTH_WPA2_MIXED_PSK, 50000);
 
   if (result == 0) {
     wifi_connected = true;
