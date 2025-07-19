@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string.h>
 
+#include "context.h"
 #include "debug.h"
 #include "error.h"
 #include "text.h"
@@ -83,13 +84,6 @@ inline uintptr_t align_up(uintptr_t addr, size_t alignment) {
 
 // Align HERE to cell boundary (4 bytes)
 void forth_align(void) { here = align_up(here, sizeof(cell_t)); }
-
-// Convert Forth address to C pointer
-word_t* addr_to_ptr(forth_addr_t addr) {
-  debug("addr_to_ptr: converting address %u", addr);
-  require(addr < FORTH_MEMORY_SIZE);
-  return (word_t*)&forth_memory[addr];
-}
 
 // Convert C pointer to Forth address
 forth_addr_t ptr_to_addr(word_t* word) {

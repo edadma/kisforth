@@ -17,12 +17,6 @@
 #define FLOAT_STACK_SIZE 32
 #endif
 
-typedef struct {
-  forth_addr_t base_addr;
-  size_t context_offset;
-  size_t region_size;
-} transient_mapping_t;
-
 // Execution context structure
 typedef struct context {
   // Execution state

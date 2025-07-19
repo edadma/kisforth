@@ -6,11 +6,6 @@
 
 #include "types.h"
 
-// Memory layout constants
-#ifndef FORTH_MEMORY_SIZE
-#define FORTH_MEMORY_SIZE (64 * 1024)  // 64KB virtual memory (default)
-#endif
-
 // Global memory
 extern uint8_t forth_memory[FORTH_MEMORY_SIZE];
 extern forth_addr_t here;  // Data space pointer

@@ -24,4 +24,9 @@ typedef struct word {
 // Word flags
 #define WORD_FLAG_IMMEDIATE 0x01
 
+// Memory layout constants
+#ifndef FORTH_MEMORY_SIZE
+#define FORTH_MEMORY_SIZE (64 * 1024)  // 64KB virtual memory (default)
+#endif
+
 #endif  // TYPES_H
