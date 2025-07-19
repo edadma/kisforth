@@ -74,6 +74,8 @@ typedef struct word {
 #define FORTH_MEMORY_SIZE (64 * 1024)  // 64KB virtual memory (default)
 #endif
 
+extern context_t main_context;
+
 // Context management functions
 void context_init(context_t* ctx, const char* name, bool is_interrupt_handler);
 void* addr_to_ptr(context_t* ctx, forth_addr_t addr);

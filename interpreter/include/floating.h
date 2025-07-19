@@ -5,7 +5,7 @@
 
 #include <stdbool.h>
 
-
+#include "forth.h"
 
 // Float stack
 #define FLOAT_STACK_SIZE 32
@@ -19,7 +19,7 @@ double float_pop(void);
 double float_peek(void);
 int float_depth(void);
 
-void compile_float_literal(double value);
+void compile_float_literal(context_t* ctx, double value);
 
 // Float parsing
 bool try_parse_float(const char* token, double* result);
@@ -29,14 +29,14 @@ void create_floating_primitives(void);
 void create_floating_definitions(void);
 
 // Primitive implementations
-void f_fdrop(word_t* self);       // FDROP ( F: r -- )
-void f_fdup(word_t* self);        // FDUP ( F: r -- r r )
-void f_f_plus(word_t* self);      // F+ ( F: r1 r2 -- r3 )
-void f_f_minus(word_t* self);     // F- ( F: r1 r2 -- r3 )
-void f_f_multiply(word_t* self);  // F* ( F: r1 r2 -- r3 )
-void f_f_divide(word_t* self);    // F/ ( F: r1 r2 -- r3 )
-void f_f_dot(word_t* self);       // F. ( F: r -- )
-void f_flit(word_t* self);        // FLIT ( F: -- r ) [float value follows]
+void f_fdrop(context_t* ctx, word_t* self);      // FDROP ( F: r -- )
+void f_fdup(context_t* ctx, word_t* self);       // FDUP ( F: r -- r r )
+void f_fplus(context_t* ctx, word_t* self);      // F+ ( F: r1 r2 -- r3 )
+void f_fminus(context_t* ctx, word_t* self);     // F- ( F: r1 r2 -- r3 )
+void f_fmultiply(context_t* ctx, word_t* self);  // F* ( F: r1 r2 -- r3 )
+void f_fdivide(context_t* ctx, word_t* self);    // F/ ( F: r1 r2 -- r3 )
+void f_fdot(context_t* ctx, word_t* self);       // F. ( F: r -- )
+void f_flit(context_t* ctx, word_t* self);       // FLIT ( F: -- r ) [float value follows]
 
 #endif  // FORTH_ENABLE_FLOATING
 #endif  // FLOATING_H

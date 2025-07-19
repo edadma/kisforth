@@ -182,7 +182,7 @@ int parse_string(char quote_char, char* dest, size_t max_len) {
 }
 
 // Compile a token (word address) into current definition
-void compile_token(forth_addr_t token) {
+void compile_token(context_t* ctx, forth_addr_t token) {
   if (*state_ptr == 0) error(ctx, "Not compiling");
 
   // Align and store the token
@@ -194,53 +194,23 @@ void compile_token(forth_addr_t token) {
 }
 
 // Compile a literal using LIT
-void compile_literal(cell_t value) {
+void compile_literal(context_t* ctx, cell_t value) {
   // Find LIT word address
   word_t* lit_word = find_word(ctx, "LIT");
 
   debug("Found LIT word at address %u", ptr_to_addr(lit_word));
 
   // Compile LIT followed by the literal value
-  compile_token(ptr_to_addr(lit_word));
-  compile_token((forth_addr_t)value);
+  compile_token(ctx, ptr_to_addr(lit_word));
+  compile_token(ctx, (forth_addr_t)value);
 
   debug("Compiled literal: %d", value);
 }
 
-#ifdef FORTH_ENABLE_FLOATING
-
-// Compile a float literal using FLIT
-void compile_float_literal(double value) {
-  if (*state_ptr == 0) error(ctx, "Not compiling");
-
-  // Find FLIT word address
-  word_t* flit_word = find_word(ctx, "FLIT");
-  if (!flit_word) error(ctx, "FLIT word not found");
-
-  debug("Found FLIT word at address %u", ptr_to_addr(flit_word));
-
-  // Compile FLIT followed by the 8-byte double value
-  compile_token(ptr_to_addr(flit_word));
-
-  // Store double as two consecutive 32-bit cells
-  union {
-    double d;
-    uint32_t cells[2];
-  } converter;
-  converter.d = value;
-
-  compile_token((forth_addr_t)converter.cells[0]);
-  compile_token((forth_addr_t)converter.cells[1]);
-
-  debug("Compiled float literal: %g", value);
-}
-
-#endif  // FORTH_ENABLE_FLOATING
-
 // ANS Forth compliant text interpreter
 // Implements the algorithm from section 3.4 of the standard
 // Enhanced to support both interpretation and compilation modes
-void interpret(void) {
+void interpret(context_t* ctx) {
   char name_buffer[64];
 
   debug_with_buffer(
@@ -282,7 +252,7 @@ void interpret(void) {
       } else {
         // b.2) if compiling, perform compilation semantics
         debug(" (compiling), compiling token");
-        compile_token(ptr_to_addr(word));
+        compile_token(ctx, ptr_to_addr(word));
       }
     } else {
       // c) Not found, attempt to convert string to number
@@ -297,7 +267,7 @@ void interpret(void) {
         } else {
           // c.2) if compiling, compile literal
           debug(" (compiling), compiling literal");
-          compile_literal(number);
+          compile_literal(ctx, number);
         }
       } else {
 #ifdef FORTH_ENABLE_FLOATING
@@ -313,7 +283,7 @@ void interpret(void) {
           } else {
             // c3.2) if compiling, compile float literal (not implemented yet)
             debug(" (compiling), compiling float literal");
-            compile_float_literal(float_number);
+            compile_float_literal(ctx, float_number);
           }
         } else {
 #endif
@@ -334,9 +304,9 @@ void interpret(void) {
 }
 
 // Interpret text directly - convenience function
-void interpret_text(const char* text) {
+void interpret_text(context_t* ctx, const char* text) {
   set_input_buffer(text);
-  interpret();
+  interpret(ctx);
 }
 
 // Test accessor functions for the Forth memory input system

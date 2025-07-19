@@ -9,13 +9,12 @@
 #include "memory.h"
 #include "stack.h"
 #include "text.h"
-
 #include "util.h"
 
 #ifdef FORTH_ENABLE_TOOLS
 
 // .S ( -- ) Display the contents of the data stack
-void f_dot_s(word_t* self) {
+void f_dot_s(context_t* ctx, word_t* self) {
   (void)self;
 
   // Stack depth always in decimal for readability
@@ -29,8 +28,8 @@ void f_dot_s(word_t* self) {
     base = 10;
   }
 
-  for (int i = 0; i < data_stack_ptr; i++) {
-    print_number_in_base(data_stack[i], base);
+  for (int i = 0; i < ctx->data_stack_ptr; i++) {
+    print_number_in_base(ctx->data_stack[i], base);
     printf(" ");
   }
 
@@ -39,7 +38,7 @@ void f_dot_s(word_t* self) {
 }
 
 // DUMP ( addr u -- ) Display u bytes starting at addr
-void f_dump(word_t* self) {
+void f_dump(context_t* ctx, word_t* self) {
   (void)self;
 
   cell_t u = data_pop(ctx);
@@ -79,7 +78,8 @@ void f_dump(word_t* self) {
 }
 
 // WORDS ( -- ) Display the names of definitions in the first word list
-void f_words(word_t* self) {
+void f_words(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
 
   word_t* word = dictionary_head;
@@ -98,7 +98,8 @@ void f_words(word_t* self) {
 }
 
 // SEE ( "<spaces>name" -- ) Decompile word (simplified version)
-void f_see(word_t* self) {
+void f_see(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
 
   // This is a simplified version - full SEE requires parsing the next word
@@ -132,10 +133,11 @@ void create_tools_definitions(void) {
     debug("  Defining: %s", tools_definitions[i]);
 
     cell_t saved_state = *state_ptr;
-    interpret_text(tools_definitions[i]);
+    interpret_text(&main_context, tools_definitions[i]);
 
     if (*state_ptr != 0)
-      error(ctx, "Tools definition left system in compilation state: %s",
+      error(&main_context,
+            "Tools definition left system in compilation state: %s",
             tools_definitions[i]);
 
     if (saved_state == 0 && *state_ptr != 0) {

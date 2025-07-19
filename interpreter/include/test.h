@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-
+#include "forth.h"
 
 // System reset (always available)
 void forth_reset(void);
@@ -58,9 +58,10 @@ void create_test_primitives(void);
 #define TEST_ASSERT_NOT_NULL(ptr) TEST_ASSERT_TRUE((ptr) != NULL)
 
 #define TEST_ASSERT_STACK_DEPTH(expected) \
-  TEST_ASSERT_EQUAL(expected, data_depth(ctx))
+  TEST_ASSERT_EQUAL(expected, data_depth(&main_context))
 
-#define TEST_ASSERT_STACK_TOP(expected) TEST_ASSERT_EQUAL(expected, data_peek(ctx))
+#define TEST_ASSERT_STACK_TOP(expected) \
+  TEST_ASSERT_EQUAL(expected, data_peek(&main_context))
 
 #define TEST_FORTH(name, code, expected_top, expected_depth)               \
   do {                                                                     \

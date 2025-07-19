@@ -42,6 +42,21 @@ void* addr_to_ptr(context_t* ctx, forth_addr_t addr) {
   return NULL;
 }
 
+context_t main_context = {
+    .ip = 0,
+    .data_stack_ptr = 0,
+    .return_stack_ptr = 0,
+#ifdef FORTH_ENABLE_FLOATING
+    .float_stack_ptr = 0,
+#endif
+    .source_buffer = NULL,
+    .source_length = 0,
+    .source_index = 0,
+    .name = "MAIN",
+    .is_interrupt_handler = false
+    // Arrays (stacks, buffers) are automatically zero-initialized
+};
+
 // In forth.h or a new context.c file
 void context_init(context_t* ctx, const char* name, bool is_interrupt_handler) {
   // Execution state

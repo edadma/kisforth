@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "dictionary.h"
+#include "forth.h"
 #include "memory.h"
 #include "stack.h"
 #include "text.h"
@@ -17,14 +18,14 @@ test_stats_t test_stats = {0, 0, 0, NULL};
                       expected_remainder, expected_quotient)               \
   do {                                                                     \
     forth_reset();                                                         \
-    data_push(ctx, dividend_lo);                                                \
-    data_push(ctx, dividend_hi);                                                \
-    data_push(ctx, divisor);                                                    \
-    execute_word(ctx, div_word);                                                \
+    data_push(&main_context, dividend_lo);                                 \
+    data_push(&main_context, dividend_hi);                                 \
+    data_push(&main_context, divisor);                                     \
+    execute_word(&main_context, div_word);                                 \
     test_stats.total++;                                                    \
-    if (data_depth(ctx) == 2) {                                               \
-      cell_t actual_quotient = data_pop(ctx);                                 \
-      cell_t actual_remainder = data_pop(ctx);                                \
+    if (data_depth(&main_context) == 2) {                                  \
+      cell_t actual_quotient = data_pop(&main_context);                    \
+      cell_t actual_remainder = data_pop(&main_context);                   \
       if (actual_quotient == (expected_quotient) &&                        \
           actual_remainder == (expected_remainder)) {                      \
         test_stats.passed++;                                               \
@@ -37,7 +38,7 @@ test_stats_t test_stats = {0, 0, 0, NULL};
     } else {                                                               \
       test_stats.failed++;                                                 \
       printf("    FAIL %s: wrong stack depth %d (expected 2)\n", name,     \
-             data_depth(ctx));                                                \
+             data_depth(&main_context));                                   \
     }                                                                      \
   } while (0)
 
@@ -48,7 +49,7 @@ void forth_reset(void) {
   memset(forth_memory, 0, FORTH_MEMORY_SIZE);
 
   // Clear stacks
-  stack_init();
+  context_init(&main_context, "MAIN", false);
 
   input_system_init();
 
@@ -68,11 +69,12 @@ bool test_forth_code(const char* code, cell_t expected_top,
   test_stats.total++;
 
   // Execute the test code
-  interpret_text(code);
+  interpret_text(&main_context, code);
 
   // Check stack state
-  bool depth_ok = (data_depth(ctx) == expected_depth);
-  bool top_ok = (expected_depth == 0) || (data_peek(ctx) == expected_top);
+  bool depth_ok = (data_depth(&main_context) == expected_depth);
+  bool top_ok =
+      (expected_depth == 0) || (data_peek(&main_context) == expected_top);
 
   if (depth_ok && top_ok) {
     test_stats.passed++;
@@ -83,9 +85,9 @@ bool test_forth_code(const char* code, cell_t expected_top,
     if (expected_depth > 0) {
       printf(", top=%d", expected_top);
     }
-    printf("; got depth=%d", data_depth(ctx));
-    if (data_depth(ctx) > 0) {
-      printf(", top=%d", data_peek(ctx));
+    printf("; got depth=%d", data_depth(&main_context));
+    if (data_depth(&main_context) > 0) {
+      printf(", top=%d", data_peek(&main_context));
     }
     printf("\n");
     return false;
@@ -106,25 +108,24 @@ static void test_memory_functions(void) {
 }
 
 static void test_stack_functions(void) {
-  stack_init();
   TEST_ASSERT_STACK_DEPTH(0);
 
-  data_push(ctx, 42);
+  data_push(&main_context, 42);
   TEST_ASSERT_STACK_DEPTH(1);
   TEST_ASSERT_STACK_TOP(42);
 
-  data_push(ctx, 100);
+  data_push(&main_context, 100);
   TEST_ASSERT_STACK_DEPTH(2);
   TEST_ASSERT_STACK_TOP(100);
 
-  cell_t value = data_pop(ctx);
+  cell_t value = data_pop(&main_context);
   TEST_ASSERT_EQUAL(100, value);
   TEST_ASSERT_STACK_DEPTH(1);
   TEST_ASSERT_STACK_TOP(42);
 }
 
 static void test_dictionary_functions(void) {
-  word_t* plus_word = find_word(ctx, "+");
+  word_t* plus_word = find_word(&main_context, "+");
   TEST_ASSERT_NOT_NULL(plus_word);
   TEST_ASSERT_TRUE(strcmp(plus_word->name, "+") == 0);
   TEST_ASSERT_NOT_NULL(plus_word->cfunc);
@@ -135,35 +136,35 @@ static void test_dictionary_functions(void) {
 
 static void test_division_functions(void) {
   // Basic functional tests using direct C calls
-  word_t* sm_rem = find_word(ctx, "SM/REM");
-  word_t* fm_mod = find_word(ctx, "FM/MOD");
+  word_t* sm_rem = find_word(&main_context, "SM/REM");
+  word_t* fm_mod = find_word(&main_context, "FM/MOD");
   TEST_ASSERT_NOT_NULL(sm_rem);
   TEST_ASSERT_NOT_NULL(fm_mod);
 
   // Test SM/REM basic case: 10 ÷ 7 = 1 remainder 3
   forth_reset();
-  data_push(ctx, 10);
-  data_push(ctx, 0);
-  data_push(ctx, 7);
-  execute_word(ctx, sm_rem);
+  data_push(&main_context, 10);
+  data_push(&main_context, 0);
+  data_push(&main_context, 7);
+  execute_word(&main_context, sm_rem);
   TEST_ASSERT_STACK_DEPTH(2);
-  TEST_ASSERT_EQUAL(1, data_pop(ctx));  // quotient
-  TEST_ASSERT_EQUAL(3, data_pop(ctx));  // remainder
+  TEST_ASSERT_EQUAL(1, data_pop(&main_context));  // quotient
+  TEST_ASSERT_EQUAL(3, data_pop(&main_context));  // remainder
 
   // Test FM/MOD different result: -10 ÷ 7 = -2 remainder 4 (floored)
   forth_reset();
-  data_push(ctx, -10);
-  data_push(ctx, -1);
-  data_push(ctx, 7);
-  execute_word(ctx, fm_mod);
+  data_push(&main_context, -10);
+  data_push(&main_context, -1);
+  data_push(&main_context, 7);
+  execute_word(&main_context, fm_mod);
   TEST_ASSERT_STACK_DEPTH(2);
-  TEST_ASSERT_EQUAL(-2, data_pop(ctx));  // quotient (floored)
-  TEST_ASSERT_EQUAL(4, data_pop(ctx));   // remainder (sign of divisor)
+  TEST_ASSERT_EQUAL(-2, data_pop(&main_context));  // quotient (floored)
+  TEST_ASSERT_EQUAL(4, data_pop(&main_context));  // remainder (sign of divisor)
 }
 
 static void test_division_comprehensive(void) {
-  word_t* sm_rem = find_word(ctx, "SM/REM");
-  word_t* fm_mod = find_word(ctx, "FM/MOD");
+  word_t* sm_rem = find_word(&main_context, "SM/REM");
+  word_t* fm_mod = find_word(&main_context, "FM/MOD");
   TEST_ASSERT_NOT_NULL(sm_rem);
   TEST_ASSERT_NOT_NULL(fm_mod);
 
@@ -186,12 +187,12 @@ static void test_division_comprehensive(void) {
   // Verify mathematical identity: divisor * quotient + remainder = dividend
   test_stats.current_test_name = "Division Identity Check";
   forth_reset();
-  data_push(ctx, -10);
-  data_push(ctx, -1);
-  data_push(ctx, 7);
-  execute_word(ctx, sm_rem);
-  cell_t q = data_pop(ctx);
-  cell_t r = data_pop(ctx);
+  data_push(&main_context, -10);
+  data_push(&main_context, -1);
+  data_push(&main_context, 7);
+  execute_word(&main_context, sm_rem);
+  cell_t q = data_pop(&main_context);
+  cell_t r = data_pop(&main_context);
   TEST_ASSERT_EQUAL(-10, 7 * q + r);  // 7 * (-1) + (-3) = -10 ✓
 }
 

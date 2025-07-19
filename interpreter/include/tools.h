@@ -3,13 +3,13 @@
 
 #ifdef FORTH_ENABLE_TOOLS
 
-
+#include "forth.h"
 
 // Tools word set functions
-void f_dot_s(word_t* self);
-void f_dump(word_t* self);
-void f_words(word_t* self);
-void f_see(word_t* self);
+void f_dot_s(context_t* ctx, word_t* self);
+void f_dump(context_t* ctx, word_t* self);
+void f_words(context_t* ctx, word_t* self);
+void f_see(context_t* ctx, word_t* self);
 
 // Initialization functions
 void create_tools_primitives(void);

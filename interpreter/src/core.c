@@ -360,7 +360,7 @@ void f_semicolon(context_t* ctx, word_t* self) {
   // Compile EXIT as the last token
   word_t* exit_word = find_word(ctx, "EXIT");
 
-  compile_token(ptr_to_addr(exit_word));
+  compile_token(ctx, ptr_to_addr(exit_word));
 
   // Exit compilation state
   *state_ptr = 0;
@@ -754,8 +754,8 @@ void f_dot_quote(context_t* ctx, word_t* self) {
 
     word_t* runtime_word = find_word(ctx, "(.\"");
 
-    compile_token(ptr_to_addr(runtime_word));
-    compile_token((forth_addr_t)length);
+    compile_token(ctx, ptr_to_addr(runtime_word));
+    compile_token(ctx, (forth_addr_t)length);
 
     for (int i = 0; i < length; i++) {
       forth_c_store(here + i, string_buffer[i]);
@@ -794,10 +794,10 @@ void f_abort_quote(context_t* ctx, word_t* self) {
     // 1. Compile the runtime word
     word_t* runtime_word = find_word(ctx, "(ABORT\"");
 
-    compile_token(ptr_to_addr(runtime_word));
+    compile_token(ctx, ptr_to_addr(runtime_word));
 
     // 2. Compile the string length
-    compile_token((forth_addr_t)length);
+    compile_token(ctx, (forth_addr_t)length);
 
     // 3. Compile each character
     for (int i = 0; i < length; i++) {
@@ -837,7 +837,7 @@ void f_bracket_tick(context_t* ctx, word_t* self) {
   if (!word) error(ctx, "Word not found in [']");
 
   // Compile the word's address as a literal
-  compile_literal(ptr_to_addr(word));
+  compile_literal(ctx, ptr_to_addr(word));
 
   debug("['] compiled literal for %s: %u", name, ptr_to_addr(word));
 }
@@ -1686,7 +1686,7 @@ void create_builtin_definitions(void) {
     cell_t saved_state = *state_ptr;
 
     // Interpret the definition
-    interpret_text(builtin_definitions[i]);
+    interpret_text(&main_context, builtin_definitions[i]);
 
     // Verify we're back in interpretation state
     if (*state_ptr != 0) {

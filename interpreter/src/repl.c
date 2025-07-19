@@ -102,7 +102,7 @@ void repl(void) {
       continue;
     }
 
-    interpret_text(input_line);
+    interpret_text(&main_context, input_line);
 
     if (data_depth(&repl_context) > 0) {
       printf(" <%d>", data_depth(&repl_context));

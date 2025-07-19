@@ -19,12 +19,12 @@ int parse_string(char quote_char, char* dest, size_t max_len);
 bool try_parse_number(const char* token, cell_t* result);
 
 // Text interpreter (ANS Forth compliant)
-void interpret(void);
-void interpret_text(const char* text);
+void interpret(context_t* ctx);
+void interpret_text(context_t* ctx, const char* text);
 
 // Compilation support
-void compile_token(forth_addr_t token);
-void compile_literal(cell_t value);
+void compile_token(context_t* ctx, forth_addr_t token);
+void compile_literal(context_t* ctx, cell_t value);
 
 // Test accessor functions (for unit tests)
 cell_t get_current_to_in(void);

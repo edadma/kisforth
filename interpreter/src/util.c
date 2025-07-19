@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "memory.h"
+#include "forth.h"
 
 // Character array for digit conversion (supports bases 2-36)
 static const char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
