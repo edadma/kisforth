@@ -196,7 +196,7 @@ void compile_token(forth_addr_t token) {
 // Compile a literal using LIT
 void compile_literal(cell_t value) {
   // Find LIT word address
-  word_t* lit_word = find_word("LIT");
+  word_t* lit_word = find_word(ctx, "LIT");
 
   debug("Found LIT word at address %u", ptr_to_addr(lit_word));
 
@@ -214,7 +214,7 @@ void compile_float_literal(double value) {
   if (*state_ptr == 0) error(ctx, "Not compiling");
 
   // Find FLIT word address
-  word_t* flit_word = find_word("FLIT");
+  word_t* flit_word = find_word(ctx, "FLIT");
   if (!flit_word) error(ctx, "FLIT word not found");
 
   debug("Found FLIT word at address %u", ptr_to_addr(flit_word));

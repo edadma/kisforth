@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "context.h"
@@ -63,11 +64,19 @@ static int case_insensitive_strcmp(const char* a, const char* b) {
 }
 
 // Find a word in the dictionary by name (case-sensitive search)
-word_t* find_word(const char* name) {
+word_t* find_word(context_t* ctx, const char* name) {
   word_t* word = search_word(name);
 
-  if (!word) error(ctx, "Word not found: %s", name);
-  return word;
+  if (!word) {
+    if (ctx == NULL) {
+      printf("Word not found: %s", name);
+      abort();
+    }
+
+    error(ctx, "Word not found: %s", name);
+
+    return word;
+  }
 }
 
 word_t* search_word(const char* name) {
@@ -151,7 +160,7 @@ word_t* create_immediate_primitive_word(const char* name,
 }
 
 // Compile a word reference into the current definition
-void compile_word(word_t* word) {
+void compile_word(context_t* ctx, word_t* word) {
   if (!word) {
     error(ctx, "Cannot compile NULL word");
   }
@@ -175,7 +184,8 @@ void compile_cell(cell_t value) {
 }
 
 // Helper function for creating new word definitions
-word_t* defining_word(void (*cfunc)(struct word* self)) {
+word_t* defining_word(context_t* ctx,
+                      void (*cfunc)(context_t* ctx, word_t* self)) {
   char name_buffer[32];
 
   // Parse the name for the new definition
@@ -201,10 +211,10 @@ word_t* defining_word(void (*cfunc)(struct word* self)) {
 }
 
 // Execute a word by calling its cfunc
-void execute_word(word_t* word) {
+void execute_word(context_t* ctx, word_t* word) {
   require(word != NULL);
   require(word->cfunc != NULL);
-  word->cfunc(word);
+  word->cfunc(ctx, word);
 }
 
 // Store string in Forth memory as counted string (ANS Forth style)
@@ -236,35 +246,35 @@ forth_addr_t store_counted_string(const char* str, int length) {
 }
 
 // Execute a colon definition using the return stack
-void execute_colon(word_t* self) {
+void execute_colon(context_t* ctx, word_t* self) {
   // Parameter field contains array of tokens (word addresses)
   forth_addr_t tokens_addr =
-      self->param_field;  // parameter field points to actual parameter space
-                          // (word definition)
+      self->param_field;  // parameter field points to actual parameter
+                          // space (word definition)
 
   debug("Executing colon definition: %s", self->name);
 
   // Save current instruction pointer on return stack (if executing)
-  if (current_ip != 0) {
-    return_push((cell_t)current_ip);
+  if (ctx->ip != 0) {
+    return_push((cell_t)ctx->ip);
     debug("  Saved IP on return stack");
   }
 
   // Set new instruction pointer to start of this definition's tokens
-  current_ip = tokens_addr;
+  ctx->ip = tokens_addr;
 
   // Execute tokens until EXIT is called (which will restore IP from return
   // stack)
-  while (current_ip != 0) {
-    forth_addr_t token_addr = forth_fetch(current_ip);
-    current_ip += sizeof(cell_t);  // Advance to next token
+  while (ctx->ip != 0) {
+    forth_addr_t token_addr = forth_fetch(ctx->ip);
+    ctx->ip += sizeof(cell_t);  // Advance to next token
 
     // Execute the word at token_addr
     word_t* word = addr_to_ptr(NULL, token_addr);
     debug("  Executing token: %s", word->name);
     execute_word(word);
 
-    // If EXIT was called, current_ip will have been updated
+    // If EXIT was called, ctx->ip will have been updated
   }
 
   debug("Colon definition execution complete");

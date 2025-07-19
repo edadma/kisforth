@@ -10,8 +10,6 @@
 extern cell_t* state_ptr;  // C pointer to STATE variable for efficiency
 extern cell_t* base_ptr;   // BASE variable pointer
 
-extern forth_addr_t current_ip;
-
 void create_builtin_definitions(void);
 
 // Colon definition words

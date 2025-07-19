@@ -25,8 +25,8 @@ void f_quit(context_t* ctx, word_t* self) {
   (void)self;
 
   if (repl_running) {
-    current_ip = 0;
-    return_stack_ptr = 0;
+    ctx->ip = 0;
+    ctx->return_stack_ptr = 0;
     *state_ptr = 0;
 
     // Jump back to REPL start

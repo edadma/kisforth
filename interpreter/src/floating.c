@@ -182,7 +182,7 @@ void f_f_dot(struct word* self) {
 void f_flit(word_t* self) {
   (void)self;
 
-  if (current_ip == 0) error(ctx, "FLIT called outside colon definition");
+  if (ctx->ip == 0) error(ctx, "FLIT called outside colon definition");
 
   // Read the 8-byte double from instruction stream
   // Store it as two consecutive 32-bit cells, then convert back to double
@@ -191,10 +191,10 @@ void f_flit(word_t* self) {
     uint32_t cells[2];
   } converter;
 
-  converter.cells[0] = (uint32_t)forth_fetch(current_ip);
-  current_ip += sizeof(cell_t);
-  converter.cells[1] = (uint32_t)forth_fetch(current_ip);
-  current_ip += sizeof(cell_t);
+  converter.cells[0] = (uint32_t)forth_fetch(ctx->ip);
+  ctx->ip += sizeof(cell_t);
+  converter.cells[1] = (uint32_t)forth_fetch(ctx->ip);
+  ctx->ip += sizeof(cell_t);
 
   // Push the float onto the float stack
   float_push(converter.d);

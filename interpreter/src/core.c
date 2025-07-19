@@ -1,6 +1,7 @@
 #include "core.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "context.h"
 #include "debug.h"
@@ -18,9 +19,6 @@ cell_t* state_ptr = NULL;
 // Global BASE pointer for efficient access
 cell_t* base_ptr = NULL;
 
-// Global instruction pointer for colon definition execution
-forth_addr_t current_ip = 0;  // 0 means not executing
-
 #define MAX_LOOP_LEAVES 32
 #define MAX_NESTED_LOOPS 8
 
@@ -35,7 +33,7 @@ static loop_frame_t loop_stack[MAX_NESTED_LOOPS];
 static int loop_stack_depth = 0;
 
 // Loop compilation stack management functions
-static void push_loop_frame(forth_addr_t start_addr) {
+static void push_loop_frame(context_t* ctx, forth_addr_t start_addr) {
   if (loop_stack_depth >= MAX_NESTED_LOOPS) {
     error(ctx, "Loop nesting too deep (max %d)", MAX_NESTED_LOOPS);
   }
@@ -49,15 +47,15 @@ static void push_loop_frame(forth_addr_t start_addr) {
         start_addr);
 }
 
-static loop_frame_t* current_loop_frame(void) {
+static loop_frame_t* current_loop_frame(context_t* ctx) {
   if (loop_stack_depth == 0) {
     error(ctx, "No active loop for LEAVE");
   }
   return &loop_stack[loop_stack_depth - 1];
 }
 
-static void add_leave_addr(forth_addr_t leave_addr) {
-  loop_frame_t* frame = current_loop_frame();
+static void add_leave_addr(context_t* ctx, forth_addr_t leave_addr) {
+  loop_frame_t* frame = current_loop_frame(ctx);
 
   if (frame->leave_count >= MAX_LOOP_LEAVES) {
     error(ctx, "Too many LEAVE statements in loop (max %d)", MAX_LOOP_LEAVES);
@@ -67,7 +65,7 @@ static void add_leave_addr(forth_addr_t leave_addr) {
   debug("Add LEAVE addr: %d (count now %d)", leave_addr, frame->leave_count);
 }
 
-static loop_frame_t pop_loop_frame(void) {
+static loop_frame_t pop_loop_frame(context_t* ctx) {
   if (loop_stack_depth == 0) {
     error(ctx, "No active loop to close");
   }
@@ -339,7 +337,7 @@ void f_colon(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  word_t* word = defining_word(execute_colon);
+  word_t* word = defining_word(ctx, execute_colon);
 
   // Enter compilation state
   *state_ptr = -1;
@@ -359,7 +357,7 @@ void f_semicolon(context_t* ctx, word_t* self) {
   debug("Ending colon definition, compiling EXIT");
 
   // Compile EXIT as the last token
-  word_t* exit_word = find_word("EXIT");
+  word_t* exit_word = find_word(ctx, "EXIT");
 
   compile_token(ptr_to_addr(exit_word));
 
@@ -380,11 +378,11 @@ void f_exit(context_t* ctx, word_t* self) {
   // Check if there's a saved instruction pointer on the return stack
   if (return_depth() > 0) {
     // Restore previous instruction pointer from return stack
-    current_ip = (forth_addr_t)return_pop();
+    ctx->ip = (forth_addr_t)return_pop();
     debug("  Restored IP from return stack");
   } else {
     // No saved IP - we're at the top level, end execution
-    current_ip = 0;
+    ctx->ip = 0;
     debug("  No saved IP - ending execution");
   }
 }
@@ -395,11 +393,11 @@ void f_lit(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  if (current_ip == 0) error(ctx, "LIT called outside colon definition");
+  if (ctx->ip == 0) error(ctx, "LIT called outside colon definition");
 
   // Read the literal value from the instruction stream
-  cell_t literal = forth_fetch(current_ip);
-  current_ip += sizeof(cell_t);  // Advance past the literal
+  cell_t literal = forth_fetch(ctx->ip);
+  ctx->ip += sizeof(cell_t);  // Advance past the literal
 
   // Push the literal onto the data stack
   data_push(literal);
@@ -682,23 +680,23 @@ void f_dot_quote_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  if (current_ip == 0) error(ctx, "'.(' called outside colon definition");
+  if (ctx->ip == 0) error(ctx, "'.(' called outside colon definition");
 
   // Read string length from parameter field
-  byte_t length = (byte_t)forth_fetch(current_ip);
-  current_ip += sizeof(cell_t);
+  byte_t length = (byte_t)forth_fetch(ctx->ip);
+  ctx->ip += sizeof(cell_t);
 
   debug("(. runtime: reading string length %d", length);
 
   // Display each character
   for (cell_t i = 0; i < length; i++) {
-    putchar(forth_c_fetch(current_ip + i));
+    putchar(forth_c_fetch(ctx->ip + i));
   }
 
   fflush(stdout);
-  current_ip = align_up(current_ip + length, sizeof(cell_t));
+  ctx->ip = align_up(ctx->ip + length, sizeof(cell_t));
 
-  debug("(. runtime: displayed string, IP now at %u", current_ip);
+  debug("(. runtime: displayed string, IP now at %u", ctx->ip);
 }
 
 // Runtime word for ABORT" - reads inline string data and conditionally aborts
@@ -709,15 +707,15 @@ void f_abort_quote_runtime(context_t* ctx, word_t* self) {
 
   cell_t flag = data_pop();
 
-  if (current_ip == 0) error(ctx, "(ABORT called outside colon definition");
+  if (ctx->ip == 0) error(ctx, "(ABORT called outside colon definition");
 
   // Read string length from parameter field
-  byte_t length = (byte_t)forth_fetch(current_ip);
-  current_ip += sizeof(cell_t);
+  byte_t length = (byte_t)forth_fetch(ctx->ip);
+  ctx->ip += sizeof(cell_t);
 
-  cell_t start = current_ip;
+  cell_t start = ctx->ip;
 
-  current_ip = align_up(current_ip + length, sizeof(cell_t));
+  ctx->ip = align_up(ctx->ip + length, sizeof(cell_t));
 
   debug("(ABORT runtime: flag=%d, string length=%d", flag, length);
 
@@ -730,7 +728,7 @@ void f_abort_quote_runtime(context_t* ctx, word_t* self) {
     fflush(stdout);
     f_abort(ctx, self);
   } else {
-    debug("(ABORT runtime: skipped string, IP now at %u", current_ip);
+    debug("(ABORT runtime: skipped string, IP now at %u", ctx->ip);
   }
 }
 
@@ -753,7 +751,7 @@ void f_dot_quote(context_t* ctx, word_t* self) {
     debug(".\" compilation: compiling inline string \"%s\" (length %d)",
           string_buffer, length);
 
-    word_t* runtime_word = find_word("(.\"");
+    word_t* runtime_word = find_word(ctx, "(.\"");
 
     compile_token(ptr_to_addr(runtime_word));
     compile_token((forth_addr_t)length);
@@ -793,7 +791,7 @@ void f_abort_quote(context_t* ctx, word_t* self) {
     debug("ABORT\" compilation: compiling inline string \"%s\"", string_buffer);
 
     // 1. Compile the runtime word
-    word_t* runtime_word = find_word("(ABORT\"");
+    word_t* runtime_word = find_word(ctx, "(ABORT\"");
 
     compile_token(ptr_to_addr(runtime_word));
 
@@ -814,14 +812,14 @@ void f_create(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  defining_word(f_param_field);
+  defining_word(ctx, f_param_field);
 }
 
 void f_variable(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  defining_word(f_address)->param_field = 0;  // initialize variable to 0
+  defining_word(ctx, f_address)->param_field = 0;  // initialize variable to 0
 }
 
 // ['] ( "name" -- ) Compilation: ( -- ) Runtime: ( -- xt )
@@ -834,7 +832,7 @@ void f_bracket_tick(context_t* ctx, word_t* self) {
   char* name = parse_name(name_buffer, sizeof(name_buffer));
   if (!name) error(ctx, "Missing name after [']");
 
-  word_t* word = find_word(name);
+  word_t* word = find_word(ctx, name);
   if (!word) error(ctx, "Word not found in [']");
 
   // Compile the word's address as a literal
@@ -844,18 +842,18 @@ void f_bracket_tick(context_t* ctx, word_t* self) {
 }
 
 // 0BRANCH ( x -- ) - conditional branch
-// If x is zero, branch to address stored at current_ip
-// Always advances current_ip past the address
+// If x is zero, branch to address stored at ctx->ip
+// Always advances ctx->ip past the address
 void f_0branch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
   cell_t x = data_pop();
-  forth_addr_t target = forth_fetch(current_ip);
-  current_ip += sizeof(cell_t);
+  forth_addr_t target = forth_fetch(ctx->ip);
+  ctx->ip += sizeof(cell_t);
 
   if (x == 0) {
-    current_ip = target;  // Branch taken
+    ctx->ip = target;  // Branch taken
   }
   // If x != 0, continue (branch not taken)
 }
@@ -865,8 +863,8 @@ void f_branch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  forth_addr_t target = forth_fetch(current_ip);
-  current_ip = target;  // Always branch
+  forth_addr_t target = forth_fetch(ctx->ip);
+  ctx->ip = target;  // Always branch
 }
 
 // U< ( u1 u2 -- flag )  Unsigned less than comparison
@@ -898,7 +896,7 @@ void f_tick(context_t* ctx, word_t* self) {
 
   debug("' looking for word: %s", name);
 
-  word_t* word = find_word(name);  // This will error if not found
+  word_t* word = find_word(ctx, name);
 
   // Convert word pointer to execution token (forth address)
   forth_addr_t xt = ptr_to_addr(word);
@@ -1024,7 +1022,7 @@ void f_loop_runtime(context_t* ctx, word_t* self) {
   // Check for loop termination
   if (index == limit) {
     // Loop finished - don't restore parameters, continue after loop
-    current_ip += sizeof(cell_t);  // Skip over the branch target address
+    ctx->ip += sizeof(cell_t);  // Skip over the branch target address
     debug("LOOP: finished");
     return;
   }
@@ -1034,8 +1032,8 @@ void f_loop_runtime(context_t* ctx, word_t* self) {
   return_push(index);
 
   // The backward branch address follows this instruction
-  forth_addr_t branch_target = forth_fetch(current_ip);
-  current_ip = branch_target;
+  forth_addr_t branch_target = forth_fetch(ctx->ip);
+  ctx->ip = branch_target;
   debug("LOOP: continue to %d", branch_target);
 }
 
@@ -1080,7 +1078,7 @@ void f_plus_loop_runtime(context_t* ctx, word_t* self) {
 
   if (crossed) {
     // Loop finished - don't restore parameters
-    current_ip += sizeof(cell_t);  // Skip over the branch target address
+    ctx->ip += sizeof(cell_t);  // Skip over the branch target address
     debug("+LOOP: boundary crossed, finished");
     return;
   }
@@ -1090,8 +1088,8 @@ void f_plus_loop_runtime(context_t* ctx, word_t* self) {
   return_push(index);
 
   // The backward branch address follows this instruction
-  forth_addr_t branch_target = forth_fetch(current_ip);
-  current_ip = branch_target;
+  forth_addr_t branch_target = forth_fetch(ctx->ip);
+  ctx->ip = branch_target;
   debug("+LOOP: continue to %d", branch_target);
 }
 
@@ -1146,8 +1144,8 @@ void f_leave_runtime(context_t* ctx, word_t* self) {
   return_pop();  // limit
 
   // The branch target address follows this instruction
-  forth_addr_t branch_target = forth_fetch(current_ip);
-  current_ip = branch_target;
+  forth_addr_t branch_target = forth_fetch(ctx->ip);
+  ctx->ip = branch_target;
 
   debug("LEAVE: branch to %d", branch_target);
 }
@@ -1180,15 +1178,15 @@ void f_do(context_t* ctx, word_t* self) {
   }
 
   // Compile the DO runtime primitive
-  word_t* do_runtime = find_word("(DO)");
+  word_t* do_runtime = find_word(ctx, "(DO)");
   if (!do_runtime) {
     error(ctx, "DO: (DO) runtime primitive not found");
   }
-  compile_word(do_runtime);
+  compile_word(ctx, do_runtime);
 
   // Push loop frame with current address as loop start
   forth_addr_t loop_start = here;
-  push_loop_frame(loop_start);
+  push_loop_frame(ctx, loop_start);
 
   debug("DO: compiled, loop starts at %d", loop_start);
 }
@@ -1204,14 +1202,14 @@ void f_loop(context_t* ctx, word_t* self) {
   }
 
   // Get and pop the loop frame
-  loop_frame_t frame = pop_loop_frame();
+  loop_frame_t frame = pop_loop_frame(ctx);
 
   // Compile the LOOP runtime primitive
-  word_t* loop_runtime = find_word("(LOOP)");
+  word_t* loop_runtime = find_word(ctx, "(LOOP)");
   if (!loop_runtime) {
     error(ctx, "LOOP: (LOOP) runtime primitive not found");
   }
-  compile_word(loop_runtime);
+  compile_word(ctx, loop_runtime);
 
   // Compile backward branch target (loop start address)
   compile_cell(frame.loop_start_addr);
@@ -1240,14 +1238,14 @@ void f_plus_loop(context_t* ctx, word_t* self) {
   }
 
   // Get and pop the loop frame
-  loop_frame_t frame = pop_loop_frame();
+  loop_frame_t frame = pop_loop_frame(ctx);
 
   // Compile the +LOOP runtime primitive
-  word_t* plus_loop_runtime = find_word("(+LOOP)");
+  word_t* plus_loop_runtime = find_word(ctx, "(+LOOP)");
   if (!plus_loop_runtime) {
     error(ctx, "+LOOP: (+LOOP) runtime primitive not found");
   }
-  compile_word(plus_loop_runtime);
+  compile_word(ctx, plus_loop_runtime);
 
   // Compile backward branch target (loop start address)
   compile_cell(frame.loop_start_addr);
@@ -1277,18 +1275,18 @@ void f_leave(context_t* ctx, word_t* self) {
   }
 
   // Compile the LEAVE runtime primitive
-  word_t* leave_runtime = find_word("(LEAVE)");
+  word_t* leave_runtime = find_word(ctx, "(LEAVE)");
   if (!leave_runtime) {
     error(ctx, "LEAVE: (LEAVE) runtime primitive not found");
   }
-  compile_word(leave_runtime);
+  compile_word(ctx, leave_runtime);
 
   // Compile placeholder for branch target (will be resolved by LOOP/+LOOP)
   forth_addr_t placeholder_addr = here;
   compile_cell(0);  // Placeholder address
 
   // Add this address to the current loop frame for later resolution
-  add_leave_addr(placeholder_addr);
+  add_leave_addr(ctx, placeholder_addr);
 
   debug("LEAVE: compiled with placeholder at %d", placeholder_addr);
 }
@@ -1437,22 +1435,22 @@ void f_s_quote_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  if (current_ip == 0) error(ctx, "(S\") called outside colon definition");
+  if (ctx->ip == 0) error(ctx, "(S\") called outside colon definition");
 
   // Read the string length from the instruction stream
-  cell_t length = forth_fetch(current_ip);
-  current_ip += sizeof(cell_t);
+  cell_t length = forth_fetch(ctx->ip);
+  ctx->ip += sizeof(cell_t);
 
   // Push the string address and length onto the data stack
-  data_push((cell_t)current_ip);  // c-addr
+  data_push((cell_t)ctx->ip);  // c-addr
   data_push(length);              // u
 
   // Advance IP past the string data
-  current_ip += length;
-  current_ip =
-      (current_ip + sizeof(cell_t) - 1) & ~(sizeof(cell_t) - 1);  // Align
+  ctx->ip += length;
+  ctx->ip =
+      (ctx->ip + sizeof(cell_t) - 1) & ~(sizeof(cell_t) - 1);  // Align
 
-  debug("(S\") pushed addr=%d length=%d", current_ip - length - sizeof(cell_t),
+  debug("(S\") pushed addr=%d length=%d", ctx->ip - length - sizeof(cell_t),
         length);
 }
 
@@ -1484,8 +1482,8 @@ void f_s_quote(context_t* ctx, word_t* self) {
           string_buffer, length);
 
     // 1. Compile the runtime word
-    word_t* runtime_word = find_word("(S\")");
-    compile_word(runtime_word);
+    word_t* runtime_word = find_word(ctx, "(S\")");
+    compile_word(ctx, runtime_word);
 
     // 2. Compile the string length
     compile_cell((cell_t)length);
@@ -1691,9 +1689,11 @@ void create_builtin_definitions(void) {
     interpret_text(builtin_definitions[i]);
 
     // Verify we're back in interpretation state
-    if (*state_ptr != 0)
-      error(ctx, "Built-in definition left system in compilation state: %s",
-            builtin_definitions[i]);
+    if (*state_ptr != 0) {
+      printf("Built-in definition left system in compilation state: %s",
+             builtin_definitions[i]);
+      abort();
+    }
 
     // Restore state if it was somehow changed
     if (saved_state == 0 && *state_ptr != 0) {

@@ -124,7 +124,7 @@ static void test_stack_functions(void) {
 }
 
 static void test_dictionary_functions(void) {
-  word_t* plus_word = find_word("+");
+  word_t* plus_word = find_word(ctx, "+");
   TEST_ASSERT_NOT_NULL(plus_word);
   TEST_ASSERT_TRUE(strcmp(plus_word->name, "+") == 0);
   TEST_ASSERT_NOT_NULL(plus_word->cfunc);
@@ -135,8 +135,8 @@ static void test_dictionary_functions(void) {
 
 static void test_division_functions(void) {
   // Basic functional tests using direct C calls
-  word_t* sm_rem = find_word("SM/REM");
-  word_t* fm_mod = find_word("FM/MOD");
+  word_t* sm_rem = find_word(ctx, "SM/REM");
+  word_t* fm_mod = find_word(ctx, "FM/MOD");
   TEST_ASSERT_NOT_NULL(sm_rem);
   TEST_ASSERT_NOT_NULL(fm_mod);
 
@@ -162,8 +162,8 @@ static void test_division_functions(void) {
 }
 
 static void test_division_comprehensive(void) {
-  word_t* sm_rem = find_word("SM/REM");
-  word_t* fm_mod = find_word("FM/MOD");
+  word_t* sm_rem = find_word(ctx, "SM/REM");
+  word_t* fm_mod = find_word(ctx, "FM/MOD");
   TEST_ASSERT_NOT_NULL(sm_rem);
   TEST_ASSERT_NOT_NULL(fm_mod);
 
