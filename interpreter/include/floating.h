@@ -3,6 +3,8 @@
 
 #ifdef FORTH_ENABLE_FLOATING
 
+#include <stdbool.h>
+
 #include "types.h"
 
 // Float stack
@@ -27,14 +29,14 @@ void create_floating_primitives(void);
 void create_floating_definitions(void);
 
 // Primitive implementations
-void f_fdrop(word_t* self);     // FDROP ( F: r -- )
-void f_fdup(word_t* self);      // FDUP ( F: r -- r r )
-void f_f_plus(word_t* self);    // F+ ( F: r1 r2 -- r3 )
-void f_f_minus(word_t* self);   // F- ( F: r1 r2 -- r3 )
-void f_f_multiply(word_t* self); // F* ( F: r1 r2 -- r3 )
-void f_f_divide(word_t* self);  // F/ ( F: r1 r2 -- r3 )
-void f_f_dot(word_t* self);     // F. ( F: r -- )
-void f_flit(word_t* self);              // FLIT ( F: -- r ) [float value follows]
+void f_fdrop(word_t* self);       // FDROP ( F: r -- )
+void f_fdup(word_t* self);        // FDUP ( F: r -- r r )
+void f_f_plus(word_t* self);      // F+ ( F: r1 r2 -- r3 )
+void f_f_minus(word_t* self);     // F- ( F: r1 r2 -- r3 )
+void f_f_multiply(word_t* self);  // F* ( F: r1 r2 -- r3 )
+void f_f_divide(word_t* self);    // F/ ( F: r1 r2 -- r3 )
+void f_f_dot(word_t* self);       // F. ( F: r -- )
+void f_flit(word_t* self);        // FLIT ( F: -- r ) [float value follows]
 
-#endif // FORTH_ENABLE_FLOATING
-#endif // FLOATING_H
+#endif  // FORTH_ENABLE_FLOATING
+#endif  // FLOATING_H

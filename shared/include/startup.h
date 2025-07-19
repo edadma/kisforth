@@ -1,9 +1,6 @@
 #ifndef STARTUP_H
 #define STARTUP_H
 
-#include <stdio.h>
-#include "types.h"
-
 // System initialization functions
 void forth_system_init(void);
 
@@ -11,4 +8,4 @@ void forth_system_init(void);
 void print_startup_banner(const char* platform_name);
 void print_extensions_list(void);
 
-#endif // STARTUP_H
+#endif  // STARTUP_H

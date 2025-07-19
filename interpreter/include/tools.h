@@ -15,6 +15,6 @@ void f_see(word_t* self);
 void create_tools_primitives(void);
 void create_tools_definitions(void);
 
-#endif // FORTH_ENABLE_TOOLS
+#endif  // FORTH_ENABLE_TOOLS
 
-#endif // TOOLS_H
+#endif  // TOOLS_H

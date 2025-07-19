@@ -1,14 +1,15 @@
 #include "repl.h"
-#include <stdio.h>
-#include <string.h>
+
 #include <setjmp.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include "types.h"
+#include <string.h>
+
 #include "core.h"
+#include "line_editor.h"
 #include "stack.h"
 #include "text.h"
-#include "line_editor.h"
+#include "types.h"
 
 static char input_line[INPUT_BUFFER_SIZE];
 
@@ -18,24 +19,24 @@ static bool repl_running = false;
 
 // QUIT word - restart the REPL loop
 void f_quit(word_t* self) {
-    (void)self;
+  (void)self;
 
-    if (repl_running) {
-		current_ip = 0;
-        return_stack_ptr = 0;
-        *state_ptr = 0;
+  if (repl_running) {
+    current_ip = 0;
+    return_stack_ptr = 0;
+    *state_ptr = 0;
 
-        // Jump back to REPL start
-        longjmp(repl_restart, 1);
-    }
+    // Jump back to REPL start
+    longjmp(repl_restart, 1);
+  }
 }
 
 // BYE word - exit the system
 void f_bye(word_t* self) {
-    (void)self;
+  (void)self;
 
-    printf("Goodbye!\n");
-    exit(0);
+  printf("Goodbye!\n");
+  exit(0);
 }
 
 // Character-by-character input with backspace support
@@ -49,8 +50,8 @@ static void get_line(void) {
 
         if (c == '\r' || c == '\n') {
 #ifdef FORTH_TARGET_PICO
-           	putchar('\n');  // Echo newline on Pico
-			fflush(stdout);
+                putchar('\n');  // Echo newline on Pico
+                        fflush(stdout);
 #endif
             *ptr = '\0';
             break;
@@ -76,35 +77,33 @@ static void get_line(void) {
 }
 */
 
-static void get_line(void) {
-    enhanced_get_line(input_line, INPUT_BUFFER_SIZE);
-}
+static void get_line(void) { enhanced_get_line(input_line, INPUT_BUFFER_SIZE); }
 
 // Simplified REPL with setjmp for QUIT support
 void repl(void) {
-    repl_running = true;
+  repl_running = true;
 
-    // Set restart point for QUIT
-    if (setjmp(repl_restart) != 0) {
-        printf("Restarted.\n");
+  // Set restart point for QUIT
+  if (setjmp(repl_restart) != 0) {
+    printf("Restarted.\n");
+  }
+
+  while (true) {
+    printf(*state_ptr ? "\ncompiling> " : "\nok> ");
+    fflush(stdout);
+
+    get_line();
+
+    if (strlen(input_line) == 0) {
+      continue;
     }
 
-    while (true) {
-        printf(*state_ptr ? "\ncompiling> " : "\nok> ");
-        fflush(stdout);
+    interpret_text(input_line);
 
-        get_line();
-
-        if (strlen(input_line) == 0) {
-            continue;
-        }
-
-        interpret_text(input_line);
-
-        if (data_depth() > 0) {
-            printf(" <%d>", data_depth());
-        }
+    if (data_depth() > 0) {
+      printf(" <%d>", data_depth());
     }
+  }
 
-    repl_running = false;
+  repl_running = false;
 }

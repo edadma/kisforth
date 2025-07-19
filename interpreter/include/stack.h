@@ -4,8 +4,8 @@
 #include "types.h"
 
 // Stack size constants (ANS Forth minimums)
-#define DATA_STACK_SIZE 64             // Per standard minimum
-#define RETURN_STACK_SIZE 48           // Per standard minimum
+#define DATA_STACK_SIZE 64    // Per standard minimum
+#define RETURN_STACK_SIZE 48  // Per standard minimum
 
 // Stack storage declarations
 extern cell_t data_stack[DATA_STACK_SIZE];
@@ -31,4 +31,4 @@ cell_t return_stack_peek(int offset);
 cell_t* return_stack_data(void);
 cell_t return_stack_peek_alternative(int offset);
 
-#endif // STACK_H
+#endif  // STACK_H

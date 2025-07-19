@@ -7,7 +7,7 @@
 void repl(void);
 
 // REPL control primitives
-void f_quit(word_t* self);       // QUIT ( -- ) Restart REPL loop
-void f_bye(word_t* self);        // BYE ( -- ) Exit system
+void f_quit(word_t* self);  // QUIT ( -- ) Restart REPL loop
+void f_bye(word_t* self);   // BYE ( -- ) Exit system
 
-#endif // REPL_H
+#endif  // REPL_H

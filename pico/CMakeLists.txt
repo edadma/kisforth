@@ -9,16 +9,19 @@ add_executable(kisforth_pico
 
 # Add shared includes (add this block)
 target_include_directories(kisforth_pico PRIVATE
+        PUBLIC include
         ${KISFORTH_SHARED_INCLUDES}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}
+        PRIVATE src
 )
 
 # Link against interpreter library and Pico SDK
 target_link_libraries(kisforth_pico
         kisforth_interpreter
         pico_stdlib
-        pico_cyw43_arch_none
-        pico_lwip_nosys
+        pico_cyw43_arch_lwip_threadsafe_background #pico_cyw43_arch_none
+        pico_lwip_http #pico_lwip_nosys
 )
 
 # Enable USB stdio, disable UART stdio

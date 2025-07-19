@@ -1,8 +1,9 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+
 #include "types.h"
 
 // Memory layout constants
@@ -35,4 +36,4 @@ byte_t forth_c_fetch(forth_addr_t addr);              // C@
 // Input system functions
 void input_system_init(void);
 
-#endif // MEMORY_H
+#endif  // MEMORY_H

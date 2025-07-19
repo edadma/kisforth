@@ -1,9 +1,10 @@
 #ifndef TEXT_H
 #define TEXT_H
 
-#include "types.h"
 #include <stdbool.h>
 #include <stddef.h>
+
+#include "types.h"
 
 #define INPUT_BUFFER_SIZE 256
 
@@ -30,4 +31,4 @@ cell_t get_current_to_in(void);
 cell_t get_current_input_length(void);
 forth_addr_t get_current_input_buffer_addr(void);
 
-#endif // TEXT_H
+#endif  // TEXT_H

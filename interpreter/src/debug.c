@@ -1,6 +1,8 @@
 #include "debug.h"
-#include <stdio.h>
+
 #include <stdarg.h>
+#include <stdio.h>
+
 #include "types.h"
 
 #ifdef FORTH_DEBUG_ENABLED
@@ -10,55 +12,55 @@ bool debug_enabled = false;
 
 // Internal function that does the actual printf work with automatic newline
 void debug_raw(const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
+  va_list args;
+  va_start(args, fmt);
 
-    // Print the formatted message
-    vprintf(fmt, args);
+  // Print the formatted message
+  vprintf(fmt, args);
 
-    // Always add a newline
-    printf("\n");
+  // Always add a newline
+  printf("\n");
 
-    // Ensure output appears immediately (important for debugging)
-    fflush(stdout);
+  // Ensure output appears immediately (important for debugging)
+  fflush(stdout);
 
-    va_end(args);
+  va_end(args);
 }
 
-#endif // FORTH_DEBUG_ENABLED
+#endif  // FORTH_DEBUG_ENABLED
 
 // Core debug interface functions - always available
 // This ensures Forth words DEBUG-ON/DEBUG-OFF can always be linked
 
 #ifdef FORTH_DEBUG_ENABLED
 void debug_init(void) {
-    debug_enabled = false;  // Start with debugging off
-    // When debugging disabled at compile time, this is a no-op
+  debug_enabled = false;  // Start with debugging off
+  // When debugging disabled at compile time, this is a no-op
 }
 #endif
 
 #ifdef FORTH_DEBUG_ENABLED
 void debug_on(void) {
-    debug_enabled = true;
-    printf("Debug output enabled\n");
-    fflush(stdout);
+  debug_enabled = true;
+  printf("Debug output enabled\n");
+  fflush(stdout);
 }
 #endif
 
 #ifdef FORTH_DEBUG_ENABLED
 void debug_off(void) {
-    debug_enabled = false;
-    printf("Debug output disabled\n");
-    fflush(stdout);
-    // When debugging disabled at compile time, this is a no-op
+  debug_enabled = false;
+  printf("Debug output disabled\n");
+  fflush(stdout);
+  // When debugging disabled at compile time, this is a no-op
 }
 #endif
 
 bool debug_is_enabled(void) {
 #ifdef FORTH_DEBUG_ENABLED
-    return debug_enabled;
+  return debug_enabled;
 #else
-    return false;  // Always disabled when not compiled in
+  return false;  // Always disabled when not compiled in
 #endif
 }
 
@@ -67,13 +69,13 @@ bool debug_is_enabled(void) {
 #ifdef FORTH_DEBUG_ENABLED
 // DEBUG-ON ( -- ) Enable debug output
 void f_debug_on(word_t* self) {
-    (void)self;
-    debug_on();
+  (void)self;
+  debug_on();
 }
 
 // DEBUG-OFF ( -- ) Disable debug output
 void f_debug_off(word_t* self) {
-    (void)self;
-    debug_off();
+  (void)self;
+  debug_off();
 }
 #endif
