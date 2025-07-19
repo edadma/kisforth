@@ -30,7 +30,7 @@ if (BUILD_FOR_WINDOWS)
     message(STATUS "Cross-compiling for Windows")
 elseif (BUILD_FOR_PICO)
     # Pico-specific setup
-    set(PICO_BOARD pico)  # Change to pico_w if using Pico W
+    set(PICO_BOARD pico_w)
     include(pico/pico_sdk_import.cmake)
     project(kisforth VERSION ${KISFORTH_VERSION} LANGUAGES C CXX ASM)
     set(CMAKE_C_STANDARD 11)
