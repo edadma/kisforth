@@ -3,6 +3,7 @@
 #include "pico/stdlib.h"
 #include "repl.h"
 #include "startup.h"
+#include "wifi_words.h"
 
 int main() {
   stdio_init_all();
@@ -15,6 +16,7 @@ int main() {
   printf("\n");
 
   forth_system_init();
+  pico_register_wifi_words();
   print_startup_banner("Pico");
 
   repl();

@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "cyw43.h"
 #include "lwip/inet.h"
 #include "lwip/ip4_addr.h"
 #include "lwip/netif.h"
@@ -66,10 +67,17 @@ bool wifi_disconnect(void) {
     return false;
   }
 
-  cyw43_arch_wifi_disconnect();
-  wifi_connected = false;
-  printf("WiFi disconnected\n");
-  return true;
+  // Use the lower-level API to disconnect
+  int result = cyw43_wifi_leave(&cyw43_state, CYW43_ITF_STA);
+
+  if (result == 0) {
+    wifi_connected = false;
+    printf("WiFi disconnected\n");
+    return true;
+  } else {
+    printf("Failed to disconnect WiFi (error %d)\n", result);
+    return false;
+  }
 }
 
 bool wifi_is_connected(void) {
