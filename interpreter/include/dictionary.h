@@ -31,7 +31,8 @@ void execute_colon(context_t* ctx, word_t* self);
 forth_addr_t store_counted_string(const char* str, int length);
 
 // Word execution semantics
-void f_address(word_t* self);      // Variable execution ( -- addr )
-void f_param_field(word_t* self);  // CREATE execution ( -- addr )
+void f_address(context_t* ctx, word_t* self);  // Variable execution ( -- addr )
+void f_param_field(context_t* ctx,
+                   word_t* self);  // CREATE execution ( -- addr )
 
 #endif  // DICTIONARY_H

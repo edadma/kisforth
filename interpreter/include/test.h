@@ -58,9 +58,9 @@ void create_test_primitives(void);
 #define TEST_ASSERT_NOT_NULL(ptr) TEST_ASSERT_TRUE((ptr) != NULL)
 
 #define TEST_ASSERT_STACK_DEPTH(expected) \
-  TEST_ASSERT_EQUAL(expected, data_depth())
+  TEST_ASSERT_EQUAL(expected, data_depth(ctx))
 
-#define TEST_ASSERT_STACK_TOP(expected) TEST_ASSERT_EQUAL(expected, data_peek())
+#define TEST_ASSERT_STACK_TOP(expected) TEST_ASSERT_EQUAL(expected, data_peek(ctx))
 
 #define TEST_FORTH(name, code, expected_top, expected_depth)               \
   do {                                                                     \

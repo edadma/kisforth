@@ -19,7 +19,7 @@ void f_dot_s(word_t* self) {
   (void)self;
 
   // Stack depth always in decimal for readability
-  printf("<%d> ", data_depth());
+  printf("<%d> ", data_depth(ctx));
 
   // Display each stack item in current BASE
   cell_t base = *base_ptr;
@@ -42,8 +42,8 @@ void f_dot_s(word_t* self) {
 void f_dump(word_t* self) {
   (void)self;
 
-  cell_t u = data_pop();
-  forth_addr_t addr = (forth_addr_t)data_pop();
+  cell_t u = data_pop(ctx);
+  forth_addr_t addr = (forth_addr_t)data_pop(ctx);
 
   if (u <= 0) return;
 

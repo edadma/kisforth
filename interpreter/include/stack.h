@@ -12,9 +12,9 @@ cell_t data_peek_at(context_t* ctx,
 int data_depth(context_t* ctx);
 
 // Return stack operations
-void return_push(cell_t value);
-cell_t return_pop(void);
-int return_depth(void);
-cell_t return_stack_peek(int offset);
+void return_push(context_t* ctx, cell_t value);
+cell_t return_pop(context_t* ctx);
+int return_depth(context_t* ctx);
+cell_t return_stack_peek(context_t* ctx, int offset);
 
 #endif  // STACK_H

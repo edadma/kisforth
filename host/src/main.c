@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
   if (argc > 1 && strcmp(argv[1], "test") == 0) {
     word_t* test_word = find_word(NULL, "TEST");
     printf("Running tests...\n\n");
-    execute_word(test_word);
+    execute_word(ctx, test_word);
   } else {
     print_startup_banner("Host Development");
     repl();

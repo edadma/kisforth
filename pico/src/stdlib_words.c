@@ -14,7 +14,7 @@
 static void f_gpio_init(word_t* self) {
   (void)self;
 
-  cell_t pin = data_pop();
+  cell_t pin = data_pop(ctx);
 
   if (pin < 0 || pin > 29) {  // RP2040 has GPIO 0-29
     error("GPIO-INIT: invalid pin number");
@@ -29,7 +29,7 @@ static void f_gpio_init(word_t* self) {
 static void f_gpio_out(word_t* self) {
   (void)self;
 
-  cell_t pin = data_pop();
+  cell_t pin = data_pop(ctx);
 
   if (pin < 0 || pin > 29) {
     error("GPIO-OUT: invalid pin number");
@@ -44,7 +44,7 @@ static void f_gpio_out(word_t* self) {
 static void f_gpio_in(word_t* self) {
   (void)self;
 
-  cell_t pin = data_pop();
+  cell_t pin = data_pop(ctx);
 
   if (pin < 0 || pin > 29) {
     error("GPIO-IN: invalid pin number");
@@ -59,8 +59,8 @@ static void f_gpio_in(word_t* self) {
 static void f_gpio_put(word_t* self) {
   (void)self;
 
-  cell_t value = data_pop();
-  cell_t pin = data_pop();
+  cell_t value = data_pop(ctx);
+  cell_t pin = data_pop(ctx);
 
   if (pin < 0 || pin > 29) {
     error("GPIO-PUT: invalid pin number");
@@ -75,7 +75,7 @@ static void f_gpio_put(word_t* self) {
 static void f_gpio_get(word_t* self) {
   (void)self;
 
-  cell_t pin = data_pop();
+  cell_t pin = data_pop(ctx);
 
   if (pin < 0 || pin > 29) {
     error("GPIO-GET: invalid pin number");
@@ -91,7 +91,7 @@ static void f_gpio_get(word_t* self) {
 static void f_ms(word_t* self) {
   (void)self;
 
-  cell_t ms = data_pop();
+  cell_t ms = data_pop(ctx);
 
   if (ms < 0) {
     error("MS: negative delay not allowed");
@@ -106,7 +106,7 @@ static void f_ms(word_t* self) {
 static void f_us(word_t* self) {
   (void)self;
 
-  cell_t us = data_pop();
+  cell_t us = data_pop(ctx);
 
   if (us < 0) {
     error("US: negative delay not allowed");

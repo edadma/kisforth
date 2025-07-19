@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-
+#include "forth.h"
 
 #define INPUT_BUFFER_SIZE 256
 

@@ -256,7 +256,7 @@ void execute_colon(context_t* ctx, word_t* self) {
 
   // Save current instruction pointer on return stack (if executing)
   if (ctx->ip != 0) {
-    return_push((cell_t)ctx->ip);
+    return_push(ctx, (cell_t)ctx->ip);
     debug("  Saved IP on return stack");
   }
 
@@ -286,7 +286,7 @@ void execute_colon(context_t* ctx, word_t* self) {
 
 // VARIABLE runtime behavior: Push address OF the param_field
 // (param_field contains the variable's value directly)
-void f_address(word_t* self) {
+void f_address(context_t* ctx, word_t* self) {
   // Parameter field is right after the word structure in memory
   forth_addr_t word_addr = ptr_to_addr(self);
   forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
@@ -297,6 +297,6 @@ void f_address(word_t* self) {
 
 // CREATE runtime behavior: Push address IN the param_field
 // (param_field contains a Forth address pointing to data space)
-void f_param_field(word_t* self) {
+void f_param_field(context_t* ctx, word_t* self) {
   data_push(ctx, self->param_field);  // Push the value stored in param_field
 }

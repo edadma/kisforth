@@ -20,11 +20,11 @@ test_stats_t test_stats = {0, 0, 0, NULL};
     data_push(ctx, dividend_lo);                                                \
     data_push(ctx, dividend_hi);                                                \
     data_push(ctx, divisor);                                                    \
-    execute_word(div_word);                                                \
+    execute_word(ctx, div_word);                                                \
     test_stats.total++;                                                    \
-    if (data_depth() == 2) {                                               \
-      cell_t actual_quotient = data_pop();                                 \
-      cell_t actual_remainder = data_pop();                                \
+    if (data_depth(ctx) == 2) {                                               \
+      cell_t actual_quotient = data_pop(ctx);                                 \
+      cell_t actual_remainder = data_pop(ctx);                                \
       if (actual_quotient == (expected_quotient) &&                        \
           actual_remainder == (expected_remainder)) {                      \
         test_stats.passed++;                                               \
@@ -37,7 +37,7 @@ test_stats_t test_stats = {0, 0, 0, NULL};
     } else {                                                               \
       test_stats.failed++;                                                 \
       printf("    FAIL %s: wrong stack depth %d (expected 2)\n", name,     \
-             data_depth());                                                \
+             data_depth(ctx));                                                \
     }                                                                      \
   } while (0)
 
@@ -71,8 +71,8 @@ bool test_forth_code(const char* code, cell_t expected_top,
   interpret_text(code);
 
   // Check stack state
-  bool depth_ok = (data_depth() == expected_depth);
-  bool top_ok = (expected_depth == 0) || (data_peek() == expected_top);
+  bool depth_ok = (data_depth(ctx) == expected_depth);
+  bool top_ok = (expected_depth == 0) || (data_peek(ctx) == expected_top);
 
   if (depth_ok && top_ok) {
     test_stats.passed++;
@@ -83,9 +83,9 @@ bool test_forth_code(const char* code, cell_t expected_top,
     if (expected_depth > 0) {
       printf(", top=%d", expected_top);
     }
-    printf("; got depth=%d", data_depth());
-    if (data_depth() > 0) {
-      printf(", top=%d", data_peek());
+    printf("; got depth=%d", data_depth(ctx));
+    if (data_depth(ctx) > 0) {
+      printf(", top=%d", data_peek(ctx));
     }
     printf("\n");
     return false;
@@ -117,7 +117,7 @@ static void test_stack_functions(void) {
   TEST_ASSERT_STACK_DEPTH(2);
   TEST_ASSERT_STACK_TOP(100);
 
-  cell_t value = data_pop();
+  cell_t value = data_pop(ctx);
   TEST_ASSERT_EQUAL(100, value);
   TEST_ASSERT_STACK_DEPTH(1);
   TEST_ASSERT_STACK_TOP(42);
@@ -145,20 +145,20 @@ static void test_division_functions(void) {
   data_push(ctx, 10);
   data_push(ctx, 0);
   data_push(ctx, 7);
-  execute_word(sm_rem);
+  execute_word(ctx, sm_rem);
   TEST_ASSERT_STACK_DEPTH(2);
-  TEST_ASSERT_EQUAL(1, data_pop());  // quotient
-  TEST_ASSERT_EQUAL(3, data_pop());  // remainder
+  TEST_ASSERT_EQUAL(1, data_pop(ctx));  // quotient
+  TEST_ASSERT_EQUAL(3, data_pop(ctx));  // remainder
 
   // Test FM/MOD different result: -10 ÷ 7 = -2 remainder 4 (floored)
   forth_reset();
   data_push(ctx, -10);
   data_push(ctx, -1);
   data_push(ctx, 7);
-  execute_word(fm_mod);
+  execute_word(ctx, fm_mod);
   TEST_ASSERT_STACK_DEPTH(2);
-  TEST_ASSERT_EQUAL(-2, data_pop());  // quotient (floored)
-  TEST_ASSERT_EQUAL(4, data_pop());   // remainder (sign of divisor)
+  TEST_ASSERT_EQUAL(-2, data_pop(ctx));  // quotient (floored)
+  TEST_ASSERT_EQUAL(4, data_pop(ctx));   // remainder (sign of divisor)
 }
 
 static void test_division_comprehensive(void) {
@@ -189,9 +189,9 @@ static void test_division_comprehensive(void) {
   data_push(ctx, -10);
   data_push(ctx, -1);
   data_push(ctx, 7);
-  execute_word(sm_rem);
-  cell_t q = data_pop();
-  cell_t r = data_pop();
+  execute_word(ctx, sm_rem);
+  cell_t q = data_pop(ctx);
+  cell_t r = data_pop(ctx);
   TEST_ASSERT_EQUAL(-10, 7 * q + r);  // 7 * (-1) + (-3) = -10 ✓
 }
 

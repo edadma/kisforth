@@ -44,9 +44,9 @@ int return_depth(context_t* ctx) { return ctx->return_stack_ptr; }
 
 // Return stack peek function - examine return stack without popping
 cell_t return_stack_peek(context_t* ctx, int offset) {
-  if (return_depth() <= offset) {
+  if (return_depth(ctx) <= offset) {
     error(ctx, "Return stack underflow in peek at offset %d", offset);
   }
   // Access return stack from top (offset 0 = top, 1 = second from top, etc.)
-  return ctx->return_stack[return_depth() - 1 - offset];
+  return ctx->return_stack[return_depth(ctx) - 1 - offset];
 }

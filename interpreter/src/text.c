@@ -274,11 +274,11 @@ void interpret(void) {
       // Check if word is immediate (always execute)
       if (word->flags & WORD_FLAG_IMMEDIATE) {
         debug(" (immediate), executing");
-        execute_word(word);
+        execute_word(ctx, word);
       } else if (*state_ptr == 0) {
         // b.1) if interpreting, perform interpretation semantics
         debug(" (interpreting), executing");
-        execute_word(word);
+        execute_word(ctx, word);
       } else {
         // b.2) if compiling, perform compilation semantics
         debug(" (compiling), compiling token");
@@ -327,9 +327,9 @@ void interpret(void) {
   }
 
   debug("  Interpretation complete. >IN=%d, Stack depth: %d",
-        forth_fetch(to_in_addr), data_depth());
-  if (data_depth() > 0) {
-    debug("  Top of stack: %d", data_peek());
+        forth_fetch(to_in_addr), data_depth(ctx));
+  if (data_depth(ctx) > 0) {
+    debug("  Top of stack: %d", data_peek(ctx));
   }
 }
 

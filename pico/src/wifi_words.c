@@ -82,12 +82,12 @@ static void f_wifi_connect(word_t* self) {
   (void)self;
 
   // Get password string (top of stack)
-  cell_t pass_len = data_pop();
-  forth_addr_t pass_addr = (forth_addr_t)data_pop();
+  cell_t pass_len = data_pop(ctx);
+  forth_addr_t pass_addr = (forth_addr_t)data_pop(ctx);
 
   // Get SSID string
-  cell_t ssid_len = data_pop();
-  forth_addr_t ssid_addr = (forth_addr_t)data_pop();
+  cell_t ssid_len = data_pop(ctx);
+  forth_addr_t ssid_addr = (forth_addr_t)data_pop(ctx);
 
   // Validate string lengths
   if (ssid_len <= 0 || ssid_len > 32 || pass_len < 0 || pass_len > 63) {

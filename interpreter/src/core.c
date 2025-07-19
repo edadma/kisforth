@@ -84,8 +84,8 @@ void f_plus(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t n2 = data_pop();
-  cell_t n1 = data_pop();
+  cell_t n2 = data_pop(ctx);
+  cell_t n1 = data_pop(ctx);
   data_push(ctx, n1 + n2);
 }
 
@@ -94,8 +94,8 @@ void f_minus(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t n2 = data_pop();
-  cell_t n1 = data_pop();
+  cell_t n2 = data_pop(ctx);
+  cell_t n1 = data_pop(ctx);
   data_push(ctx, n1 - n2);
 }
 
@@ -104,8 +104,8 @@ void f_multiply(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t n2 = data_pop();
-  cell_t n1 = data_pop();
+  cell_t n2 = data_pop(ctx);
+  cell_t n1 = data_pop(ctx);
   data_push(ctx, n1 * n2);
 }
 
@@ -114,8 +114,8 @@ void f_divide(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t n2 = data_pop();
-  cell_t n1 = data_pop();
+  cell_t n2 = data_pop(ctx);
+  cell_t n1 = data_pop(ctx);
 
   if (n2 == 0) error(ctx, "Division by zero in '/'");
 
@@ -127,7 +127,7 @@ void f_drop(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  data_pop();
+  data_pop(ctx);
 }
 
 // SOURCE ( -- c-addr u )  Return input buffer address and length
@@ -136,7 +136,8 @@ void f_source(context_t* ctx, word_t* self) {
   (void)self;
 
   data_push(ctx, input_buffer_addr);  // Forth address
-  data_push(ctx,
+  data_push(
+      ctx,
       forth_fetch(input_length_addr));  // Current length from Forth memory
 }
 
@@ -153,7 +154,7 @@ void f_dot(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t value = data_pop();
+  cell_t value = data_pop(ctx);
   cell_t base = *base_ptr;
 
   // Validate base range, fall back to decimal if invalid
@@ -171,8 +172,8 @@ void f_store(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  forth_addr_t addr = (forth_addr_t)data_pop();
-  cell_t value = data_pop();
+  forth_addr_t addr = (forth_addr_t)data_pop(ctx);
+  cell_t value = data_pop(ctx);
   forth_store(addr, value);
 }
 
@@ -181,7 +182,7 @@ void f_fetch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  forth_addr_t addr = (forth_addr_t)data_pop();
+  forth_addr_t addr = (forth_addr_t)data_pop(ctx);
   cell_t value = forth_fetch(addr);
   data_push(ctx, value);
 }
@@ -191,8 +192,8 @@ void f_c_store(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  forth_addr_t addr = (forth_addr_t)data_pop();
-  byte_t value = (byte_t)data_pop();
+  forth_addr_t addr = (forth_addr_t)data_pop(ctx);
+  byte_t value = (byte_t)data_pop(ctx);
   forth_c_store(addr, value);
 }
 
@@ -201,7 +202,7 @@ void f_c_fetch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  forth_addr_t addr = (forth_addr_t)data_pop();
+  forth_addr_t addr = (forth_addr_t)data_pop(ctx);
   byte_t value = forth_c_fetch(addr);
   data_push(ctx, (cell_t)value);
 }
@@ -214,8 +215,8 @@ void f_equals(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x2 = data_pop();
-  cell_t x1 = data_pop();
+  cell_t x2 = data_pop(ctx);
+  cell_t x1 = data_pop(ctx);
 
   // ANS Forth: true = -1, false = 0
   cell_t flag = (x1 == x2) ? -1 : 0;
@@ -227,8 +228,8 @@ void f_less_than(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x2 = data_pop();
-  cell_t x1 = data_pop();
+  cell_t x2 = data_pop(ctx);
+  cell_t x1 = data_pop(ctx);
 
   // ANS Forth: true = -1, false = 0
   cell_t flag = (x1 < x2) ? -1 : 0;
@@ -240,7 +241,7 @@ void f_zero_equals(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x = data_pop();
+  cell_t x = data_pop(ctx);
 
   // ANS Forth: true = -1, false = 0
   cell_t flag = (x == 0) ? -1 : 0;
@@ -252,8 +253,8 @@ void f_swap(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x2 = data_pop();
-  cell_t x1 = data_pop();
+  cell_t x2 = data_pop(ctx);
+  cell_t x1 = data_pop(ctx);
   data_push(ctx, x2);
   data_push(ctx, x1);
 }
@@ -263,9 +264,9 @@ void f_rot(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x3 = data_pop();
-  cell_t x2 = data_pop();
-  cell_t x1 = data_pop();
+  cell_t x3 = data_pop(ctx);
+  cell_t x2 = data_pop(ctx);
+  cell_t x1 = data_pop(ctx);
   data_push(ctx, x2);
   data_push(ctx, x3);
   data_push(ctx, x1);
@@ -277,14 +278,14 @@ void f_pick(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t u = data_pop();
+  cell_t u = data_pop(ctx);
 
   // Bounds check: u must be >= 0 and < stack depth
   require(u >= 0);
-  require(u < data_depth());
+  require(u < data_depth(ctx));
 
   // Use data_peek_at to get the u-th item from top
-  cell_t xu = data_peek_at(u);
+  cell_t xu = data_peek_at(ctx, u);
   data_push(ctx, xu);
 }
 
@@ -301,7 +302,7 @@ void f_allot(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t n = data_pop();
+  cell_t n = data_pop(ctx);
 
   // Handle negative allot (deallocation) carefully
   if (n < 0) {
@@ -319,7 +320,7 @@ void f_comma(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x = data_pop();
+  cell_t x = data_pop(ctx);
 
   // Align HERE to cell boundary before storing
   forth_align();
@@ -376,9 +377,9 @@ void f_exit(context_t* ctx, word_t* self) {
   debug("EXIT called");
 
   // Check if there's a saved instruction pointer on the return stack
-  if (return_depth() > 0) {
+  if (return_depth(ctx) > 0) {
     // Restore previous instruction pointer from return stack
-    ctx->ip = (forth_addr_t)return_pop();
+    ctx->ip = (forth_addr_t)return_pop(ctx);
     debug("  Restored IP from return stack");
   } else {
     // No saved IP - we're at the top level, end execution
@@ -413,12 +414,12 @@ void f_sm_rem(context_t* ctx, word_t* self) {
   (void)self;
 
   // Pop divisor (single cell)
-  cell_t divisor = data_pop();
+  cell_t divisor = data_pop(ctx);
   require(divisor != 0);  // Division by zero check
 
   // Pop dividend (double cell: high cell first, then low cell)
-  cell_t dividend_hi = data_pop();
-  cell_t dividend_lo = data_pop();
+  cell_t dividend_hi = data_pop(ctx);
+  cell_t dividend_lo = data_pop(ctx);
 
   // Convert to 64-bit signed value
   int64_t dividend = ((int64_t)dividend_hi << 32) | (uint32_t)dividend_lo;
@@ -445,12 +446,12 @@ void f_fm_mod(context_t* ctx, word_t* self) {
   (void)self;
 
   // Pop divisor (single cell)
-  cell_t divisor = data_pop();
+  cell_t divisor = data_pop(ctx);
   require(divisor != 0);  // Division by zero check
 
   // Pop dividend (double cell: high cell first, then low cell)
-  cell_t dividend_hi = data_pop();
-  cell_t dividend_lo = data_pop();
+  cell_t dividend_hi = data_pop(ctx);
+  cell_t dividend_lo = data_pop(ctx);
 
   // Convert to 64-bit signed value
   int64_t dividend = ((int64_t)dividend_hi << 32) | (uint32_t)dividend_lo;
@@ -483,8 +484,8 @@ void f_and(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x2 = data_pop();
-  cell_t x1 = data_pop();
+  cell_t x2 = data_pop(ctx);
+  cell_t x1 = data_pop(ctx);
   cell_t x3 = x1 & x2;  // Bitwise AND operator in C
   data_push(ctx, x3);
 }
@@ -494,8 +495,8 @@ void f_or(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x2 = data_pop();
-  cell_t x1 = data_pop();
+  cell_t x2 = data_pop(ctx);
+  cell_t x1 = data_pop(ctx);
   cell_t x3 = x1 | x2;  // Bitwise OR operator in C
   data_push(ctx, x3);
 }
@@ -505,8 +506,8 @@ void f_xor(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x2 = data_pop();
-  cell_t x1 = data_pop();
+  cell_t x2 = data_pop(ctx);
+  cell_t x1 = data_pop(ctx);
   cell_t x3 = x1 ^ x2;  // Bitwise XOR operator in C
   data_push(ctx, x3);
 }
@@ -516,7 +517,7 @@ void f_invert(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x1 = data_pop();
+  cell_t x1 = data_pop(ctx);
   cell_t x2 = ~x1;  // Bitwise NOT operator in C
   data_push(ctx, x2);
 }
@@ -528,7 +529,7 @@ void f_emit(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t char_value = data_pop();
+  cell_t char_value = data_pop(ctx);
 
   // Extract character from cell (only low 8 bits)
   char c = (char)(char_value & 0xFF);
@@ -560,8 +561,8 @@ void f_type(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t u = data_pop();                           // Character count
-  forth_addr_t c_addr = (forth_addr_t)data_pop();  // String address
+  cell_t u = data_pop(ctx);                           // Character count
+  forth_addr_t c_addr = (forth_addr_t)data_pop(ctx);  // String address
 
   // Bounds check the character count
   if (u < 0) {
@@ -590,8 +591,8 @@ void f_to_r(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x = data_pop();
-  return_push(x);
+  cell_t x = data_pop(ctx);
+  return_push(ctx, x);
 }
 
 // R> ( -- x ) ( R: x -- )  Transfer x from return stack to data stack
@@ -599,7 +600,7 @@ void f_r_from(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x = return_pop();
+  cell_t x = return_pop(ctx);
   data_push(ctx, x);
 }
 
@@ -609,7 +610,7 @@ void f_r_fetch(context_t* ctx, word_t* self) {
   (void)self;
 
   // Make sure there's something to peek at
-  require(return_depth() > 0);
+  require(return_depth(ctx) > 0);
 
   // Peek at top of return stack without removing it
   cell_t x = ctx->return_stack[ctx->return_stack_ptr - 1];
@@ -621,8 +622,8 @@ void f_m_star(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t n2 = data_pop();
-  cell_t n1 = data_pop();
+  cell_t n2 = data_pop(ctx);
+  cell_t n1 = data_pop(ctx);
 
   // Use 64-bit arithmetic to handle the full range without overflow
   int64_t product = (int64_t)n1 * (int64_t)n2;
@@ -653,14 +654,14 @@ void f_roll(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t u = data_pop();
+  cell_t u = data_pop(ctx);
 
   if (u == 0) {
     // ROLL with u=0 is a no-op
     return;
   }
 
-  if (data_depth() < u + 1) error(ctx, "ROLL stack underflow");
+  if (data_depth(ctx) < u + 1) error(ctx, "ROLL stack underflow");
 
   // Get the item that's u positions down
   cell_t xu = ctx->data_stack[ctx->data_stack_ptr - 1 - u];
@@ -705,7 +706,7 @@ void f_abort_quote_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t flag = data_pop();
+  cell_t flag = data_pop(ctx);
 
   if (ctx->ip == 0) error(ctx, "(ABORT called outside colon definition");
 
@@ -779,9 +780,9 @@ void f_abort_quote(context_t* ctx, word_t* self) {
 
   if (*state_ptr == 0) {
     // Interpretation mode - check flag and abort immediately
-    if (data_depth() < 1) error(ctx, "ABORT\" requires a flag on the stack");
+    if (data_depth(ctx) < 1) error(ctx, "ABORT\" requires a flag on the stack");
 
-    cell_t flag = data_pop();
+    cell_t flag = data_pop(ctx);
     if (flag != 0) {
       printf("%s", string_buffer);
       f_abort(ctx, self);
@@ -848,7 +849,7 @@ void f_0branch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t x = data_pop();
+  cell_t x = data_pop(ctx);
   forth_addr_t target = forth_fetch(ctx->ip);
   ctx->ip += sizeof(cell_t);
 
@@ -872,8 +873,8 @@ void f_u_less(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  cell_t n2 = data_pop();
-  cell_t n1 = data_pop();
+  cell_t n2 = data_pop(ctx);
+  cell_t n1 = data_pop(ctx);
 
   // Cast to unsigned for comparison
   uint32_t u1 = (uint32_t)n1;
@@ -910,7 +911,7 @@ void f_execute(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  forth_addr_t xt = (forth_addr_t)data_pop();
+  forth_addr_t xt = (forth_addr_t)data_pop(ctx);
 
   debug("EXECUTE: executing token at address %u", xt);
 
@@ -928,7 +929,7 @@ void f_find(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  forth_addr_t c_addr = (forth_addr_t)data_pop();
+  forth_addr_t c_addr = (forth_addr_t)data_pop(ctx);
 
   // Get the counted string: first byte is length, followed by characters
   byte_t length = forth_c_fetch(c_addr);
@@ -986,16 +987,16 @@ void f_do_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
-  if (data_depth() < 2) {
+  if (data_depth(ctx) < 2) {
     error(ctx, "DO requires 2 items on stack");
   }
 
-  cell_t start = data_pop();  // Loop index (start value)
-  cell_t limit = data_pop();  // Loop limit
+  cell_t start = data_pop(ctx);  // Loop index (start value)
+  cell_t limit = data_pop(ctx);  // Loop limit
 
   // Push loop parameters onto return stack: limit first, then index
-  return_push(limit);
-  return_push(start);
+  return_push(ctx, limit);
+  return_push(ctx, start);
 
   debug("DO: limit=%d, start=%d", limit, start);
 }
@@ -1006,13 +1007,13 @@ void f_loop_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
-  if (return_depth() < 2) {
+  if (return_depth(ctx) < 2) {
     error(ctx, "LOOP: missing loop parameters on return stack");
   }
 
   // Get loop parameters from return stack
-  cell_t index = return_pop();
-  cell_t limit = return_pop();
+  cell_t index = return_pop(ctx);
+  cell_t limit = return_pop(ctx);
 
   // Increment index
   index++;
@@ -1028,8 +1029,8 @@ void f_loop_runtime(context_t* ctx, word_t* self) {
   }
 
   // Continue loop - restore parameters and branch back
-  return_push(limit);
-  return_push(index);
+  return_push(ctx, limit);
+  return_push(ctx, index);
 
   // The backward branch address follows this instruction
   forth_addr_t branch_target = forth_fetch(ctx->ip);
@@ -1043,19 +1044,19 @@ void f_plus_loop_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
-  if (data_depth() < 1) {
+  if (data_depth(ctx) < 1) {
     error(ctx, "+LOOP requires 1 item on stack");
   }
 
-  if (return_depth() < 2) {
+  if (return_depth(ctx) < 2) {
     error(ctx, "+LOOP: missing loop parameters on return stack");
   }
 
-  cell_t increment = data_pop();
+  cell_t increment = data_pop(ctx);
 
   // Get loop parameters from return stack
-  cell_t index = return_pop();
-  cell_t limit = return_pop();
+  cell_t index = return_pop(ctx);
+  cell_t limit = return_pop(ctx);
 
   cell_t old_index = index;
   index += increment;
@@ -1084,8 +1085,8 @@ void f_plus_loop_runtime(context_t* ctx, word_t* self) {
   }
 
   // Continue loop - restore parameters and branch back
-  return_push(limit);
-  return_push(index);
+  return_push(ctx, limit);
+  return_push(ctx, index);
 
   // The backward branch address follows this instruction
   forth_addr_t branch_target = forth_fetch(ctx->ip);
@@ -1099,12 +1100,12 @@ void f_i(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
-  if (return_depth() < 2) {
+  if (return_depth(ctx) < 2) {
     error(ctx, "I: no loop parameters on return stack");
   }
 
   // Index is on top of return stack, limit is below it
-  cell_t index = return_stack_peek(0);  // Top of return stack
+  cell_t index = return_stack_peek(ctx, 0);  // Top of return stack
   data_push(ctx, index);
 
   debug("I: index=%d", index);
@@ -1116,14 +1117,14 @@ void f_j(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
-  if (return_depth() < 4) {
+  if (return_depth(ctx) < 4) {
     error(ctx, "J: no outer loop parameters on return stack");
   }
 
   // Return stack layout: [outer_limit] [outer_index] [inner_limit]
   // [inner_index] J needs the outer_index, which is at position 2 from top
   // (0-indexed)
-  cell_t outer_index = return_stack_peek(2);
+  cell_t outer_index = return_stack_peek(ctx, 2);
   data_push(ctx, outer_index);
 
   debug("J: outer_index=%d", outer_index);
@@ -1135,13 +1136,13 @@ void f_leave_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
-  if (return_depth() < 2) {
+  if (return_depth(ctx) < 2) {
     error(ctx, "LEAVE: no loop parameters on return stack");
   }
 
   // Remove loop parameters
-  return_pop();  // index
-  return_pop();  // limit
+  return_pop(ctx);  // index
+  return_pop(ctx);  // limit
 
   // The branch target address follows this instruction
   forth_addr_t branch_target = forth_fetch(ctx->ip);
@@ -1156,13 +1157,13 @@ void f_unloop(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
-  if (return_depth() < 2) {
+  if (return_depth(ctx) < 2) {
     error(ctx, "UNLOOP: no loop parameters on return stack");
   }
 
   // Remove loop parameters
-  return_pop();  // index
-  return_pop();  // limit
+  return_pop(ctx);  // index
+  return_pop(ctx);  // limit
 
   debug("UNLOOP: removed loop parameters");
 }
@@ -1299,7 +1300,7 @@ void f_word(context_t* ctx, word_t* self) {
   (void)self;
 
   // Get delimiter character from stack
-  cell_t delimiter = data_pop();
+  cell_t delimiter = data_pop(ctx);
   char delim_char = (char)(delimiter & 0xFF);
 
   // Get current input state
@@ -1345,7 +1346,7 @@ void f_word(context_t* ctx, word_t* self) {
     error(ctx, "WORD: PAD not found");
   }
   pad_word->cfunc(ctx, pad_word);  // Execute PAD to get address
-  forth_addr_t pad_addr = (forth_addr_t)data_pop();
+  forth_addr_t pad_addr = (forth_addr_t)data_pop(ctx);
 
   // Store counted string in PAD
   forth_c_store(pad_addr, (byte_t)length);  // Store length byte
@@ -1371,8 +1372,8 @@ void f_accept(context_t* ctx, word_t* self) {
   (void)self;
 
   // Get parameters from stack
-  cell_t max_chars = data_pop();
-  forth_addr_t buffer_addr = (forth_addr_t)data_pop();
+  cell_t max_chars = data_pop(ctx);
+  forth_addr_t buffer_addr = (forth_addr_t)data_pop(ctx);
 
   // Validate parameters
   if (max_chars < 0) {
@@ -1392,7 +1393,7 @@ void f_accept(context_t* ctx, word_t* self) {
       error(ctx, "ACCEPT: KEY not found");
     }
     key_word->cfunc(ctx, key_word);  // Execute KEY
-    cell_t char_value = data_pop();
+    cell_t char_value = data_pop(ctx);
 
     char ch = (char)(char_value & 0xFF);
 

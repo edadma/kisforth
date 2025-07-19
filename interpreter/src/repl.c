@@ -84,6 +84,7 @@ static void get_line(void) { enhanced_get_line(input_line, INPUT_BUFFER_SIZE); }
 
 // Simplified REPL with setjmp for QUIT support
 void repl(void) {
+  context_init(&repl_context, "REPL", false);
   repl_running = true;
 
   // Set restart point for QUIT
@@ -91,7 +92,7 @@ void repl(void) {
     printf("Restarted.\n");
   }
 
-  while (true) {
+  for (;;) {
     printf(*state_ptr ? "\ncompiling> " : "\nok> ");
     fflush(stdout);
 
@@ -103,10 +104,8 @@ void repl(void) {
 
     interpret_text(input_line);
 
-    if (data_depth() > 0) {
-      printf(" <%d>", data_depth());
+    if (data_depth(&repl_context) > 0) {
+      printf(" <%d>", data_depth(&repl_context));
     }
   }
-
-  repl_running = false;
 }
