@@ -52,8 +52,8 @@ void link_word(word_t* word) {
 // Add this helper function to dictionary.c
 static int case_insensitive_strcmp(const char* a, const char* b) {
   while (*a && *b) {
-    char ca = tolower(*a);
-    char cb = tolower(*b);
+    int ca = tolower(*a);
+    int cb = tolower(*b);
     if (ca != cb) return ca - cb;
     a++;
     b++;
@@ -108,7 +108,7 @@ word_t* create_primitive_word(const char* name,
                               void (*cfunc)(context_t* ctx, word_t* self)) {
   // Allocate space for the word structure
   forth_addr_t word_addr = forth_allot(sizeof(word_t));
-  word_t* word = addr_to_ptr(word_addr);
+  word_t* word = addr_to_ptr(NULL, word_addr);
 
   // Initialize the word structure
   word->link = NULL;  // Will be set by link_word()
@@ -186,7 +186,7 @@ word_t* defining_word(void (*cfunc)(struct word* self)) {
 
   // Create word header but don't link it yet (hidden until ; is executed)
   forth_addr_t word_addr = forth_allot(sizeof(word_t));
-  word_t* word = addr_to_ptr(word_addr);
+  word_t* word = addr_to_ptr(NULL, word_addr);
 
   // Initialize word header
   strncpy(word->name, name, sizeof(word->name) - 1);
@@ -259,7 +259,7 @@ void execute_colon(word_t* self) {
     current_ip += sizeof(cell_t);  // Advance to next token
 
     // Execute the word at token_addr
-    word_t* word = addr_to_ptr(token_addr);
+    word_t* word = addr_to_ptr(NULL, token_addr);
     debug("  Executing token: %s", word->name);
     execute_word(word);
 
