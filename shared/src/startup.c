@@ -6,12 +6,11 @@
 #include "dictionary.h"
 #include "floating.h"
 #include "memory.h"
-#include "stack.h"
 #include "version.h"
 
 void forth_system_init(void) {
   // Initialize core systems in dependency order
-  stack_init();
+  context_init(&main_context, "MAIN", false);
 
 #ifdef FORTH_DEBUG_ENABLED
   debug_init();
