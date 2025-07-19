@@ -1,15 +1,17 @@
 #include "core.h"
-#include <string.h>
+
 #include <assert.h>
 #include <stdio.h>
-#include "memory.h"
-#include "error.h"
+#include <string.h>
+
 #include "debug.h"
-#include "stack.h"
 #include "dictionary.h"
+#include "error.h"
+#include "memory.h"
 #include "repl.h"
-#include "util.h"
+#include "stack.h"
 #include "text.h"
+#include "util.h"
 
 // Global STATE pointer for efficient access
 cell_t* state_ptr = NULL;
@@ -24,9 +26,9 @@ forth_addr_t current_ip = 0;  // 0 means not executing
 #define MAX_NESTED_LOOPS 8
 
 typedef struct {
-    forth_addr_t loop_start_addr;               // Address for backward branch from LOOP
-    forth_addr_t leave_addrs[MAX_LOOP_LEAVES];  // Forward branches from LEAVE
-    int leave_count;                            // Number of pending LEAVEs
+  forth_addr_t loop_start_addr;  // Address for backward branch from LOOP
+  forth_addr_t leave_addrs[MAX_LOOP_LEAVES];  // Forward branches from LEAVE
+  int leave_count;                            // Number of pending LEAVEs
 } loop_frame_t;
 
 // Loop compilation stack
@@ -35,1415 +37,1427 @@ static int loop_stack_depth = 0;
 
 // Loop compilation stack management functions
 static void push_loop_frame(forth_addr_t start_addr) {
-    if (loop_stack_depth >= MAX_NESTED_LOOPS) {
-        error("Loop nesting too deep (max %d)", MAX_NESTED_LOOPS);
-    }
+  if (loop_stack_depth >= MAX_NESTED_LOOPS) {
+    error("Loop nesting too deep (max %d)", MAX_NESTED_LOOPS);
+  }
 
-    loop_frame_t* frame = &loop_stack[loop_stack_depth];
-    frame->loop_start_addr = start_addr;
-    frame->leave_count = 0;
-    loop_stack_depth++;
+  loop_frame_t* frame = &loop_stack[loop_stack_depth];
+  frame->loop_start_addr = start_addr;
+  frame->leave_count = 0;
+  loop_stack_depth++;
 
-    debug("Push loop frame: depth=%d, start_addr=%d", loop_stack_depth, start_addr);
+  debug("Push loop frame: depth=%d, start_addr=%d", loop_stack_depth,
+        start_addr);
 }
 
 static loop_frame_t* current_loop_frame(void) {
-    if (loop_stack_depth == 0) {
-        error("No active loop for LEAVE");
-    }
-    return &loop_stack[loop_stack_depth - 1];
+  if (loop_stack_depth == 0) {
+    error("No active loop for LEAVE");
+  }
+  return &loop_stack[loop_stack_depth - 1];
 }
 
 static void add_leave_addr(forth_addr_t leave_addr) {
-    loop_frame_t* frame = current_loop_frame();
+  loop_frame_t* frame = current_loop_frame();
 
-    if (frame->leave_count >= MAX_LOOP_LEAVES) {
-        error("Too many LEAVE statements in loop (max %d)", MAX_LOOP_LEAVES);
-    }
+  if (frame->leave_count >= MAX_LOOP_LEAVES) {
+    error("Too many LEAVE statements in loop (max %d)", MAX_LOOP_LEAVES);
+  }
 
-    frame->leave_addrs[frame->leave_count++] = leave_addr;
-    debug("Add LEAVE addr: %d (count now %d)", leave_addr, frame->leave_count);
+  frame->leave_addrs[frame->leave_count++] = leave_addr;
+  debug("Add LEAVE addr: %d (count now %d)", leave_addr, frame->leave_count);
 }
 
 static loop_frame_t pop_loop_frame(void) {
-    if (loop_stack_depth == 0) {
-        error("No active loop to close");
-    }
+  if (loop_stack_depth == 0) {
+    error("No active loop to close");
+  }
 
-    loop_frame_t frame = loop_stack[--loop_stack_depth];
-    debug("Pop loop frame: depth now %d, had %d LEAVEs", loop_stack_depth, frame.leave_count);
-    return frame;
+  loop_frame_t frame = loop_stack[--loop_stack_depth];
+  debug("Pop loop frame: depth now %d, had %d LEAVEs", loop_stack_depth,
+        frame.leave_count);
+  return frame;
 }
 
 // Arithmetic primitives - these operate on the data stack
 
 // + ( n1 n2 -- n3 )  Add n1 and n2, leaving sum n3
 void f_plus(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t n2 = data_pop();
-    cell_t n1 = data_pop();
-    data_push(n1 + n2);
+  cell_t n2 = data_pop();
+  cell_t n1 = data_pop();
+  data_push(n1 + n2);
 }
 
 // - ( n1 n2 -- n3 )  Subtract n2 from n1, leaving difference n3
 void f_minus(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t n2 = data_pop();
-    cell_t n1 = data_pop();
-    data_push(n1 - n2);
+  cell_t n2 = data_pop();
+  cell_t n1 = data_pop();
+  data_push(n1 - n2);
 }
 
 // * ( n1 n2 -- n3 )  Multiply n1 by n2, leaving product n3
 void f_multiply(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t n2 = data_pop();
-    cell_t n1 = data_pop();
-    data_push(n1 * n2);
+  cell_t n2 = data_pop();
+  cell_t n1 = data_pop();
+  data_push(n1 * n2);
 }
 
 // / ( n1 n2 -- n3 )  Divide n1 by n2, leaving quotient n3
 void f_divide(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t n2 = data_pop();
-    cell_t n1 = data_pop();
+  cell_t n2 = data_pop();
+  cell_t n1 = data_pop();
 
-    if (n2 == 0) error("Division by zero in '/'");
+  if (n2 == 0) error("Division by zero in '/'");
 
-    data_push(n1 / n2);
+  data_push(n1 / n2);
 }
 
 // DROP ( x -- )  Remove x from the stack
 void f_drop(word_t* self) {
-    (void)self;
+  (void)self;
 
-    data_pop();
+  data_pop();
 }
 
 // SOURCE ( -- c-addr u )  Return input buffer address and length
 void f_source(word_t* self) {
-    (void)self;
+  (void)self;
 
-    data_push(input_buffer_addr);      // Forth address
-    data_push(forth_fetch(input_length_addr));       // Current length from Forth memory
+  data_push(input_buffer_addr);  // Forth address
+  data_push(
+      forth_fetch(input_length_addr));  // Current length from Forth memory
 }
 
 // >IN ( -- addr )  Return address of >IN variable
 void f_to_in(word_t* self) {
-    (void)self;
+  (void)self;
 
-    data_push(to_in_addr);             // Forth address of >IN
+  data_push(to_in_addr);  // Forth address of >IN
 }
 
 // . ( n -- ) Print and remove top stack item (BASE-aware)
 void f_dot(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t value = data_pop();
-    cell_t base = *base_ptr;
+  cell_t value = data_pop();
+  cell_t base = *base_ptr;
 
-    // Validate base range, fall back to decimal if invalid
-    if (base < 2 || base > 36) {
-        base = 10;
-    }
+  // Validate base range, fall back to decimal if invalid
+  if (base < 2 || base > 36) {
+    base = 10;
+  }
 
-    print_number_in_base(value, base);
-    putchar(' ');
-    fflush(stdout);
+  print_number_in_base(value, base);
+  putchar(' ');
+  fflush(stdout);
 }
 
 // ! ( x addr -- )  Store x at addr
 void f_store(word_t* self) {
-    (void)self;
+  (void)self;
 
-    forth_addr_t addr = (forth_addr_t)data_pop();
-    cell_t value = data_pop();
-    forth_store(addr, value);
+  forth_addr_t addr = (forth_addr_t)data_pop();
+  cell_t value = data_pop();
+  forth_store(addr, value);
 }
 
 // @ ( addr -- x )  Fetch value from addr
 void f_fetch(word_t* self) {
-    (void)self;
+  (void)self;
 
-    forth_addr_t addr = (forth_addr_t)data_pop();
-    cell_t value = forth_fetch(addr);
-    data_push(value);
+  forth_addr_t addr = (forth_addr_t)data_pop();
+  cell_t value = forth_fetch(addr);
+  data_push(value);
 }
 
 // C! ( char addr -- )  Store char at addr
 void f_c_store(word_t* self) {
-    (void)self;
+  (void)self;
 
-    forth_addr_t addr = (forth_addr_t)data_pop();
-    byte_t value = (byte_t)data_pop();
-    forth_c_store(addr, value);
+  forth_addr_t addr = (forth_addr_t)data_pop();
+  byte_t value = (byte_t)data_pop();
+  forth_c_store(addr, value);
 }
 
 // C@ ( addr -- char )  Fetch char from addr
 void f_c_fetch(word_t* self) {
-    (void)self;
+  (void)self;
 
-    forth_addr_t addr = (forth_addr_t)data_pop();
-    byte_t value = forth_c_fetch(addr);
-    data_push((cell_t)value);
+  forth_addr_t addr = (forth_addr_t)data_pop();
+  byte_t value = forth_c_fetch(addr);
+  data_push((cell_t)value);
 }
 
-// Comparison primitives - these operate on the data stack and return ANS Forth flags
+// Comparison primitives - these operate on the data stack and return ANS Forth
+// flags
 
 // = ( x1 x2 -- flag )  Return true if x1 equals x2
 void f_equals(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x2 = data_pop();
-    cell_t x1 = data_pop();
+  cell_t x2 = data_pop();
+  cell_t x1 = data_pop();
 
-    // ANS Forth: true = -1, false = 0
-    cell_t flag = (x1 == x2) ? -1 : 0;
-    data_push(flag);
+  // ANS Forth: true = -1, false = 0
+  cell_t flag = (x1 == x2) ? -1 : 0;
+  data_push(flag);
 }
 
 // < ( x1 x2 -- flag )  Return true if x1 is less than x2 (signed comparison)
 void f_less_than(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x2 = data_pop();
-    cell_t x1 = data_pop();
+  cell_t x2 = data_pop();
+  cell_t x1 = data_pop();
 
-    // ANS Forth: true = -1, false = 0
-    cell_t flag = (x1 < x2) ? -1 : 0;
-    data_push(flag);
+  // ANS Forth: true = -1, false = 0
+  cell_t flag = (x1 < x2) ? -1 : 0;
+  data_push(flag);
 }
 
 // 0= ( x -- flag )  Return true if x equals zero
 void f_zero_equals(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x = data_pop();
+  cell_t x = data_pop();
 
-    // ANS Forth: true = -1, false = 0
-    cell_t flag = (x == 0) ? -1 : 0;
-    data_push(flag);
+  // ANS Forth: true = -1, false = 0
+  cell_t flag = (x == 0) ? -1 : 0;
+  data_push(flag);
 }
 
 // SWAP ( x1 x2 -- x2 x1 )  Exchange the top two stack items
 void f_swap(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x2 = data_pop();
-    cell_t x1 = data_pop();
-    data_push(x2);
-    data_push(x1);
+  cell_t x2 = data_pop();
+  cell_t x1 = data_pop();
+  data_push(x2);
+  data_push(x1);
 }
 
 // ROT ( x1 x2 x3 -- x2 x3 x1 )  Rotate third item to top
 void f_rot(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x3 = data_pop();
-    cell_t x2 = data_pop();
-    cell_t x1 = data_pop();
-    data_push(x2);
-    data_push(x3);
-    data_push(x1);
+  cell_t x3 = data_pop();
+  cell_t x2 = data_pop();
+  cell_t x1 = data_pop();
+  data_push(x2);
+  data_push(x3);
+  data_push(x1);
 }
 
 // PICK ( xu ... x1 x0 u -- xu ... x1 x0 xu )  Copy u-th stack item to top
 // 0 PICK is equivalent to DUP, 1 PICK is equivalent to OVER
 void f_pick(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t u = data_pop();
+  cell_t u = data_pop();
 
-    // Bounds check: u must be >= 0 and < stack depth
-    require(u >= 0);
-    require(u < data_depth());
+  // Bounds check: u must be >= 0 and < stack depth
+  require(u >= 0);
+  require(u < data_depth());
 
-    // Use data_peek_at to get the u-th item from top
-    cell_t xu = data_peek_at(u);
-    data_push(xu);
+  // Use data_peek_at to get the u-th item from top
+  cell_t xu = data_peek_at(u);
+  data_push(xu);
 }
 
 // HERE ( -- addr )  Return the current data space pointer
 void f_here(word_t* self) {
-    (void)self;
+  (void)self;
 
-    data_push(here);
+  data_push(here);
 }
 
 // ALLOT ( n -- )  Allocate n bytes of data space
 void f_allot(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t n = data_pop();
+  cell_t n = data_pop();
 
-    // Handle negative allot (deallocation) carefully
-    if (n < 0) {
-        // Negative allot - check bounds to prevent underflow
-        require(here >= (forth_addr_t)(-n));
-        here += n;  // n is negative, so this subtracts
-    } else {
-        // Positive allot - normal allocation
-        forth_allot(n);
-    }
+  // Handle negative allot (deallocation) carefully
+  if (n < 0) {
+    // Negative allot - check bounds to prevent underflow
+    require(here >= (forth_addr_t)(-n));
+    here += n;  // n is negative, so this subtracts
+  } else {
+    // Positive allot - normal allocation
+    forth_allot(n);
+  }
 }
 
 // , ( x -- )  Store cell at HERE and advance HERE by one cell
 void f_comma(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x = data_pop();
+  cell_t x = data_pop();
 
-    // Align HERE to cell boundary before storing
-    forth_align();
+  // Align HERE to cell boundary before storing
+  forth_align();
 
-    // Store the value at current HERE
-    forth_store(here, x);
+  // Store the value at current HERE
+  forth_store(here, x);
 
-    // Advance HERE by one cell
-    here += sizeof(cell_t);
+  // Advance HERE by one cell
+  here += sizeof(cell_t);
 }
 
 // : (colon) - start colon definition
 // ( C: "<spaces>name" -- colon-sys )
 void f_colon(word_t* self) {
-    (void)self;
+  (void)self;
 
-    word_t* word = defining_word(execute_colon);
+  word_t* word = defining_word(execute_colon);
 
-    // Enter compilation state
-    *state_ptr = -1;
+  // Enter compilation state
+  *state_ptr = -1;
 
-    debug("Colon definition header created at %u, entering compilation mode", ptr_to_addr(word));
+  debug("Colon definition header created at %u, entering compilation mode",
+        ptr_to_addr(word));
 }
 
 // ; (semicolon) - end colon definition
 // Compilation: ( C: colon-sys -- )
 void f_semicolon(word_t* self) {
-    (void)self;
+  (void)self;
 
-    if (*state_ptr == 0) error("';' without matching :");
+  if (*state_ptr == 0) error("';' without matching :");
 
-    debug("Ending colon definition, compiling EXIT");
+  debug("Ending colon definition, compiling EXIT");
 
-    // Compile EXIT as the last token
-    word_t* exit_word = find_word("EXIT");
+  // Compile EXIT as the last token
+  word_t* exit_word = find_word("EXIT");
 
-    compile_token(ptr_to_addr(exit_word));
+  compile_token(ptr_to_addr(exit_word));
 
-    // Exit compilation state
-    *state_ptr = 0;
+  // Exit compilation state
+  *state_ptr = 0;
 
-    debug("Colon definition complete, exiting compilation mode");
+  debug("Colon definition complete, exiting compilation mode");
 }
 
 // EXIT - return from colon definition using return stack
 // Run-time: ( -- ) ( R: nest-sys -- )
 void f_exit(word_t* self) {
-    (void)self;
+  (void)self;
 
-    debug("EXIT called");
+  debug("EXIT called");
 
-    // Check if there's a saved instruction pointer on the return stack
-    if (return_depth() > 0) {
-        // Restore previous instruction pointer from return stack
-        current_ip = (forth_addr_t)return_pop();
-        debug("  Restored IP from return stack");
-    } else {
-        // No saved IP - we're at the top level, end execution
-        current_ip = 0;
-        debug("  No saved IP - ending execution");
-    }
+  // Check if there's a saved instruction pointer on the return stack
+  if (return_depth() > 0) {
+    // Restore previous instruction pointer from return stack
+    current_ip = (forth_addr_t)return_pop();
+    debug("  Restored IP from return stack");
+  } else {
+    // No saved IP - we're at the top level, end execution
+    current_ip = 0;
+    debug("  No saved IP - ending execution");
+  }
 }
 
 // LIT implementation that reads from instruction stream
 // LIT ( -- x ) Push the literal value that follows in compiled code
 void f_lit(word_t* self) {
-    (void)self;
+  (void)self;
 
-    if (current_ip == 0) error("LIT called outside colon definition");
+  if (current_ip == 0) error("LIT called outside colon definition");
 
-    // Read the literal value from the instruction stream
-    cell_t literal = forth_fetch(current_ip);
-    current_ip += sizeof(cell_t);  // Advance past the literal
+  // Read the literal value from the instruction stream
+  cell_t literal = forth_fetch(current_ip);
+  current_ip += sizeof(cell_t);  // Advance past the literal
 
-    // Push the literal onto the data stack
-    data_push(literal);
+  // Push the literal onto the data stack
+  data_push(literal);
 
-    debug("LIT pushed literal: %d", literal);
+  debug("LIT pushed literal: %d", literal);
 }
 
 // SM/REM ( d1 n1 -- n2 n3 )  Symmetric division primitive (rounds toward zero)
 // d1 is double-cell dividend, n1 is single-cell divisor
 // n2 is remainder (sign of dividend), n3 is quotient (truncated)
 void f_sm_rem(word_t* self) {
-    (void)self;
+  (void)self;
 
-    // Pop divisor (single cell)
-    cell_t divisor = data_pop();
-    require(divisor != 0);  // Division by zero check
+  // Pop divisor (single cell)
+  cell_t divisor = data_pop();
+  require(divisor != 0);  // Division by zero check
 
-    // Pop dividend (double cell: high cell first, then low cell)
-    cell_t dividend_hi = data_pop();
-    cell_t dividend_lo = data_pop();
+  // Pop dividend (double cell: high cell first, then low cell)
+  cell_t dividend_hi = data_pop();
+  cell_t dividend_lo = data_pop();
 
-    // Convert to 64-bit signed value
-    int64_t dividend = ((int64_t)dividend_hi << 32) | (uint32_t)dividend_lo;
-    int64_t div = (int64_t)divisor;
+  // Convert to 64-bit signed value
+  int64_t dividend = ((int64_t)dividend_hi << 32) | (uint32_t)dividend_lo;
+  int64_t div = (int64_t)divisor;
 
-    // Perform symmetric division (truncate toward zero)
-    int64_t quotient = dividend / div;  // C division truncates toward zero
-    int64_t remainder = dividend % div;  // C remainder has sign of dividend
+  // Perform symmetric division (truncate toward zero)
+  int64_t quotient = dividend / div;   // C division truncates toward zero
+  int64_t remainder = dividend % div;  // C remainder has sign of dividend
 
-    // Ensure results fit in 32-bit cells
-    require(quotient >= INT32_MIN && quotient <= INT32_MAX);
-    require(remainder >= INT32_MIN && remainder <= INT32_MAX);
+  // Ensure results fit in 32-bit cells
+  require(quotient >= INT32_MIN && quotient <= INT32_MAX);
+  require(remainder >= INT32_MIN && remainder <= INT32_MAX);
 
-    // Push remainder first, then quotient
-    data_push((cell_t)remainder);
-    data_push((cell_t)quotient);
+  // Push remainder first, then quotient
+  data_push((cell_t)remainder);
+  data_push((cell_t)quotient);
 }
 
-// FM/MOD ( d1 n1 -- n2 n3 )  Floored division primitive (rounds toward negative infinity)
-// d1 is double-cell dividend, n1 is single-cell divisor
-// n2 is remainder (sign of divisor), n3 is quotient (floored)
+// FM/MOD ( d1 n1 -- n2 n3 )  Floored division primitive (rounds toward negative
+// infinity) d1 is double-cell dividend, n1 is single-cell divisor n2 is
+// remainder (sign of divisor), n3 is quotient (floored)
 void f_fm_mod(word_t* self) {
-    (void)self;
+  (void)self;
 
-    // Pop divisor (single cell)
-    cell_t divisor = data_pop();
-    require(divisor != 0);  // Division by zero check
+  // Pop divisor (single cell)
+  cell_t divisor = data_pop();
+  require(divisor != 0);  // Division by zero check
 
-    // Pop dividend (double cell: high cell first, then low cell)
-    cell_t dividend_hi = data_pop();
-    cell_t dividend_lo = data_pop();
+  // Pop dividend (double cell: high cell first, then low cell)
+  cell_t dividend_hi = data_pop();
+  cell_t dividend_lo = data_pop();
 
-    // Convert to 64-bit signed value
-    int64_t dividend = ((int64_t)dividend_hi << 32) | (uint32_t)dividend_lo;
-    int64_t div = (int64_t)divisor;
+  // Convert to 64-bit signed value
+  int64_t dividend = ((int64_t)dividend_hi << 32) | (uint32_t)dividend_lo;
+  int64_t div = (int64_t)divisor;
 
-    // Perform floored division
-    int64_t quotient = dividend / div;
-    int64_t remainder = dividend % div;
+  // Perform floored division
+  int64_t quotient = dividend / div;
+  int64_t remainder = dividend % div;
 
-    // Adjust for floored division if remainder and divisor have different signs
-    // and remainder is non-zero (this converts from symmetric to floored)
-    if (remainder != 0 && ((remainder > 0) != (div > 0))) {
-        quotient -= 1;
-        remainder += div;
-    }
+  // Adjust for floored division if remainder and divisor have different signs
+  // and remainder is non-zero (this converts from symmetric to floored)
+  if (remainder != 0 && ((remainder > 0) != (div > 0))) {
+    quotient -= 1;
+    remainder += div;
+  }
 
-    // Ensure results fit in 32-bit cells
-    require(quotient >= INT32_MIN && quotient <= INT32_MAX);
-    require(remainder >= INT32_MIN && remainder <= INT32_MAX);
+  // Ensure results fit in 32-bit cells
+  require(quotient >= INT32_MIN && quotient <= INT32_MAX);
+  require(remainder >= INT32_MIN && remainder <= INT32_MAX);
 
-    // Push remainder first, then quotient
-    data_push((cell_t)remainder);
-    data_push((cell_t)quotient);
+  // Push remainder first, then quotient
+  data_push((cell_t)remainder);
+  data_push((cell_t)quotient);
 }
 
 // Bitwise logical operations - operate on the data stack
 
 // AND ( x1 x2 -- x3 )  Bitwise logical AND of x1 with x2
 void f_and(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x2 = data_pop();
-    cell_t x1 = data_pop();
-    cell_t x3 = x1 & x2;  // Bitwise AND operator in C
-    data_push(x3);
+  cell_t x2 = data_pop();
+  cell_t x1 = data_pop();
+  cell_t x3 = x1 & x2;  // Bitwise AND operator in C
+  data_push(x3);
 }
 
 // OR ( x1 x2 -- x3 )  Bitwise inclusive-or of x1 with x2
 void f_or(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x2 = data_pop();
-    cell_t x1 = data_pop();
-    cell_t x3 = x1 | x2;  // Bitwise OR operator in C
-    data_push(x3);
+  cell_t x2 = data_pop();
+  cell_t x1 = data_pop();
+  cell_t x3 = x1 | x2;  // Bitwise OR operator in C
+  data_push(x3);
 }
 
 // XOR ( x1 x2 -- x3 )  Bitwise exclusive-or of x1 with x2
 void f_xor(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x2 = data_pop();
-    cell_t x1 = data_pop();
-    cell_t x3 = x1 ^ x2;  // Bitwise XOR operator in C
-    data_push(x3);
+  cell_t x2 = data_pop();
+  cell_t x1 = data_pop();
+  cell_t x3 = x1 ^ x2;  // Bitwise XOR operator in C
+  data_push(x3);
 }
 
 // INVERT ( x1 -- x2 )  Bitwise logical inversion of x1
 void f_invert(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x1 = data_pop();
-    cell_t x2 = ~x1;  // Bitwise NOT operator in C
-    data_push(x2);
+  cell_t x1 = data_pop();
+  cell_t x2 = ~x1;  // Bitwise NOT operator in C
+  data_push(x2);
 }
 
 // I/O primitives - operate on the data stack and provide character I/O
 
 // EMIT ( char -- )  Output character to the user output device
 void f_emit(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t char_value = data_pop();
+  cell_t char_value = data_pop();
 
-    // Extract character from cell (only low 8 bits)
-    char c = (char)(char_value & 0xFF);
+  // Extract character from cell (only low 8 bits)
+  char c = (char)(char_value & 0xFF);
 
-    // Output character directly to stdout
-    putchar(c);
-    fflush(stdout);  // Ensure immediate output like f_dot
+  // Output character directly to stdout
+  putchar(c);
+  fflush(stdout);  // Ensure immediate output like f_dot
 }
 
 // KEY ( -- char )  Input character from the user input device
 void f_key(word_t* self) {
-    (void)self;
+  (void)self;
 
-    // Read one character from stdin
-    int c = getchar();
+  // Read one character from stdin
+  int c = getchar();
 
-    // Handle EOF or error conditions
-    if (c == EOF) {
-        c = 0;  // Push null character on EOF
-    }
+  // Handle EOF or error conditions
+  if (c == EOF) {
+    c = 0;  // Push null character on EOF
+  }
 
-    // Push character value onto stack (extend to cell size)
-    data_push((cell_t)(c & 0xFF));
+  // Push character value onto stack (extend to cell size)
+  data_push((cell_t)(c & 0xFF));
 }
 
 // TYPE ( c-addr u -- )  Output u characters from string at c-addr
 void f_type(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t u = data_pop();           // Character count
-    forth_addr_t c_addr = (forth_addr_t)data_pop();  // String address
+  cell_t u = data_pop();                           // Character count
+  forth_addr_t c_addr = (forth_addr_t)data_pop();  // String address
 
-    // Bounds check the character count
-    if (u < 0) {
-        return;  // Ignore negative count per ANS Forth practice
+  // Bounds check the character count
+  if (u < 0) {
+    return;  // Ignore negative count per ANS Forth practice
+  }
+
+  // Output each character
+  for (cell_t i = 0; i < u; i++) {
+    // Bounds check the address
+    if (c_addr + i >= FORTH_MEMORY_SIZE) {
+      break;  // Stop at memory boundary
     }
 
-    // Output each character
-    for (cell_t i = 0; i < u; i++) {
-        // Bounds check the address
-        if (c_addr + i >= FORTH_MEMORY_SIZE) {
-            break;  // Stop at memory boundary
-        }
+    char c = (char)forth_c_fetch(c_addr + i);
+    putchar(c);
+  }
 
-        char c = (char)forth_c_fetch(c_addr + i);
-        putchar(c);
-    }
-
-    fflush(stdout);  // Ensure immediate output
+  fflush(stdout);  // Ensure immediate output
 }
 
-// Return stack operations - essential for colon definitions and mixed-precision arithmetic
+// Return stack operations - essential for colon definitions and mixed-precision
+// arithmetic
 
 // >R ( x -- ) ( R: -- x )  Transfer x from data stack to return stack
 void f_to_r(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x = data_pop();
-    return_push(x);
+  cell_t x = data_pop();
+  return_push(x);
 }
 
 // R> ( -- x ) ( R: x -- )  Transfer x from return stack to data stack
 void f_r_from(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x = return_pop();
-    data_push(x);
+  cell_t x = return_pop();
+  data_push(x);
 }
 
 // R@ ( -- x ) ( R: x -- x )  Copy top of return stack to data stack
 void f_r_fetch(word_t* self) {
-    (void)self;
+  (void)self;
 
-    // Make sure there's something to peek at
-    require(return_depth() > 0);
+  // Make sure there's something to peek at
+  require(return_depth() > 0);
 
-    // Peek at top of return stack without removing it
-    cell_t x = return_stack[return_stack_ptr - 1];
-    data_push(x);
+  // Peek at top of return stack without removing it
+  cell_t x = return_stack[return_stack_ptr - 1];
+  data_push(x);
 }
 
 // M* ( n1 n2 -- d )  Multiply n1 by n2 giving signed double-cell product d
 void f_m_star(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t n2 = data_pop();
-    cell_t n1 = data_pop();
+  cell_t n2 = data_pop();
+  cell_t n1 = data_pop();
 
-    // Use 64-bit arithmetic to handle the full range without overflow
-    int64_t product = (int64_t)n1 * (int64_t)n2;
+  // Use 64-bit arithmetic to handle the full range without overflow
+  int64_t product = (int64_t)n1 * (int64_t)n2;
 
-    // Push as double-cell: low cell first, then high cell
-    // This follows ANS Forth convention for double-cell numbers
-    data_push((cell_t)(product & 0xFFFFFFFF));        // low 32 bits
-    data_push((cell_t)((product >> 32) & 0xFFFFFFFF)); // high 32 bits
+  // Push as double-cell: low cell first, then high cell
+  // This follows ANS Forth convention for double-cell numbers
+  data_push((cell_t)(product & 0xFFFFFFFF));          // low 32 bits
+  data_push((cell_t)((product >> 32) & 0xFFFFFFFF));  // high 32 bits
 }
 
 // IMMEDIATE ( -- ) Mark the most recently defined word as immediate
 void f_immediate(word_t* self) {
-    (void)self;
+  (void)self;
 
-    if (dictionary_head == NULL) error("No word to make immediate");
+  if (dictionary_head == NULL) error("No word to make immediate");
 
-    // Set immediate flag on most recently defined word
-    dictionary_head->flags |= WORD_FLAG_IMMEDIATE;
+  // Set immediate flag on most recently defined word
+  dictionary_head->flags |= WORD_FLAG_IMMEDIATE;
 
-    debug("Made word '%s' immediate", dictionary_head->name);
+  debug("Made word '%s' immediate", dictionary_head->name);
 }
 
 // ROLL ( xu xu-1 ... x1 x0 u -- xu-1 ... x1 x0 xu )
 // Remove u. Rotate u+1 items on top of stack. An ambiguous condition
 // exists if there are less than u+2 items on the stack before ROLL.
 void f_roll(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t u = data_pop();
+  cell_t u = data_pop();
 
-    if (u == 0) {
-        // ROLL with u=0 is a no-op
-        return;
-    }
+  if (u == 0) {
+    // ROLL with u=0 is a no-op
+    return;
+  }
 
-    if (data_depth() < u + 1) error("ROLL stack underflow");
+  if (data_depth() < u + 1) error("ROLL stack underflow");
 
-    // Get the item that's u positions down
-    cell_t xu = data_stack[data_stack_ptr - 1 - u];
+  // Get the item that's u positions down
+  cell_t xu = data_stack[data_stack_ptr - 1 - u];
 
-    // Shift all items above it down by one position
-    for (int i = data_stack_ptr - 1 - u; i < data_stack_ptr - 1; i++) {
-        data_stack[i] = data_stack[i + 1];
-    }
+  // Shift all items above it down by one position
+  for (int i = data_stack_ptr - 1 - u; i < data_stack_ptr - 1; i++) {
+    data_stack[i] = data_stack[i + 1];
+  }
 
-    // Put xu on top
-    data_stack[data_stack_ptr - 1] = xu;
+  // Put xu on top
+  data_stack[data_stack_ptr - 1] = xu;
 
-    debug("ROLL %d executed", u);
+  debug("ROLL %d executed", u);
 }
 
 void f_dot_quote_runtime(word_t* self) {
-    (void)self;
+  (void)self;
 
-    if (current_ip == 0) error("'.(' called outside colon definition");
+  if (current_ip == 0) error("'.(' called outside colon definition");
 
-    // Read string length from parameter field
-    byte_t length = (byte_t)forth_fetch(current_ip);
-    current_ip += sizeof(cell_t);
+  // Read string length from parameter field
+  byte_t length = (byte_t)forth_fetch(current_ip);
+  current_ip += sizeof(cell_t);
 
-    debug("(. runtime: reading string length %d", length);
+  debug("(. runtime: reading string length %d", length);
 
-    // Display each character
-    for (cell_t i = 0; i < length; i++) {
-        putchar(forth_c_fetch(current_ip + i));
-    }
+  // Display each character
+  for (cell_t i = 0; i < length; i++) {
+    putchar(forth_c_fetch(current_ip + i));
+  }
 
-    fflush(stdout);
-    current_ip = align_up(current_ip + length, sizeof(cell_t));
+  fflush(stdout);
+  current_ip = align_up(current_ip + length, sizeof(cell_t));
 
-    debug("(. runtime: displayed string, IP now at %u", current_ip);
+  debug("(. runtime: displayed string, IP now at %u", current_ip);
 }
 
 // Runtime word for ABORT" - reads inline string data and conditionally aborts
 // Compiled sequence: [(ABORT")]  [length] [char1] [char2] ... [charN]
 void f_abort_quote_runtime(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t flag = data_pop();
+  cell_t flag = data_pop();
 
-    if (current_ip == 0) error("(ABORT called outside colon definition");
+  if (current_ip == 0) error("(ABORT called outside colon definition");
 
-    // Read string length from parameter field
-    byte_t length = (byte_t)forth_fetch(current_ip);
-    current_ip += sizeof(cell_t);
+  // Read string length from parameter field
+  byte_t length = (byte_t)forth_fetch(current_ip);
+  current_ip += sizeof(cell_t);
 
-	cell_t start = current_ip;
+  cell_t start = current_ip;
 
-    current_ip = align_up(current_ip + length, sizeof(cell_t));
+  current_ip = align_up(current_ip + length, sizeof(cell_t));
 
-    debug("(ABORT runtime: flag=%d, string length=%d", flag, length);
+  debug("(ABORT runtime: flag=%d, string length=%d", flag, length);
 
-    if (flag != 0) {
-        // Display the string
-		for (cell_t i = 0; i < length; i++) {
-    		putchar(forth_c_fetch(start + i));
-		}
-
-        fflush(stdout);
-        f_abort(self);
-    } else {
-        debug("(ABORT runtime: skipped string, IP now at %u", current_ip);
+  if (flag != 0) {
+    // Display the string
+    for (cell_t i = 0; i < length; i++) {
+      putchar(forth_c_fetch(start + i));
     }
+
+    fflush(stdout);
+    f_abort(self);
+  } else {
+    debug("(ABORT runtime: skipped string, IP now at %u", current_ip);
+  }
 }
 
 // Improved ." implementation - compiles inline string data
 void f_dot_quote(word_t* self) {
-    (void)self;
+  (void)self;
 
-    // Parse the string
-    char string_buffer[256];
-    int length = parse_string('"', string_buffer, sizeof(string_buffer));
+  // Parse the string
+  char string_buffer[256];
+  int length = parse_string('"', string_buffer, sizeof(string_buffer));
 
-    if (*state_ptr == 0) {
-        // Interpretation mode - display immediately
-        debug(".\" interpretation: displaying '%s'", string_buffer);
-        printf("%s", string_buffer);
-        fflush(stdout);
-    } else {
-        // Compilation mode - compile inline string data
-        debug(".\" compilation: compiling inline string \"%s\" (length %d)",
-              string_buffer, length);
+  if (*state_ptr == 0) {
+    // Interpretation mode - display immediately
+    debug(".\" interpretation: displaying '%s'", string_buffer);
+    printf("%s", string_buffer);
+    fflush(stdout);
+  } else {
+    // Compilation mode - compile inline string data
+    debug(".\" compilation: compiling inline string \"%s\" (length %d)",
+          string_buffer, length);
 
-        word_t* runtime_word = find_word("(.\"");
+    word_t* runtime_word = find_word("(.\"");
 
-        compile_token(ptr_to_addr(runtime_word));
-        compile_token((forth_addr_t)length);
+    compile_token(ptr_to_addr(runtime_word));
+    compile_token((forth_addr_t)length);
 
-        for (int i = 0; i < length; i++) {
-            forth_c_store(here + i, string_buffer[i]);
-        }
-
-        here += length;
-        forth_align();  // Align for next token
-
-        debug(".\" compilation: compiled %d bytes + alignment", length + sizeof(cell_t));
+    for (int i = 0; i < length; i++) {
+      forth_c_store(here + i, string_buffer[i]);
     }
+
+    here += length;
+    forth_align();  // Align for next token
+
+    debug(".\" compilation: compiled %d bytes + alignment",
+          length + sizeof(cell_t));
+  }
 }
 
 // Improved ABORT" implementation - compiles inline string data
 void f_abort_quote(word_t* self) {
-    (void)self;
+  (void)self;
 
-    // Parse the string
-    char string_buffer[256];
-    int length = parse_string('"', string_buffer, sizeof(string_buffer));
+  // Parse the string
+  char string_buffer[256];
+  int length = parse_string('"', string_buffer, sizeof(string_buffer));
 
-    if (*state_ptr == 0) {
-        // Interpretation mode - check flag and abort immediately
-        if (data_depth() < 1) error("ABORT\" requires a flag on the stack");
+  if (*state_ptr == 0) {
+    // Interpretation mode - check flag and abort immediately
+    if (data_depth() < 1) error("ABORT\" requires a flag on the stack");
 
-        cell_t flag = data_pop();
-        if (flag != 0) {
-            printf("%s", string_buffer);
-            f_abort(self);
-        }
-    } else {
-        // Compilation mode - compile inline string data
-        debug("ABORT\" compilation: compiling inline string \"%s\"", string_buffer);
-
-        // 1. Compile the runtime word
-        word_t* runtime_word = find_word("(ABORT\"");
-
-        compile_token(ptr_to_addr(runtime_word));
-
-        // 2. Compile the string length
-        compile_token((forth_addr_t)length);
-
-        // 3. Compile each character
-        for (int i = 0; i < length; i++) {
-            forth_c_store(here + i, string_buffer[i]);
-        }
-
-        here += length;
-        forth_align();  // Align for next token
+    cell_t flag = data_pop();
+    if (flag != 0) {
+      printf("%s", string_buffer);
+      f_abort(self);
     }
+  } else {
+    // Compilation mode - compile inline string data
+    debug("ABORT\" compilation: compiling inline string \"%s\"", string_buffer);
+
+    // 1. Compile the runtime word
+    word_t* runtime_word = find_word("(ABORT\"");
+
+    compile_token(ptr_to_addr(runtime_word));
+
+    // 2. Compile the string length
+    compile_token((forth_addr_t)length);
+
+    // 3. Compile each character
+    for (int i = 0; i < length; i++) {
+      forth_c_store(here + i, string_buffer[i]);
+    }
+
+    here += length;
+    forth_align();  // Align for next token
+  }
 }
 
 void f_create(word_t* self) {
-    (void)self;
+  (void)self;
 
-	defining_word(f_param_field);
+  defining_word(f_param_field);
 }
 
 void f_variable(word_t* self) {
-    (void)self;
+  (void)self;
 
-	defining_word(f_address)->param_field = 0; // initialize variable to 0
+  defining_word(f_address)->param_field = 0;  // initialize variable to 0
 }
 
 // ['] ( "name" -- ) Compilation: ( -- ) Runtime: ( -- xt )
 // Parse name, find it, compile its execution token as literal
 void f_bracket_tick(word_t* self) {
-    (void)self;
+  (void)self;
 
-    char name_buffer[32];
-    char* name = parse_name(name_buffer, sizeof(name_buffer));
-    if (!name) error("Missing name after [']");
+  char name_buffer[32];
+  char* name = parse_name(name_buffer, sizeof(name_buffer));
+  if (!name) error("Missing name after [']");
 
-    word_t* word = find_word(name);
-    if (!word) error("Word not found in [']");
+  word_t* word = find_word(name);
+  if (!word) error("Word not found in [']");
 
-    // Compile the word's address as a literal
-    compile_literal(ptr_to_addr(word));
+  // Compile the word's address as a literal
+  compile_literal(ptr_to_addr(word));
 
-    debug("['] compiled literal for %s: %u", name, ptr_to_addr(word));
+  debug("['] compiled literal for %s: %u", name, ptr_to_addr(word));
 }
 
 // 0BRANCH ( x -- ) - conditional branch
 // If x is zero, branch to address stored at current_ip
 // Always advances current_ip past the address
 void f_0branch(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t x = data_pop();
-    forth_addr_t target = forth_fetch(current_ip);
-    current_ip += sizeof(cell_t);
+  cell_t x = data_pop();
+  forth_addr_t target = forth_fetch(current_ip);
+  current_ip += sizeof(cell_t);
 
-    if (x == 0) {
-        current_ip = target;  // Branch taken
-    }
-    // If x != 0, continue (branch not taken)
+  if (x == 0) {
+    current_ip = target;  // Branch taken
+  }
+  // If x != 0, continue (branch not taken)
 }
 
 // BRANCH ( -- ) - unconditional branch
 void f_branch(word_t* self) {
-    (void)self;
+  (void)self;
 
-    forth_addr_t target = forth_fetch(current_ip);
-    current_ip = target;  // Always branch
+  forth_addr_t target = forth_fetch(current_ip);
+  current_ip = target;  // Always branch
 }
 
 // U< ( u1 u2 -- flag )  Unsigned less than comparison
 void f_u_less(word_t* self) {
-    (void)self;
+  (void)self;
 
-    cell_t n2 = data_pop();
-    cell_t n1 = data_pop();
+  cell_t n2 = data_pop();
+  cell_t n1 = data_pop();
 
-    // Cast to unsigned for comparison
-    uint32_t u1 = (uint32_t)n1;
-    uint32_t u2 = (uint32_t)n2;
+  // Cast to unsigned for comparison
+  uint32_t u1 = (uint32_t)n1;
+  uint32_t u2 = (uint32_t)n2;
 
-    data_push(u1 < u2 ? -1 : 0);
+  data_push(u1 < u2 ? -1 : 0);
 }
 
 // ' ( "<spaces>name" -- xt )  Parse name and return execution token
 void f_tick(word_t* self) {
-    (void)self;
+  (void)self;
 
-    char name_buffer[32];
-    char* name = parse_name(name_buffer, sizeof(name_buffer));
+  char name_buffer[32];
+  char* name = parse_name(name_buffer, sizeof(name_buffer));
 
-    if (!name) {
-        error("' expects a name");
-    }
+  if (!name) {
+    error("' expects a name");
+  }
 
-    debug("' looking for word: %s", name);
+  debug("' looking for word: %s", name);
 
-    word_t* word = find_word(name);  // This will error if not found
+  word_t* word = find_word(name);  // This will error if not found
 
-    // Convert word pointer to execution token (forth address)
-    forth_addr_t xt = ptr_to_addr(word);
-    data_push((cell_t)xt);
+  // Convert word pointer to execution token (forth address)
+  forth_addr_t xt = ptr_to_addr(word);
+  data_push((cell_t)xt);
 
-    debug("' found word %s at address %u", name, xt);
+  debug("' found word %s at address %u", name, xt);
 }
 
 // EXECUTE ( i*x xt -- j*x )  Execute the word whose execution token is xt
 void f_execute(word_t* self) {
-    (void)self;
+  (void)self;
 
-    forth_addr_t xt = (forth_addr_t)data_pop();
+  forth_addr_t xt = (forth_addr_t)data_pop();
 
-    debug("EXECUTE: executing token at address %u", xt);
+  debug("EXECUTE: executing token at address %u", xt);
 
-    // Convert execution token back to word pointer
-    word_t* word = addr_to_ptr(xt);
+  // Convert execution token back to word pointer
+  word_t* word = addr_to_ptr(xt);
 
-    debug("EXECUTE: found word %s", word->name);
+  debug("EXECUTE: found word %s", word->name);
 
-    // Execute the word
-    execute_word(word);
+  // Execute the word
+  execute_word(word);
 }
 
 // FIND ( c-addr -- c-addr 0 | xt 1 | xt -1 )  Find word in dictionary
 void f_find(word_t* self) {
-    (void)self;
+  (void)self;
 
-    forth_addr_t c_addr = (forth_addr_t)data_pop();
+  forth_addr_t c_addr = (forth_addr_t)data_pop();
 
-    // Get the counted string: first byte is length, followed by characters
-    byte_t length = forth_c_fetch(c_addr);
+  // Get the counted string: first byte is length, followed by characters
+  byte_t length = forth_c_fetch(c_addr);
 
-    // Convert counted string to null-terminated C string
-    char name_buffer[32];
-    if (length >= sizeof(name_buffer)) {
-        // String too long, not found
-        data_push((cell_t)c_addr);
-        data_push(0);
-        return;
-    }
+  // Convert counted string to null-terminated C string
+  char name_buffer[32];
+  if (length >= sizeof(name_buffer)) {
+    // String too long, not found
+    data_push((cell_t)c_addr);
+    data_push(0);
+    return;
+  }
 
-    for (int i = 0; i < length; i++) {
-        name_buffer[i] = forth_c_fetch(c_addr + 1 + i);
-    }
-    name_buffer[length] = '\0';
+  for (int i = 0; i < length; i++) {
+    name_buffer[i] = forth_c_fetch(c_addr + 1 + i);
+  }
+  name_buffer[length] = '\0';
 
-    debug("FIND looking for word: %s", name_buffer);
+  debug("FIND looking for word: %s", name_buffer);
 
-    // Search for the word
-    word_t* word = search_word(name_buffer);
+  // Search for the word
+  word_t* word = search_word(name_buffer);
 
-    if (!word) {
-        // Not found: return c-addr 0
-        data_push((cell_t)c_addr);
-        data_push(0);
-        debug("FIND: word not found");
+  if (!word) {
+    // Not found: return c-addr 0
+    data_push((cell_t)c_addr);
+    data_push(0);
+    debug("FIND: word not found");
+  } else {
+    // Found: return xt and flag
+    forth_addr_t xt = ptr_to_addr(word);
+    data_push((cell_t)xt);
+
+    // Check if immediate
+    if (word->flags & WORD_FLAG_IMMEDIATE) {
+      data_push(-1);  // Immediate word
+      debug("FIND: found immediate word %s at %u", name_buffer, xt);
     } else {
-        // Found: return xt and flag
-        forth_addr_t xt = ptr_to_addr(word);
-        data_push((cell_t)xt);
-
-        // Check if immediate
-        if (word->flags & WORD_FLAG_IMMEDIATE) {
-            data_push(-1);  // Immediate word
-            debug("FIND: found immediate word %s at %u", name_buffer, xt);
-        } else {
-            data_push(1);   // Normal word
-            debug("FIND: found normal word %s at %u", name_buffer, xt);
-        }
+      data_push(1);  // Normal word
+      debug("FIND: found normal word %s at %u", name_buffer, xt);
     }
+  }
 }
 
 void f_unused(word_t* self) {
-    (void)self;
-    cell_t unused_bytes = FORTH_MEMORY_SIZE - here;
-    data_push(unused_bytes);
+  (void)self;
+  cell_t unused_bytes = FORTH_MEMORY_SIZE - here;
+  data_push(unused_bytes);
 }
 
 // DO runtime: ( limit start -- ) ( R: -- loop-sys )
 // Sets up loop parameters on return stack
 void f_do_runtime(word_t* self) {
-    (void)self;  // Unused parameter
+  (void)self;  // Unused parameter
 
-    if (data_depth() < 2) {
-        error("DO requires 2 items on stack");
-    }
+  if (data_depth() < 2) {
+    error("DO requires 2 items on stack");
+  }
 
-    cell_t start = data_pop();   // Loop index (start value)
-    cell_t limit = data_pop();   // Loop limit
+  cell_t start = data_pop();  // Loop index (start value)
+  cell_t limit = data_pop();  // Loop limit
 
-    // Push loop parameters onto return stack: limit first, then index
-    return_push(limit);
-    return_push(start);
+  // Push loop parameters onto return stack: limit first, then index
+  return_push(limit);
+  return_push(start);
 
-    debug("DO: limit=%d, start=%d", limit, start);
+  debug("DO: limit=%d, start=%d", limit, start);
 }
 
 // LOOP runtime: ( -- ) ( R: loop-sys1 -- | loop-sys2 )
 // Increment index by 1, test for loop termination
 void f_loop_runtime(word_t* self) {
-    (void)self;  // Unused parameter
+  (void)self;  // Unused parameter
 
-    if (return_depth() < 2) {
-        error("LOOP: missing loop parameters on return stack");
-    }
+  if (return_depth() < 2) {
+    error("LOOP: missing loop parameters on return stack");
+  }
 
-    // Get loop parameters from return stack
-    cell_t index = return_pop();
-    cell_t limit = return_pop();
+  // Get loop parameters from return stack
+  cell_t index = return_pop();
+  cell_t limit = return_pop();
 
-    // Increment index
-    index++;
+  // Increment index
+  index++;
 
-    debug("LOOP: index=%d, limit=%d", index, limit);
+  debug("LOOP: index=%d, limit=%d", index, limit);
 
-    // Check for loop termination
-    if (index == limit) {
-        // Loop finished - don't restore parameters, continue after loop
-        current_ip += sizeof(cell_t);  // Skip over the branch target address
-        debug("LOOP: finished");
-        return;
-    }
+  // Check for loop termination
+  if (index == limit) {
+    // Loop finished - don't restore parameters, continue after loop
+    current_ip += sizeof(cell_t);  // Skip over the branch target address
+    debug("LOOP: finished");
+    return;
+  }
 
-    // Continue loop - restore parameters and branch back
-    return_push(limit);
-    return_push(index);
+  // Continue loop - restore parameters and branch back
+  return_push(limit);
+  return_push(index);
 
-    // The backward branch address follows this instruction
-    forth_addr_t branch_target = forth_fetch(current_ip);
-    current_ip = branch_target;
-    debug("LOOP: continue to %d", branch_target);
+  // The backward branch address follows this instruction
+  forth_addr_t branch_target = forth_fetch(current_ip);
+  current_ip = branch_target;
+  debug("LOOP: continue to %d", branch_target);
 }
 
 // +LOOP runtime: ( n -- ) ( R: loop-sys1 -- | loop-sys2 )
 // Increment index by n, test for loop termination with boundary crossing
 void f_plus_loop_runtime(word_t* self) {
-    (void)self;  // Unused parameter
+  (void)self;  // Unused parameter
 
-    if (data_depth() < 1) {
-        error("+LOOP requires 1 item on stack");
-    }
+  if (data_depth() < 1) {
+    error("+LOOP requires 1 item on stack");
+  }
 
-    if (return_depth() < 2) {
-        error("+LOOP: missing loop parameters on return stack");
-    }
+  if (return_depth() < 2) {
+    error("+LOOP: missing loop parameters on return stack");
+  }
 
-    cell_t increment = data_pop();
+  cell_t increment = data_pop();
 
-    // Get loop parameters from return stack
-    cell_t index = return_pop();
-    cell_t limit = return_pop();
+  // Get loop parameters from return stack
+  cell_t index = return_pop();
+  cell_t limit = return_pop();
 
-    cell_t old_index = index;
-    index += increment;
+  cell_t old_index = index;
+  index += increment;
 
-    debug("+LOOP: old_index=%d, increment=%d, new_index=%d, limit=%d",
-          old_index, increment, index, limit);
+  debug("+LOOP: old_index=%d, increment=%d, new_index=%d, limit=%d", old_index,
+        increment, index, limit);
 
-    // Check for boundary crossing (ANS Forth standard)
-    // Loop terminates when index crosses the boundary between limit-1 and limit
-    bool crossed = false;
+  // Check for boundary crossing (ANS Forth standard)
+  // Loop terminates when index crosses the boundary between limit-1 and limit
+  bool crossed = false;
 
-    if (increment > 0) {
-        // Positive increment: terminate if we crossed from below limit to >= limit
-        crossed = (old_index < limit && index >= limit);
-    } else if (increment < 0) {
-        // Negative increment: terminate if we crossed from >= limit to < limit
-        crossed = (old_index >= limit && index < limit);
-    }
-    // If increment is 0, never terminate (infinite loop)
+  if (increment > 0) {
+    // Positive increment: terminate if we crossed from below limit to >= limit
+    crossed = (old_index < limit && index >= limit);
+  } else if (increment < 0) {
+    // Negative increment: terminate if we crossed from >= limit to < limit
+    crossed = (old_index >= limit && index < limit);
+  }
+  // If increment is 0, never terminate (infinite loop)
 
-    if (crossed) {
-        // Loop finished - don't restore parameters
-        current_ip += sizeof(cell_t);  // Skip over the branch target address
-        debug("+LOOP: boundary crossed, finished");
-        return;
-    }
+  if (crossed) {
+    // Loop finished - don't restore parameters
+    current_ip += sizeof(cell_t);  // Skip over the branch target address
+    debug("+LOOP: boundary crossed, finished");
+    return;
+  }
 
-    // Continue loop - restore parameters and branch back
-    return_push(limit);
-    return_push(index);
+  // Continue loop - restore parameters and branch back
+  return_push(limit);
+  return_push(index);
 
-    // The backward branch address follows this instruction
-    forth_addr_t branch_target = forth_fetch(current_ip);
-    current_ip = branch_target;
-    debug("+LOOP: continue to %d", branch_target);
+  // The backward branch address follows this instruction
+  forth_addr_t branch_target = forth_fetch(current_ip);
+  current_ip = branch_target;
+  debug("+LOOP: continue to %d", branch_target);
 }
 
 // I: ( -- n ) ( R: loop-sys -- loop-sys )
 // Return current loop index
 void f_i(word_t* self) {
-    (void)self;  // Unused parameter
+  (void)self;  // Unused parameter
 
-    if (return_depth() < 2) {
-        error("I: no loop parameters on return stack");
-    }
+  if (return_depth() < 2) {
+    error("I: no loop parameters on return stack");
+  }
 
-    // Index is on top of return stack, limit is below it
-    cell_t index = return_stack_peek(0);  // Top of return stack
-    data_push(index);
+  // Index is on top of return stack, limit is below it
+  cell_t index = return_stack_peek(0);  // Top of return stack
+  data_push(index);
 
-    debug("I: index=%d", index);
+  debug("I: index=%d", index);
 }
 
 // J: ( -- n ) ( R: loop-sys1 loop-sys2 -- loop-sys1 loop-sys2 )
 // Return outer loop index (for nested loops)
 void f_j(word_t* self) {
-    (void)self;  // Unused parameter
+  (void)self;  // Unused parameter
 
-    if (return_depth() < 4) {
-        error("J: no outer loop parameters on return stack");
-    }
+  if (return_depth() < 4) {
+    error("J: no outer loop parameters on return stack");
+  }
 
-    // Return stack layout: [outer_limit] [outer_index] [inner_limit] [inner_index]
-    // J needs the outer_index, which is at position 2 from top (0-indexed)
-    cell_t outer_index = return_stack_peek(2);
-    data_push(outer_index);
+  // Return stack layout: [outer_limit] [outer_index] [inner_limit]
+  // [inner_index] J needs the outer_index, which is at position 2 from top
+  // (0-indexed)
+  cell_t outer_index = return_stack_peek(2);
+  data_push(outer_index);
 
-    debug("J: outer_index=%d", outer_index);
+  debug("J: outer_index=%d", outer_index);
 }
 
 // LEAVE runtime: ( -- ) ( R: loop-sys -- )
 // Remove loop parameters and branch to after loop
 void f_leave_runtime(word_t* self) {
-    (void)self;  // Unused parameter
+  (void)self;  // Unused parameter
 
-    if (return_depth() < 2) {
-        error("LEAVE: no loop parameters on return stack");
-    }
+  if (return_depth() < 2) {
+    error("LEAVE: no loop parameters on return stack");
+  }
 
-    // Remove loop parameters
-    return_pop();  // index
-    return_pop();  // limit
+  // Remove loop parameters
+  return_pop();  // index
+  return_pop();  // limit
 
-    // The branch target address follows this instruction
-    forth_addr_t branch_target = forth_fetch(current_ip);
-    current_ip = branch_target;
+  // The branch target address follows this instruction
+  forth_addr_t branch_target = forth_fetch(current_ip);
+  current_ip = branch_target;
 
-    debug("LEAVE: branch to %d", branch_target);
+  debug("LEAVE: branch to %d", branch_target);
 }
 
 // UNLOOP: ( -- ) ( R: loop-sys -- )
 // Remove loop parameters without branching
 void f_unloop(word_t* self) {
-    (void)self;  // Unused parameter
+  (void)self;  // Unused parameter
 
-    if (return_depth() < 2) {
-        error("UNLOOP: no loop parameters on return stack");
-    }
+  if (return_depth() < 2) {
+    error("UNLOOP: no loop parameters on return stack");
+  }
 
-    // Remove loop parameters
-    return_pop();  // index
-    return_pop();  // limit
+  // Remove loop parameters
+  return_pop();  // index
+  return_pop();  // limit
 
-    debug("UNLOOP: removed loop parameters");
+  debug("UNLOOP: removed loop parameters");
 }
 
 // DO: ( C: -- do-sys )
 // Compilation: Push loop frame, compile DO runtime
 void f_do(word_t* self) {
-    (void)self;  // Unused parameter
+  (void)self;  // Unused parameter
 
-    if (*state_ptr == 0) {
-        error("DO can only be used in compilation mode");
-    }
+  if (*state_ptr == 0) {
+    error("DO can only be used in compilation mode");
+  }
 
-    // Compile the DO runtime primitive
-    word_t* do_runtime = find_word("(DO)");
-    if (!do_runtime) {
-        error("DO: (DO) runtime primitive not found");
-    }
-    compile_word(do_runtime);
+  // Compile the DO runtime primitive
+  word_t* do_runtime = find_word("(DO)");
+  if (!do_runtime) {
+    error("DO: (DO) runtime primitive not found");
+  }
+  compile_word(do_runtime);
 
-    // Push loop frame with current address as loop start
-    forth_addr_t loop_start = here;
-    push_loop_frame(loop_start);
+  // Push loop frame with current address as loop start
+  forth_addr_t loop_start = here;
+  push_loop_frame(loop_start);
 
-    debug("DO: compiled, loop starts at %d", loop_start);
+  debug("DO: compiled, loop starts at %d", loop_start);
 }
 
 // LOOP: ( C: do-sys -- )
 // Compilation: Resolve LEAVEs, compile LOOP runtime and backward branch
 void f_loop(word_t* self) {
-    (void)self;  // Unused parameter
+  (void)self;  // Unused parameter
 
-    if (*state_ptr == 0) {
-        error("LOOP can only be used in compilation mode");
-    }
+  if (*state_ptr == 0) {
+    error("LOOP can only be used in compilation mode");
+  }
 
-    // Get and pop the loop frame
-    loop_frame_t frame = pop_loop_frame();
+  // Get and pop the loop frame
+  loop_frame_t frame = pop_loop_frame();
 
-    // Compile the LOOP runtime primitive
-    word_t* loop_runtime = find_word("(LOOP)");
-    if (!loop_runtime) {
-        error("LOOP: (LOOP) runtime primitive not found");
-    }
-    compile_word(loop_runtime);
+  // Compile the LOOP runtime primitive
+  word_t* loop_runtime = find_word("(LOOP)");
+  if (!loop_runtime) {
+    error("LOOP: (LOOP) runtime primitive not found");
+  }
+  compile_word(loop_runtime);
 
-    // Compile backward branch target (loop start address)
-    compile_cell(frame.loop_start_addr);
+  // Compile backward branch target (loop start address)
+  compile_cell(frame.loop_start_addr);
 
-    // Resolve all LEAVE addresses to point here (after the loop)
-    forth_addr_t after_loop = here;
-    for (int i = 0; i < frame.leave_count; i++) {
-        forth_addr_t addr = frame.leave_addrs[i];
-        cell_t* cell_ptr = (cell_t*)addr_to_ptr(addr);
-        *cell_ptr = after_loop;
-        debug("LOOP: resolved LEAVE at %d to %d", addr, after_loop);
-    }
+  // Resolve all LEAVE addresses to point here (after the loop)
+  forth_addr_t after_loop = here;
+  for (int i = 0; i < frame.leave_count; i++) {
+    forth_addr_t addr = frame.leave_addrs[i];
+    cell_t* cell_ptr = (cell_t*)addr_to_ptr(addr);
+    *cell_ptr = after_loop;
+    debug("LOOP: resolved LEAVE at %d to %d", addr, after_loop);
+  }
 
-    debug("LOOP: compiled, %d LEAVEs resolved to %d", frame.leave_count, after_loop);
+  debug("LOOP: compiled, %d LEAVEs resolved to %d", frame.leave_count,
+        after_loop);
 }
 
 // +LOOP: ( C: do-sys -- )
 // Compilation: Resolve LEAVEs, compile +LOOP runtime and backward branch
 void f_plus_loop(word_t* self) {
-    (void)self;  // Unused parameter
+  (void)self;  // Unused parameter
 
-    if (*state_ptr == 0) {
-        error("+LOOP can only be used in compilation mode");
-    }
+  if (*state_ptr == 0) {
+    error("+LOOP can only be used in compilation mode");
+  }
 
-    // Get and pop the loop frame
-    loop_frame_t frame = pop_loop_frame();
+  // Get and pop the loop frame
+  loop_frame_t frame = pop_loop_frame();
 
-    // Compile the +LOOP runtime primitive
-    word_t* plus_loop_runtime = find_word("(+LOOP)");
-    if (!plus_loop_runtime) {
-        error("+LOOP: (+LOOP) runtime primitive not found");
-    }
-    compile_word(plus_loop_runtime);
+  // Compile the +LOOP runtime primitive
+  word_t* plus_loop_runtime = find_word("(+LOOP)");
+  if (!plus_loop_runtime) {
+    error("+LOOP: (+LOOP) runtime primitive not found");
+  }
+  compile_word(plus_loop_runtime);
 
-    // Compile backward branch target (loop start address)
-    compile_cell(frame.loop_start_addr);
+  // Compile backward branch target (loop start address)
+  compile_cell(frame.loop_start_addr);
 
-    // Resolve all LEAVE addresses to point here (after the loop)
-    forth_addr_t after_loop = here;
-    for (int i = 0; i < frame.leave_count; i++) {
-        forth_addr_t addr = frame.leave_addrs[i];
-        cell_t* cell_ptr = (cell_t*)addr_to_ptr(addr);
-        *cell_ptr = after_loop;
-        debug("+LOOP: resolved LEAVE at %d to %d", addr, after_loop);
-    }
+  // Resolve all LEAVE addresses to point here (after the loop)
+  forth_addr_t after_loop = here;
+  for (int i = 0; i < frame.leave_count; i++) {
+    forth_addr_t addr = frame.leave_addrs[i];
+    cell_t* cell_ptr = (cell_t*)addr_to_ptr(addr);
+    *cell_ptr = after_loop;
+    debug("+LOOP: resolved LEAVE at %d to %d", addr, after_loop);
+  }
 
-    debug("+LOOP: compiled, %d LEAVEs resolved to %d", frame.leave_count, after_loop);
+  debug("+LOOP: compiled, %d LEAVEs resolved to %d", frame.leave_count,
+        after_loop);
 }
 
 // LEAVE: ( C: -- )
-// Compilation: Compile LEAVE runtime and add branch address for later resolution
+// Compilation: Compile LEAVE runtime and add branch address for later
+// resolution
 void f_leave(word_t* self) {
-    (void)self;  // Unused parameter
+  (void)self;  // Unused parameter
 
-    if (*state_ptr == 0) {
-        error("LEAVE can only be used in compilation mode");
-    }
+  if (*state_ptr == 0) {
+    error("LEAVE can only be used in compilation mode");
+  }
 
-    // Compile the LEAVE runtime primitive
-    word_t* leave_runtime = find_word("(LEAVE)");
-    if (!leave_runtime) {
-        error("LEAVE: (LEAVE) runtime primitive not found");
-    }
-    compile_word(leave_runtime);
+  // Compile the LEAVE runtime primitive
+  word_t* leave_runtime = find_word("(LEAVE)");
+  if (!leave_runtime) {
+    error("LEAVE: (LEAVE) runtime primitive not found");
+  }
+  compile_word(leave_runtime);
 
-    // Compile placeholder for branch target (will be resolved by LOOP/+LOOP)
-    forth_addr_t placeholder_addr = here;
-    compile_cell(0);  // Placeholder address
+  // Compile placeholder for branch target (will be resolved by LOOP/+LOOP)
+  forth_addr_t placeholder_addr = here;
+  compile_cell(0);  // Placeholder address
 
-    // Add this address to the current loop frame for later resolution
-    add_leave_addr(placeholder_addr);
+  // Add this address to the current loop frame for later resolution
+  add_leave_addr(placeholder_addr);
 
-    debug("LEAVE: compiled with placeholder at %d", placeholder_addr);
+  debug("LEAVE: compiled with placeholder at %d", placeholder_addr);
 }
 
-
 // WORD ( char "<chars>cchar<chars>" -- c-addr )
-// Skip leading delimiters, parse until next delimiter, store as counted string in PAD
+// Skip leading delimiters, parse until next delimiter, store as counted string
+// in PAD
 void f_word(word_t* self) {
-    (void)self;
+  (void)self;
 
-    // Get delimiter character from stack
-    cell_t delimiter = data_pop();
-    char delim_char = (char)(delimiter & 0xFF);
+  // Get delimiter character from stack
+  cell_t delimiter = data_pop();
+  char delim_char = (char)(delimiter & 0xFF);
 
-    // Get current input state
-    cell_t current_to_in = forth_fetch(to_in_addr);
-    cell_t current_length = forth_fetch(input_length_addr);
+  // Get current input state
+  cell_t current_to_in = forth_fetch(to_in_addr);
+  cell_t current_length = forth_fetch(input_length_addr);
 
-    // Skip leading delimiters
-    while (current_to_in < current_length) {
-        char ch = (char)forth_c_fetch(input_buffer_addr + current_to_in);
-        if (ch != delim_char) {
-            break;  // Found non-delimiter
-        }
-        current_to_in++;
+  // Skip leading delimiters
+  while (current_to_in < current_length) {
+    char ch = (char)forth_c_fetch(input_buffer_addr + current_to_in);
+    if (ch != delim_char) {
+      break;  // Found non-delimiter
     }
+    current_to_in++;
+  }
 
-    // Parse until next delimiter or end of input
-    cell_t start_pos = current_to_in;
-    while (current_to_in < current_length) {
-        char ch = (char)forth_c_fetch(input_buffer_addr + current_to_in);
-        if (ch == delim_char) {
-            break;  // Found delimiter
-        }
-        current_to_in++;
+  // Parse until next delimiter or end of input
+  cell_t start_pos = current_to_in;
+  while (current_to_in < current_length) {
+    char ch = (char)forth_c_fetch(input_buffer_addr + current_to_in);
+    if (ch == delim_char) {
+      break;  // Found delimiter
     }
+    current_to_in++;
+  }
 
-    // Calculate length of parsed string
-    cell_t length = current_to_in - start_pos;
+  // Calculate length of parsed string
+  cell_t length = current_to_in - start_pos;
 
-    // Ensure length fits in a byte (ANS Forth requirement)
-    if (length > 255) {
-        length = 255;
-    }
+  // Ensure length fits in a byte (ANS Forth requirement)
+  if (length > 255) {
+    length = 255;
+  }
 
-    // Update >IN to position after delimiter (if found)
-    if (current_to_in < current_length) {
-        current_to_in++;  // Skip the delimiter
-    }
-    forth_store(to_in_addr, current_to_in);
+  // Update >IN to position after delimiter (if found)
+  if (current_to_in < current_length) {
+    current_to_in++;  // Skip the delimiter
+  }
+  forth_store(to_in_addr, current_to_in);
 
-    // Get PAD address by executing PAD word
-    word_t* pad_word = search_word("PAD");
-    if (!pad_word) {
-        error("WORD: PAD not found");
-    }
-    pad_word->cfunc(pad_word);  // Execute PAD to get address
-    forth_addr_t pad_addr = (forth_addr_t)data_pop();
+  // Get PAD address by executing PAD word
+  word_t* pad_word = search_word("PAD");
+  if (!pad_word) {
+    error("WORD: PAD not found");
+  }
+  pad_word->cfunc(pad_word);  // Execute PAD to get address
+  forth_addr_t pad_addr = (forth_addr_t)data_pop();
 
-    // Store counted string in PAD
-    forth_c_store(pad_addr, (byte_t)length);  // Store length byte
+  // Store counted string in PAD
+  forth_c_store(pad_addr, (byte_t)length);  // Store length byte
 
-    // Copy characters from input buffer to PAD
-    for (cell_t i = 0; i < length; i++) {
-        char ch = (char)forth_c_fetch(input_buffer_addr + start_pos + i);
-        forth_c_store(pad_addr + 1 + i, (byte_t)ch);
-    }
+  // Copy characters from input buffer to PAD
+  for (cell_t i = 0; i < length; i++) {
+    char ch = (char)forth_c_fetch(input_buffer_addr + start_pos + i);
+    forth_c_store(pad_addr + 1 + i, (byte_t)ch);
+  }
 
-    // Return PAD address
-    data_push((cell_t)pad_addr);
+  // Return PAD address
+  data_push((cell_t)pad_addr);
 
-    debug("WORD: delimiter='%c', parsed \"%.*s\" (length %d)",
-          delim_char, (int)length,
-          (char*)&forth_memory[input_buffer_addr + start_pos], (int)length);
+  debug("WORD: delimiter='%c', parsed \"%.*s\" (length %d)", delim_char,
+        (int)length, (char*)&forth_memory[input_buffer_addr + start_pos],
+        (int)length);
 }
 
 // ACCEPT ( c-addr +n1 -- +n2 )
 // Read up to +n1 characters into buffer at c-addr, return actual count
 void f_accept(word_t* self) {
-    (void)self;
+  (void)self;
 
-    // Get parameters from stack
-    cell_t max_chars = data_pop();
-    forth_addr_t buffer_addr = (forth_addr_t)data_pop();
+  // Get parameters from stack
+  cell_t max_chars = data_pop();
+  forth_addr_t buffer_addr = (forth_addr_t)data_pop();
 
-    // Validate parameters
-    if (max_chars < 0) {
-        data_push(0);
-        return;
+  // Validate parameters
+  if (max_chars < 0) {
+    data_push(0);
+    return;
+  }
+
+  cell_t count = 0;
+
+  debug("ACCEPT: reading up to %d characters into buffer at %u", max_chars,
+        buffer_addr);
+
+  while (count < max_chars) {
+    // Read one character using KEY
+    word_t* key_word = search_word("KEY");
+    if (!key_word) {
+      error("ACCEPT: KEY not found");
+    }
+    key_word->cfunc(key_word);  // Execute KEY
+    cell_t char_value = data_pop();
+
+    char ch = (char)(char_value & 0xFF);
+
+    // Check for line terminators
+    if (ch == '\r' || ch == '\n') {
+      // End of line - stop reading
+      break;
     }
 
-    cell_t count = 0;
-
-    debug("ACCEPT: reading up to %d characters into buffer at %u", max_chars, buffer_addr);
-
-    while (count < max_chars) {
-        // Read one character using KEY
-        word_t* key_word = search_word("KEY");
-        if (!key_word) {
-            error("ACCEPT: KEY not found");
-        }
-        key_word->cfunc(key_word);  // Execute KEY
-        cell_t char_value = data_pop();
-
-        char ch = (char)(char_value & 0xFF);
-
-        // Check for line terminators
-        if (ch == '\r' || ch == '\n') {
-            // End of line - stop reading
-            break;
-        }
-
-        // Check for backspace/delete
-        if (ch == '\b' || ch == '\x7F') {
-            if (count > 0) {
-                count--;
-                // Echo backspace sequence: backspace, space, backspace
-                putchar('\b');
-                putchar(' ');
-                putchar('\b');
-                fflush(stdout);
-            }
-            continue;
-        }
-
-        // Store character in buffer
-        forth_c_store(buffer_addr + count, (byte_t)ch);
-        count++;
-
-        // Echo character to output (for interactive use)
-        putchar(ch);
+    // Check for backspace/delete
+    if (ch == '\b' || ch == '\x7F') {
+      if (count > 0) {
+        count--;
+        // Echo backspace sequence: backspace, space, backspace
+        putchar('\b');
+        putchar(' ');
+        putchar('\b');
         fflush(stdout);
+      }
+      continue;
     }
 
-    // Return actual count
-    data_push(count);
+    // Store character in buffer
+    forth_c_store(buffer_addr + count, (byte_t)ch);
+    count++;
 
-    debug("ACCEPT: read %d characters", count);
+    // Echo character to output (for interactive use)
+    putchar(ch);
+    fflush(stdout);
+  }
+
+  // Return actual count
+  data_push(count);
+
+  debug("ACCEPT: read %d characters", count);
 }
 
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
-    create_primitive_word("+", f_plus);
-    create_primitive_word("-", f_minus);
-    create_primitive_word("*", f_multiply);
-    create_primitive_word("/", f_divide);
-    create_primitive_word("DROP", f_drop);
-    create_primitive_word("SOURCE", f_source);
-    create_primitive_word(">IN", f_to_in);
-    create_primitive_word("QUIT", f_quit);
-    create_primitive_word("ABORT", f_abort);
-    create_primitive_word("BYE", f_bye);
-    create_primitive_word(".", f_dot);
-    create_primitive_word("!", f_store);
-    create_primitive_word("@", f_fetch);
-    create_primitive_word("C!", f_c_store);
-    create_primitive_word("C@", f_c_fetch);
-    create_primitive_word("=", f_equals);
-    create_primitive_word("<", f_less_than);
-    create_primitive_word("0=", f_zero_equals);
-    create_primitive_word("SWAP", f_swap);
-    create_primitive_word("ROT", f_rot);
-    create_primitive_word("PICK", f_pick);
-    create_primitive_word("ROLL", f_roll);
-    create_primitive_word("HERE", f_here);
-    create_primitive_word("ALLOT", f_allot);
-    create_primitive_word(",", f_comma);
-    create_primitive_word("LIT", f_lit);
-    create_primitive_word("SM/REM", f_sm_rem);
-    create_primitive_word("FM/MOD", f_fm_mod);
-    create_primitive_word("AND", f_and);
-    create_primitive_word("OR", f_or);
-    create_primitive_word("XOR", f_xor);
-    create_primitive_word("INVERT", f_invert);
-    create_primitive_word("EMIT", f_emit);
-    create_primitive_word("KEY", f_key);
-    create_primitive_word("TYPE", f_type);
-    create_primitive_word(">R", f_to_r);
-    create_primitive_word("R>", f_r_from);
-    create_primitive_word("R@", f_r_fetch);
-    create_primitive_word("M*", f_m_star);
-    create_primitive_word("U<", f_u_less);
+  create_primitive_word("+", f_plus);
+  create_primitive_word("-", f_minus);
+  create_primitive_word("*", f_multiply);
+  create_primitive_word("/", f_divide);
+  create_primitive_word("DROP", f_drop);
+  create_primitive_word("SOURCE", f_source);
+  create_primitive_word(">IN", f_to_in);
+  create_primitive_word("QUIT", f_quit);
+  create_primitive_word("ABORT", f_abort);
+  create_primitive_word("BYE", f_bye);
+  create_primitive_word(".", f_dot);
+  create_primitive_word("!", f_store);
+  create_primitive_word("@", f_fetch);
+  create_primitive_word("C!", f_c_store);
+  create_primitive_word("C@", f_c_fetch);
+  create_primitive_word("=", f_equals);
+  create_primitive_word("<", f_less_than);
+  create_primitive_word("0=", f_zero_equals);
+  create_primitive_word("SWAP", f_swap);
+  create_primitive_word("ROT", f_rot);
+  create_primitive_word("PICK", f_pick);
+  create_primitive_word("ROLL", f_roll);
+  create_primitive_word("HERE", f_here);
+  create_primitive_word("ALLOT", f_allot);
+  create_primitive_word(",", f_comma);
+  create_primitive_word("LIT", f_lit);
+  create_primitive_word("SM/REM", f_sm_rem);
+  create_primitive_word("FM/MOD", f_fm_mod);
+  create_primitive_word("AND", f_and);
+  create_primitive_word("OR", f_or);
+  create_primitive_word("XOR", f_xor);
+  create_primitive_word("INVERT", f_invert);
+  create_primitive_word("EMIT", f_emit);
+  create_primitive_word("KEY", f_key);
+  create_primitive_word("TYPE", f_type);
+  create_primitive_word(">R", f_to_r);
+  create_primitive_word("R>", f_r_from);
+  create_primitive_word("R@", f_r_fetch);
+  create_primitive_word("M*", f_m_star);
+  create_primitive_word("U<", f_u_less);
 
-    // Create STATE variable (0 = interpret, -1 = compile)
-    state_ptr = create_variable_word("STATE", 0);
+  // Create STATE variable (0 = interpret, -1 = compile)
+  state_ptr = create_variable_word("STATE", 0);
 
-    // Create BASE variable (default to decimal)
-    base_ptr = create_variable_word("BASE", 10);
+  // Create BASE variable (default to decimal)
+  base_ptr = create_variable_word("BASE", 10);
 
-    create_primitive_word(":", f_colon);
-    create_immediate_primitive_word(";", f_semicolon);
-    create_primitive_word("EXIT", f_exit);
-    create_primitive_word("IMMEDIATE", f_immediate);
+  create_primitive_word(":", f_colon);
+  create_immediate_primitive_word(";", f_semicolon);
+  create_primitive_word("EXIT", f_exit);
+  create_primitive_word("IMMEDIATE", f_immediate);
 
-    // Create helper words first (these are implementation details)
-    create_primitive_word("(.\"", f_dot_quote_runtime);
-    create_primitive_word("(ABORT\"", f_abort_quote_runtime);
+  // Create helper words first (these are implementation details)
+  create_primitive_word("(.\"", f_dot_quote_runtime);
+  create_primitive_word("(ABORT\"", f_abort_quote_runtime);
 
-    // Create the user-visible immediate words
-    create_immediate_primitive_word(".\"", f_dot_quote);
-    create_immediate_primitive_word("ABORT\"", f_abort_quote);
+  // Create the user-visible immediate words
+  create_immediate_primitive_word(".\"", f_dot_quote);
+  create_immediate_primitive_word("ABORT\"", f_abort_quote);
 
-	create_area_word("PAD");
-	forth_allot(FORTH_PAD_SIZE);
+  create_area_word("PAD");
+  forth_allot(FORTH_PAD_SIZE);
 
-	create_primitive_word("CREATE", f_create);
-	create_primitive_word("VARIABLE", f_variable);
+  create_primitive_word("CREATE", f_create);
+  create_primitive_word("VARIABLE", f_variable);
 
-	create_primitive_word("0BRANCH", f_0branch);
-	create_primitive_word("BRANCH", f_branch);
-    create_immediate_primitive_word("[']", f_bracket_tick);
-    create_primitive_word("'", f_tick);
-    create_primitive_word("EXECUTE", f_execute);
-    create_primitive_word("FIND", f_find);
-    create_primitive_word("UNUSED", f_unused);
+  create_primitive_word("0BRANCH", f_0branch);
+  create_primitive_word("BRANCH", f_branch);
+  create_immediate_primitive_word("[']", f_bracket_tick);
+  create_primitive_word("'", f_tick);
+  create_primitive_word("EXECUTE", f_execute);
+  create_primitive_word("FIND", f_find);
+  create_primitive_word("UNUSED", f_unused);
 
-    // Runtime primitives (not immediate)
-    create_primitive_word("(DO)", f_do_runtime);
-    create_primitive_word("(LOOP)", f_loop_runtime);
-    create_primitive_word("(+LOOP)", f_plus_loop_runtime);
-    create_primitive_word("(LEAVE)", f_leave_runtime);
-    create_primitive_word("I", f_i);
-    create_primitive_word("J", f_j);
-    create_primitive_word("UNLOOP", f_unloop);
+  // Runtime primitives (not immediate)
+  create_primitive_word("(DO)", f_do_runtime);
+  create_primitive_word("(LOOP)", f_loop_runtime);
+  create_primitive_word("(+LOOP)", f_plus_loop_runtime);
+  create_primitive_word("(LEAVE)", f_leave_runtime);
+  create_primitive_word("I", f_i);
+  create_primitive_word("J", f_j);
+  create_primitive_word("UNLOOP", f_unloop);
 
-    // Compilation words (immediate)
-    create_immediate_primitive_word("DO", f_do);
-    create_immediate_primitive_word("LOOP", f_loop);
-    create_immediate_primitive_word("+LOOP", f_plus_loop);
-    create_immediate_primitive_word("LEAVE", f_leave);
+  // Compilation words (immediate)
+  create_immediate_primitive_word("DO", f_do);
+  create_immediate_primitive_word("LOOP", f_loop);
+  create_immediate_primitive_word("+LOOP", f_plus_loop);
+  create_immediate_primitive_word("LEAVE", f_leave);
 
-    create_primitive_word("WORD", f_word);
-    create_primitive_word("ACCEPT", f_accept);
+  create_primitive_word("WORD", f_word);
+  create_primitive_word("ACCEPT", f_accept);
 }
 
 // Built-in Forth definitions (created after primitives are available)
@@ -1453,61 +1467,39 @@ static const char* builtin_definitions[] = {
     ": ELSE  ['] BRANCH ,  HERE  0 ,  SWAP  HERE  SWAP  ! ; IMMEDIATE",
 
     // Stack manipulation words
-    ": DUP 0 PICK ;",
-    ": OVER 1 PICK ;",
-    ": 2DUP OVER OVER ;",
-    ": NIP SWAP DROP ;",
-    ": TUCK SWAP OVER ;",
-    ": 2DROP DROP DROP ;",
-    ": 2SWAP ROT >R ROT R> ;",
-    ": 2OVER 3 PICK 3 PICK ;",
+    ": DUP 0 PICK ;", ": OVER 1 PICK ;", ": 2DUP OVER OVER ;",
+    ": NIP SWAP DROP ;", ": TUCK SWAP OVER ;", ": 2DROP DROP DROP ;",
+    ": 2SWAP ROT >R ROT R> ;", ": 2OVER 3 PICK 3 PICK ;",
     ": ?DUP DUP IF DUP THEN ;",
 
-    ": TRUE -1 ;",
-    ": FALSE 0 ;",
+    ": TRUE -1 ;", ": FALSE 0 ;",
 
-    ": NEGATE 0 SWAP - ;",
-    ": 1+ 1 + ;",
-    ": 1- 1 - ;",
+    ": NEGATE 0 SWAP - ;", ": 1+ 1 + ;", ": 1- 1 - ;",
 
-    ": 0< 0 < ;",
-    ": 0> 0 SWAP < ;",
-    ": > SWAP < ;",
-	": NOT 0= ;",
-    ": <> = NOT ;",
-	": 0<> 0 <> ;",
-	": <= > NOT ;",
-	": >= < NOT ;",
-    ": U> SWAP U< ;",           // Unsigned greater than
-    ": U<= U> NOT ;",           // Unsigned less than or equal
-    ": U>= U< NOT ;",           // Unsigned greater than or equal
-    ": 2* DUP + ;",
-    ": 2/ 2 / ;",
+    ": 0< 0 < ;", ": 0> 0 SWAP < ;", ": > SWAP < ;", ": NOT 0= ;",
+    ": <> = NOT ;", ": 0<> 0 <> ;", ": <= > NOT ;", ": >= < NOT ;",
+    ": U> SWAP U< ;",  // Unsigned greater than
+    ": U<= U> NOT ;",  // Unsigned less than or equal
+    ": U>= U< NOT ;",  // Unsigned greater than or equal
+    ": 2* DUP + ;", ": 2/ 2 / ;",
 
     ": MOD SM/REM DROP ;",
     ": /MOD DUP >R 0 SWAP SM/REM R> 0< IF SWAP NEGATE SWAP THEN ;",
-    ": */ >R M* R> FM/MOD SWAP DROP ;",
-    ": */MOD >R M* R> FM/MOD ;",
+    ": */ >R M* R> FM/MOD SWAP DROP ;", ": */MOD >R M* R> FM/MOD ;",
 
-    ": CELL+ 4 + ;",
-    ": CELLS 4 * ;",
-    ": CHAR+ 1+ ;",
-    ": CHARS ;",              // No-op
-    ": +! TUCK @ + SWAP ! ;",
-    ": 2! TUCK ! CELL+ ! ;",
+    ": CELL+ 4 + ;", ": CELLS 4 * ;", ": CHAR+ 1+ ;",
+    ": CHARS ;",  // No-op
+    ": +! TUCK @ + SWAP ! ;", ": 2! TUCK ! CELL+ ! ;",
     ": 2@ DUP CELL+ @ SWAP @ ;",
 
     // State control (immediate words)
-    ": [ 0 STATE ! ; IMMEDIATE",      // Enter interpretation state
-    ": ] -1 STATE ! ; IMMEDIATE",     // Enter compilation state
+    ": [ 0 STATE ! ; IMMEDIATE",   // Enter interpretation state
+    ": ] -1 STATE ! ; IMMEDIATE",  // Enter compilation state
 
-	": DECIMAL 10 BASE ! ;",
-	": HEX 16 BASE ! ;",
-	": BINARY 2 BASE ! ;",
-	": OCTAL 8 BASE ! ;",
+    ": DECIMAL 10 BASE ! ;", ": HEX 16 BASE ! ;", ": BINARY 2 BASE ! ;",
+    ": OCTAL 8 BASE ! ;",
 
-	": BL 32 ;",
-	": CR 10 EMIT ;",
+    ": BL 32 ;", ": CR 10 EMIT ;",
 
     // ?DUP ( x -- 0 | x x ) - Duplicate if non-zero
     ": ?DUP DUP IF DUP THEN ;",
@@ -1522,7 +1514,8 @@ static const char* builtin_definitions[] = {
     ": MAX 2DUP < IF SWAP THEN DROP ;",
 
     // WITHIN ( n1|u1 n2|u2 n3|u3 -- flag ) - Core Extension but very useful
-    // Returns true if n2 <= n1 < n3 (when n2 < n3) or if n2 <= n1 OR n1 < n3 (when n2 >= n3)
+    // Returns true if n2 <= n1 < n3 (when n2 < n3) or if n2 <= n1 OR n1 < n3
+    // (when n2 >= n3)
     ": WITHIN OVER - >R - R> U< ;",
 
     // SIGNUM ( n -- -1|0|1 ) - Not required but helpful
@@ -1531,14 +1524,12 @@ static const char* builtin_definitions[] = {
     // BOUNDS ( addr1 u -- addr2 addr1 ) - Not required but useful for loops
     ": BOUNDS OVER + SWAP ;",
 
-    ": BEGIN  HERE ; IMMEDIATE",
-    ": AGAIN  ['] BRANCH , , ; IMMEDIATE",
+    ": BEGIN  HERE ; IMMEDIATE", ": AGAIN  ['] BRANCH , , ; IMMEDIATE",
     ": UNTIL  ['] 0BRANCH , , ; IMMEDIATE",
     ": WHILE  ['] 0BRANCH , HERE 0 , SWAP ; IMMEDIATE",
     ": REPEAT ['] BRANCH , , HERE SWAP ! ; IMMEDIATE",
 
-    ": SPACE BL EMIT ;",
-    ": SPACES BEGIN DUP WHILE SPACE 1- REPEAT DROP ;",
+    ": SPACE BL EMIT ;", ": SPACES BEGIN DUP WHILE SPACE 1- REPEAT DROP ;",
 
     ": ALIGN HERE 3 + 3 INVERT AND HERE - ALLOT ;",
     ": ALIGNED 3 + 3 INVERT AND ;",
@@ -1548,25 +1539,27 @@ static const char* builtin_definitions[] = {
 
 // Create all built-in colon definitions
 void create_builtin_definitions(void) {
-    debug("Creating built-in colon definitions...");
+  debug("Creating built-in colon definitions...");
 
-    for (int i = 0; builtin_definitions[i] != NULL; i++) {
-        debug("  Defining: %s", builtin_definitions[i]);
+  for (int i = 0; builtin_definitions[i] != NULL; i++) {
+    debug("  Defining: %s", builtin_definitions[i]);
 
-        // Save current state
-        cell_t saved_state = *state_ptr;
+    // Save current state
+    cell_t saved_state = *state_ptr;
 
-        // Interpret the definition
-        interpret_text(builtin_definitions[i]);
+    // Interpret the definition
+    interpret_text(builtin_definitions[i]);
 
-        // Verify we're back in interpretation state
-        if (*state_ptr != 0) error("Built-in definition left system in compilation state: %s", builtin_definitions[i]);
+    // Verify we're back in interpretation state
+    if (*state_ptr != 0)
+      error("Built-in definition left system in compilation state: %s",
+            builtin_definitions[i]);
 
-        // Restore state if it was somehow changed
-        if (saved_state == 0 && *state_ptr != 0) {
-            *state_ptr = saved_state;
-        }
+    // Restore state if it was somehow changed
+    if (saved_state == 0 && *state_ptr != 0) {
+      *state_ptr = saved_state;
     }
+  }
 
-    debug("Built-in definitions complete");
+  debug("Built-in definitions complete");
 }
