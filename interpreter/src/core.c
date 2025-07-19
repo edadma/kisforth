@@ -541,7 +541,7 @@ void f_emit(context_t* ctx, word_t* self) {
 }
 
 // KEY ( -- char )  Input character from the user input device
-void f_key(context_t* ctx, context_t* ctx, word_t* self) {
+void f_key(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -558,7 +558,7 @@ void f_key(context_t* ctx, context_t* ctx, word_t* self) {
 }
 
 // TYPE ( c-addr u -- )  Output u characters from string at c-addr
-void f_type(context_t* ctx, context_t* ctx, word_t* self) {
+void f_type(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -588,7 +588,7 @@ void f_type(context_t* ctx, context_t* ctx, word_t* self) {
 // arithmetic
 
 // >R ( x -- ) ( R: -- x )  Transfer x from data stack to return stack
-void f_to_r(context_t* ctx, context_t* ctx, word_t* self) {
+void f_to_r(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -597,7 +597,7 @@ void f_to_r(context_t* ctx, context_t* ctx, word_t* self) {
 }
 
 // R> ( -- x ) ( R: x -- )  Transfer x from return stack to data stack
-void f_r_from(context_t* ctx, context_t* ctx, word_t* self) {
+void f_r_from(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -606,7 +606,7 @@ void f_r_from(context_t* ctx, context_t* ctx, word_t* self) {
 }
 
 // R@ ( -- x ) ( R: x -- x )  Copy top of return stack to data stack
-void f_r_fetch(context_t* ctx, context_t* ctx, word_t* self) {
+void f_r_fetch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -619,7 +619,7 @@ void f_r_fetch(context_t* ctx, context_t* ctx, word_t* self) {
 }
 
 // M* ( n1 n2 -- d )  Multiply n1 by n2 giving signed double-cell product d
-void f_m_star(context_t* ctx, context_t* ctx, word_t* self) {
+void f_m_star(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -636,7 +636,7 @@ void f_m_star(context_t* ctx, context_t* ctx, word_t* self) {
 }
 
 // IMMEDIATE ( -- ) Mark the most recently defined word as immediate
-void f_immediate(context_t* ctx, context_t* ctx, word_t* self) {
+void f_immediate(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -651,7 +651,7 @@ void f_immediate(context_t* ctx, context_t* ctx, word_t* self) {
 // ROLL ( xu xu-1 ... x1 x0 u -- xu-1 ... x1 x0 xu )
 // Remove u. Rotate u+1 items on top of stack. An ambiguous condition
 // exists if there are less than u+2 items on the stack before ROLL.
-void f_roll(context_t* ctx, context_t* ctx, word_t* self) {
+void f_roll(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -678,7 +678,7 @@ void f_roll(context_t* ctx, context_t* ctx, word_t* self) {
   debug("ROLL %d executed", u);
 }
 
-void f_dot_quote_runtime(context_t* ctx, context_t* ctx, word_t* self) {
+void f_dot_quote_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -703,7 +703,7 @@ void f_dot_quote_runtime(context_t* ctx, context_t* ctx, word_t* self) {
 
 // Runtime word for ABORT" - reads inline string data and conditionally aborts
 // Compiled sequence: [(ABORT")]  [length] [char1] [char2] ... [charN]
-void f_abort_quote_runtime(context_t* ctx, context_t* ctx, word_t* self) {
+void f_abort_quote_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -728,14 +728,14 @@ void f_abort_quote_runtime(context_t* ctx, context_t* ctx, word_t* self) {
     }
 
     fflush(stdout);
-    f_abort(self);
+    f_abort(ctx, self);
   } else {
     debug("(ABORT runtime: skipped string, IP now at %u", current_ip);
   }
 }
 
 // Improved ." implementation - compiles inline string data
-void f_dot_quote(context_t* ctx, context_t* ctx, word_t* self) {
+void f_dot_quote(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -771,7 +771,7 @@ void f_dot_quote(context_t* ctx, context_t* ctx, word_t* self) {
 }
 
 // Improved ABORT" implementation - compiles inline string data
-void f_abort_quote(context_t* ctx, context_t* ctx, word_t* self) {
+void f_abort_quote(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -786,7 +786,7 @@ void f_abort_quote(context_t* ctx, context_t* ctx, word_t* self) {
     cell_t flag = data_pop();
     if (flag != 0) {
       printf("%s", string_buffer);
-      f_abort(self);
+      f_abort(ctx, self);
     }
   } else {
     // Compilation mode - compile inline string data
@@ -810,14 +810,14 @@ void f_abort_quote(context_t* ctx, context_t* ctx, word_t* self) {
   }
 }
 
-void f_create(context_t* ctx, context_t* ctx, word_t* self) {
+void f_create(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
   defining_word(f_param_field);
 }
 
-void f_variable(context_t* ctx, context_t* ctx, word_t* self) {
+void f_variable(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -826,7 +826,7 @@ void f_variable(context_t* ctx, context_t* ctx, word_t* self) {
 
 // ['] ( "name" -- ) Compilation: ( -- ) Runtime: ( -- xt )
 // Parse name, find it, compile its execution token as literal
-void f_bracket_tick(context_t* ctx, context_t* ctx, word_t* self) {
+void f_bracket_tick(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -846,7 +846,7 @@ void f_bracket_tick(context_t* ctx, context_t* ctx, word_t* self) {
 // 0BRANCH ( x -- ) - conditional branch
 // If x is zero, branch to address stored at current_ip
 // Always advances current_ip past the address
-void f_0branch(context_t* ctx, context_t* ctx, word_t* self) {
+void f_0branch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -861,7 +861,7 @@ void f_0branch(context_t* ctx, context_t* ctx, word_t* self) {
 }
 
 // BRANCH ( -- ) - unconditional branch
-void f_branch(context_t* ctx, context_t* ctx, word_t* self) {
+void f_branch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -870,7 +870,7 @@ void f_branch(context_t* ctx, context_t* ctx, word_t* self) {
 }
 
 // U< ( u1 u2 -- flag )  Unsigned less than comparison
-void f_u_less(context_t* ctx, context_t* ctx, word_t* self) {
+void f_u_less(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -885,7 +885,7 @@ void f_u_less(context_t* ctx, context_t* ctx, word_t* self) {
 }
 
 // ' ( "<spaces>name" -- xt )  Parse name and return execution token
-void f_tick(context_t* ctx, context_t* ctx, word_t* self) {
+void f_tick(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -908,7 +908,7 @@ void f_tick(context_t* ctx, context_t* ctx, word_t* self) {
 }
 
 // EXECUTE ( i*x xt -- j*x )  Execute the word whose execution token is xt
-void f_execute(context_t* ctx, context_t* ctx, word_t* self) {
+void f_execute(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -917,7 +917,7 @@ void f_execute(context_t* ctx, context_t* ctx, word_t* self) {
   debug("EXECUTE: executing token at address %u", xt);
 
   // Convert execution token back to word pointer
-  word_t* word = addr_to_ptr(xt);
+  word_t* word = addr_to_ptr(ctx, xt);
 
   debug("EXECUTE: found word %s", word->name);
 
@@ -1220,7 +1220,7 @@ void f_loop(context_t* ctx, word_t* self) {
   forth_addr_t after_loop = here;
   for (int i = 0; i < frame.leave_count; i++) {
     forth_addr_t addr = frame.leave_addrs[i];
-    cell_t* cell_ptr = (cell_t*)addr_to_ptr(addr);
+    cell_t* cell_ptr = addr_to_ptr(ctx, addr);
     *cell_ptr = after_loop;
     debug("LOOP: resolved LEAVE at %d to %d", addr, after_loop);
   }
@@ -1256,7 +1256,7 @@ void f_plus_loop(context_t* ctx, word_t* self) {
   forth_addr_t after_loop = here;
   for (int i = 0; i < frame.leave_count; i++) {
     forth_addr_t addr = frame.leave_addrs[i];
-    cell_t* cell_ptr = (cell_t*)addr_to_ptr(addr);
+    cell_t* cell_ptr = addr_to_ptr(ctx, addr);
     *cell_ptr = after_loop;
     debug("+LOOP: resolved LEAVE at %d to %d", addr, after_loop);
   }

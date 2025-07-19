@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "context.h"
 #include "types.h"
 
 #ifdef FORTH_DEBUG_ENABLED
@@ -68,13 +69,13 @@ bool debug_is_enabled(void) {
 
 #ifdef FORTH_DEBUG_ENABLED
 // DEBUG-ON ( -- ) Enable debug output
-void f_debug_on(word_t* self) {
+void f_debug_on(context_t* ctx, word_t* self) {
   (void)self;
   debug_on();
 }
 
 // DEBUG-OFF ( -- ) Disable debug output
-void f_debug_off(word_t* self) {
+void f_debug_off(context_t* ctx, word_t* self) {
   (void)self;
   debug_off();
 }

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "context.h"
 #include "core.h"
 #include "line_editor.h"
 #include "stack.h"
@@ -19,7 +20,8 @@ static bool repl_running = false;
 static context_t repl_context;
 
 // QUIT word - restart the REPL loop
-void f_quit(word_t* self) {
+void f_quit(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
 
   if (repl_running) {
@@ -33,7 +35,8 @@ void f_quit(word_t* self) {
 }
 
 // BYE word - exit the system
-void f_bye(word_t* self) {
+void f_bye(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
 
   printf("Goodbye!\n");

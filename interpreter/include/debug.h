@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#include "context.h"
 #include "types.h"
 
 // Debug module - zero overhead when disabled at compile time
@@ -44,7 +45,7 @@ bool debug_is_enabled(void);
 #define debug_with_buffer(buffer_name, size, setup_code, fmt, ...) ((void)0)
 #endif
 
-void f_debug_on(word_t* self);
-void f_debug_off(word_t* self);
+void f_debug_on(context_t* ctx, word_t* self);
+void f_debug_off(context_t* ctx, word_t* self);
 
 #endif  // FORTH_DEBUG_H

@@ -77,9 +77,6 @@ void f_execute(context_t* ctx, word_t* self);  // EXECUTE ( i*x xt -- j*x )
 void f_find(context_t* ctx,
             word_t* self);  // FIND ( c-addr -- c-addr 0 | xt 1 | xt -1 )
 
-void f_debug_on(context_t* ctx, word_t* self);   // DEBUG-ON ( -- )
-void f_debug_off(context_t* ctx, word_t* self);  // DEBUG-OFF ( -- )
-
 void f_create(context_t* ctx, word_t* self);
 void f_variable(context_t* ctx, word_t* self);
 void f_unused(context_t* ctx, word_t* self);

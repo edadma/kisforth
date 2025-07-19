@@ -19,7 +19,7 @@ void error(const char* format, ...) {
   f_abort(NULL);
 }
 
-void f_abort(word_t* self) {
+void f_abort(context_t* ctx, word_t* self) {
   // Empty data stack
   data_stack_ptr = 0;
 
