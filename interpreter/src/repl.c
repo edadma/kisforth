@@ -5,12 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "context.h"
 #include "core.h"
+#include "forth.h"
 #include "line_editor.h"
 #include "stack.h"
 #include "text.h"
-#include "types.h"
 
 static char input_line[INPUT_BUFFER_SIZE];
 

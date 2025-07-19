@@ -1,8 +1,7 @@
 #ifndef REPL_H
 #define REPL_H
 
-#include "context.h"
-#include "types.h"
+#include "forth.h"
 
 // Main REPL system
 void repl(void);

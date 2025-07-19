@@ -3,8 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "context.h"
-#include "types.h"
+#include "forth.h"
 
 #ifdef FORTH_DEBUG_ENABLED
 

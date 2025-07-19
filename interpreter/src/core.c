@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "context.h"
 #include "debug.h"
 #include "dictionary.h"
 #include "error.h"
+#include "forth.h"
 #include "memory.h"
 #include "repl.h"
 #include "stack.h"
@@ -86,7 +86,7 @@ void f_plus(context_t* ctx, word_t* self) {
 
   cell_t n2 = data_pop();
   cell_t n1 = data_pop();
-  data_push(n1 + n2);
+  data_push(ctx, n1 + n2);
 }
 
 // - ( n1 n2 -- n3 )  Subtract n2 from n1, leaving difference n3
@@ -96,7 +96,7 @@ void f_minus(context_t* ctx, word_t* self) {
 
   cell_t n2 = data_pop();
   cell_t n1 = data_pop();
-  data_push(n1 - n2);
+  data_push(ctx, n1 - n2);
 }
 
 // * ( n1 n2 -- n3 )  Multiply n1 by n2, leaving product n3
@@ -106,7 +106,7 @@ void f_multiply(context_t* ctx, word_t* self) {
 
   cell_t n2 = data_pop();
   cell_t n1 = data_pop();
-  data_push(n1 * n2);
+  data_push(ctx, n1 * n2);
 }
 
 // / ( n1 n2 -- n3 )  Divide n1 by n2, leaving quotient n3
@@ -119,7 +119,7 @@ void f_divide(context_t* ctx, word_t* self) {
 
   if (n2 == 0) error(ctx, "Division by zero in '/'");
 
-  data_push(n1 / n2);
+  data_push(ctx, n1 / n2);
 }
 
 // DROP ( x -- )  Remove x from the stack
@@ -135,8 +135,8 @@ void f_source(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  data_push(input_buffer_addr);  // Forth address
-  data_push(
+  data_push(ctx, input_buffer_addr);  // Forth address
+  data_push(ctx,
       forth_fetch(input_length_addr));  // Current length from Forth memory
 }
 
@@ -145,7 +145,7 @@ void f_to_in(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  data_push(to_in_addr);  // Forth address of >IN
+  data_push(ctx, to_in_addr);  // Forth address of >IN
 }
 
 // . ( n -- ) Print and remove top stack item (BASE-aware)
@@ -183,7 +183,7 @@ void f_fetch(context_t* ctx, word_t* self) {
 
   forth_addr_t addr = (forth_addr_t)data_pop();
   cell_t value = forth_fetch(addr);
-  data_push(value);
+  data_push(ctx, value);
 }
 
 // C! ( char addr -- )  Store char at addr
@@ -203,7 +203,7 @@ void f_c_fetch(context_t* ctx, word_t* self) {
 
   forth_addr_t addr = (forth_addr_t)data_pop();
   byte_t value = forth_c_fetch(addr);
-  data_push((cell_t)value);
+  data_push(ctx, (cell_t)value);
 }
 
 // Comparison primitives - these operate on the data stack and return ANS Forth
@@ -219,7 +219,7 @@ void f_equals(context_t* ctx, word_t* self) {
 
   // ANS Forth: true = -1, false = 0
   cell_t flag = (x1 == x2) ? -1 : 0;
-  data_push(flag);
+  data_push(ctx, flag);
 }
 
 // < ( x1 x2 -- flag )  Return true if x1 is less than x2 (signed comparison)
@@ -232,7 +232,7 @@ void f_less_than(context_t* ctx, word_t* self) {
 
   // ANS Forth: true = -1, false = 0
   cell_t flag = (x1 < x2) ? -1 : 0;
-  data_push(flag);
+  data_push(ctx, flag);
 }
 
 // 0= ( x -- flag )  Return true if x equals zero
@@ -244,7 +244,7 @@ void f_zero_equals(context_t* ctx, word_t* self) {
 
   // ANS Forth: true = -1, false = 0
   cell_t flag = (x == 0) ? -1 : 0;
-  data_push(flag);
+  data_push(ctx, flag);
 }
 
 // SWAP ( x1 x2 -- x2 x1 )  Exchange the top two stack items
@@ -254,8 +254,8 @@ void f_swap(context_t* ctx, word_t* self) {
 
   cell_t x2 = data_pop();
   cell_t x1 = data_pop();
-  data_push(x2);
-  data_push(x1);
+  data_push(ctx, x2);
+  data_push(ctx, x1);
 }
 
 // ROT ( x1 x2 x3 -- x2 x3 x1 )  Rotate third item to top
@@ -266,9 +266,9 @@ void f_rot(context_t* ctx, word_t* self) {
   cell_t x3 = data_pop();
   cell_t x2 = data_pop();
   cell_t x1 = data_pop();
-  data_push(x2);
-  data_push(x3);
-  data_push(x1);
+  data_push(ctx, x2);
+  data_push(ctx, x3);
+  data_push(ctx, x1);
 }
 
 // PICK ( xu ... x1 x0 u -- xu ... x1 x0 xu )  Copy u-th stack item to top
@@ -285,7 +285,7 @@ void f_pick(context_t* ctx, word_t* self) {
 
   // Use data_peek_at to get the u-th item from top
   cell_t xu = data_peek_at(u);
-  data_push(xu);
+  data_push(ctx, xu);
 }
 
 // HERE ( -- addr )  Return the current data space pointer
@@ -293,7 +293,7 @@ void f_here(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  data_push(here);
+  data_push(ctx, here);
 }
 
 // ALLOT ( n -- )  Allocate n bytes of data space
@@ -400,7 +400,7 @@ void f_lit(context_t* ctx, word_t* self) {
   ctx->ip += sizeof(cell_t);  // Advance past the literal
 
   // Push the literal onto the data stack
-  data_push(literal);
+  data_push(ctx, literal);
 
   debug("LIT pushed literal: %d", literal);
 }
@@ -433,8 +433,8 @@ void f_sm_rem(context_t* ctx, word_t* self) {
   require(remainder >= INT32_MIN && remainder <= INT32_MAX);
 
   // Push remainder first, then quotient
-  data_push((cell_t)remainder);
-  data_push((cell_t)quotient);
+  data_push(ctx, (cell_t)remainder);
+  data_push(ctx, (cell_t)quotient);
 }
 
 // FM/MOD ( d1 n1 -- n2 n3 )  Floored division primitive (rounds toward negative
@@ -472,8 +472,8 @@ void f_fm_mod(context_t* ctx, word_t* self) {
   require(remainder >= INT32_MIN && remainder <= INT32_MAX);
 
   // Push remainder first, then quotient
-  data_push((cell_t)remainder);
-  data_push((cell_t)quotient);
+  data_push(ctx, (cell_t)remainder);
+  data_push(ctx, (cell_t)quotient);
 }
 
 // Bitwise logical operations - operate on the data stack
@@ -486,7 +486,7 @@ void f_and(context_t* ctx, word_t* self) {
   cell_t x2 = data_pop();
   cell_t x1 = data_pop();
   cell_t x3 = x1 & x2;  // Bitwise AND operator in C
-  data_push(x3);
+  data_push(ctx, x3);
 }
 
 // OR ( x1 x2 -- x3 )  Bitwise inclusive-or of x1 with x2
@@ -497,7 +497,7 @@ void f_or(context_t* ctx, word_t* self) {
   cell_t x2 = data_pop();
   cell_t x1 = data_pop();
   cell_t x3 = x1 | x2;  // Bitwise OR operator in C
-  data_push(x3);
+  data_push(ctx, x3);
 }
 
 // XOR ( x1 x2 -- x3 )  Bitwise exclusive-or of x1 with x2
@@ -508,7 +508,7 @@ void f_xor(context_t* ctx, word_t* self) {
   cell_t x2 = data_pop();
   cell_t x1 = data_pop();
   cell_t x3 = x1 ^ x2;  // Bitwise XOR operator in C
-  data_push(x3);
+  data_push(ctx, x3);
 }
 
 // INVERT ( x1 -- x2 )  Bitwise logical inversion of x1
@@ -518,7 +518,7 @@ void f_invert(context_t* ctx, word_t* self) {
 
   cell_t x1 = data_pop();
   cell_t x2 = ~x1;  // Bitwise NOT operator in C
-  data_push(x2);
+  data_push(ctx, x2);
 }
 
 // I/O primitives - operate on the data stack and provide character I/O
@@ -552,7 +552,7 @@ void f_key(context_t* ctx, word_t* self) {
   }
 
   // Push character value onto stack (extend to cell size)
-  data_push((cell_t)(c & 0xFF));
+  data_push(ctx, (cell_t)(c & 0xFF));
 }
 
 // TYPE ( c-addr u -- )  Output u characters from string at c-addr
@@ -600,7 +600,7 @@ void f_r_from(context_t* ctx, word_t* self) {
   (void)self;
 
   cell_t x = return_pop();
-  data_push(x);
+  data_push(ctx, x);
 }
 
 // R@ ( -- x ) ( R: x -- x )  Copy top of return stack to data stack
@@ -613,7 +613,7 @@ void f_r_fetch(context_t* ctx, word_t* self) {
 
   // Peek at top of return stack without removing it
   cell_t x = ctx->return_stack[ctx->return_stack_ptr - 1];
-  data_push(x);
+  data_push(ctx, x);
 }
 
 // M* ( n1 n2 -- d )  Multiply n1 by n2 giving signed double-cell product d
@@ -629,8 +629,8 @@ void f_m_star(context_t* ctx, word_t* self) {
 
   // Push as double-cell: low cell first, then high cell
   // This follows ANS Forth convention for double-cell numbers
-  data_push((cell_t)(product & 0xFFFFFFFF));          // low 32 bits
-  data_push((cell_t)((product >> 32) & 0xFFFFFFFF));  // high 32 bits
+  data_push(ctx, (cell_t)(product & 0xFFFFFFFF));          // low 32 bits
+  data_push(ctx, (cell_t)((product >> 32) & 0xFFFFFFFF));  // high 32 bits
 }
 
 // IMMEDIATE ( -- ) Mark the most recently defined word as immediate
@@ -879,7 +879,7 @@ void f_u_less(context_t* ctx, word_t* self) {
   uint32_t u1 = (uint32_t)n1;
   uint32_t u2 = (uint32_t)n2;
 
-  data_push(u1 < u2 ? -1 : 0);
+  data_push(ctx, u1 < u2 ? -1 : 0);
 }
 
 // ' ( "<spaces>name" -- xt )  Parse name and return execution token
@@ -900,7 +900,7 @@ void f_tick(context_t* ctx, word_t* self) {
 
   // Convert word pointer to execution token (forth address)
   forth_addr_t xt = ptr_to_addr(word);
-  data_push((cell_t)xt);
+  data_push(ctx, (cell_t)xt);
 
   debug("' found word %s at address %u", name, xt);
 }
@@ -920,7 +920,7 @@ void f_execute(context_t* ctx, word_t* self) {
   debug("EXECUTE: found word %s", word->name);
 
   // Execute the word
-  execute_word(word);
+  execute_word(ctx, word);
 }
 
 // FIND ( c-addr -- c-addr 0 | xt 1 | xt -1 )  Find word in dictionary
@@ -937,8 +937,8 @@ void f_find(context_t* ctx, word_t* self) {
   char name_buffer[32];
   if (length >= sizeof(name_buffer)) {
     // String too long, not found
-    data_push((cell_t)c_addr);
-    data_push(0);
+    data_push(ctx, (cell_t)c_addr);
+    data_push(ctx, 0);
     return;
   }
 
@@ -954,20 +954,20 @@ void f_find(context_t* ctx, word_t* self) {
 
   if (!word) {
     // Not found: return c-addr 0
-    data_push((cell_t)c_addr);
-    data_push(0);
+    data_push(ctx, (cell_t)c_addr);
+    data_push(ctx, 0);
     debug("FIND: word not found");
   } else {
     // Found: return xt and flag
     forth_addr_t xt = ptr_to_addr(word);
-    data_push((cell_t)xt);
+    data_push(ctx, (cell_t)xt);
 
     // Check if immediate
     if (word->flags & WORD_FLAG_IMMEDIATE) {
-      data_push(-1);  // Immediate word
+      data_push(ctx, -1);  // Immediate word
       debug("FIND: found immediate word %s at %u", name_buffer, xt);
     } else {
-      data_push(1);  // Normal word
+      data_push(ctx, 1);  // Normal word
       debug("FIND: found normal word %s at %u", name_buffer, xt);
     }
   }
@@ -977,7 +977,7 @@ void f_unused(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
   cell_t unused_bytes = FORTH_MEMORY_SIZE - here;
-  data_push(unused_bytes);
+  data_push(ctx, unused_bytes);
 }
 
 // DO runtime: ( limit start -- ) ( R: -- loop-sys )
@@ -1105,7 +1105,7 @@ void f_i(context_t* ctx, word_t* self) {
 
   // Index is on top of return stack, limit is below it
   cell_t index = return_stack_peek(0);  // Top of return stack
-  data_push(index);
+  data_push(ctx, index);
 
   debug("I: index=%d", index);
 }
@@ -1124,7 +1124,7 @@ void f_j(context_t* ctx, word_t* self) {
   // [inner_index] J needs the outer_index, which is at position 2 from top
   // (0-indexed)
   cell_t outer_index = return_stack_peek(2);
-  data_push(outer_index);
+  data_push(ctx, outer_index);
 
   debug("J: outer_index=%d", outer_index);
 }
@@ -1344,7 +1344,7 @@ void f_word(context_t* ctx, word_t* self) {
   if (!pad_word) {
     error(ctx, "WORD: PAD not found");
   }
-  pad_word->cfunc(pad_word);  // Execute PAD to get address
+  pad_word->cfunc(ctx, pad_word);  // Execute PAD to get address
   forth_addr_t pad_addr = (forth_addr_t)data_pop();
 
   // Store counted string in PAD
@@ -1357,7 +1357,7 @@ void f_word(context_t* ctx, word_t* self) {
   }
 
   // Return PAD address
-  data_push((cell_t)pad_addr);
+  data_push(ctx, (cell_t)pad_addr);
 
   debug("WORD: delimiter='%c', parsed \"%.*s\" (length %d)", delim_char,
         (int)length, (char*)&forth_memory[input_buffer_addr + start_pos],
@@ -1376,7 +1376,7 @@ void f_accept(context_t* ctx, word_t* self) {
 
   // Validate parameters
   if (max_chars < 0) {
-    data_push(0);
+    data_push(ctx, 0);
     return;
   }
 
@@ -1391,7 +1391,7 @@ void f_accept(context_t* ctx, word_t* self) {
     if (!key_word) {
       error(ctx, "ACCEPT: KEY not found");
     }
-    key_word->cfunc(key_word);  // Execute KEY
+    key_word->cfunc(ctx, key_word);  // Execute KEY
     cell_t char_value = data_pop();
 
     char ch = (char)(char_value & 0xFF);
@@ -1425,7 +1425,7 @@ void f_accept(context_t* ctx, word_t* self) {
   }
 
   // Return actual count
-  data_push(count);
+  data_push(ctx, count);
 
   debug("ACCEPT: read %d characters", count);
 }
@@ -1442,13 +1442,12 @@ void f_s_quote_runtime(context_t* ctx, word_t* self) {
   ctx->ip += sizeof(cell_t);
 
   // Push the string address and length onto the data stack
-  data_push((cell_t)ctx->ip);  // c-addr
-  data_push(length);              // u
+  data_push(ctx, (cell_t)ctx->ip);  // c-addr
+  data_push(ctx, length);           // u
 
   // Advance IP past the string data
   ctx->ip += length;
-  ctx->ip =
-      (ctx->ip + sizeof(cell_t) - 1) & ~(sizeof(cell_t) - 1);  // Align
+  ctx->ip = (ctx->ip + sizeof(cell_t) - 1) & ~(sizeof(cell_t) - 1);  // Align
 
   debug("(S\") pushed addr=%d length=%d", ctx->ip - length - sizeof(cell_t),
         length);
@@ -1473,8 +1472,8 @@ void f_s_quote(context_t* ctx, word_t* self) {
     }
 
     // Push address and length
-    data_push((cell_t)pad_addr);  // c-addr
-    data_push(length);            // u
+    data_push(ctx, (cell_t)pad_addr);  // c-addr
+    data_push(ctx, length);            // u
 
   } else {
     // Compilation mode - compile inline string data

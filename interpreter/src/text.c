@@ -293,7 +293,7 @@ void interpret(void) {
         if (*state_ptr == 0) {
           // c.1) if interpreting, place number on data stack
           debug(" (interpreting), pushing to stack");
-          data_push(number);
+          data_push(ctx, number);
         } else {
           // c.2) if compiling, compile literal
           debug(" (compiling), compiling literal");

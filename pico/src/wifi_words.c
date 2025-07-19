@@ -17,7 +17,7 @@ static void f_wifi_init(word_t* self) {
   (void)self;
 
   bool success = wifi_init();
-  data_push(success ? -1 : 0);  // Forth true/false convention
+  data_push(ctx, success ? -1 : 0);  // Forth true/false convention
 }
 
 // WIFI-STATUS ( -- )
@@ -34,7 +34,7 @@ static void f_wifi_connected_q(word_t* self) {
   (void)self;
 
   bool connected = wifi_is_connected();
-  data_push(connected ? -1 : 0);  // Forth true/false convention
+  data_push(ctx, connected ? -1 : 0);  // Forth true/false convention
 }
 
 // WIFI-DISCONNECT ( -- flag )
@@ -43,7 +43,7 @@ static void f_wifi_disconnect(word_t* self) {
   (void)self;
 
   bool success = wifi_disconnect();
-  data_push(success ? -1 : 0);  // Forth true/false convention
+  data_push(ctx, success ? -1 : 0);  // Forth true/false convention
 }
 
 // LED-ON ( -- )
@@ -113,7 +113,7 @@ static void f_wifi_connect(word_t* self) {
 
   // Attempt connection
   bool success = wifi_connect(ssid, password);
-  data_push(success ? -1 : 0);  // Forth true/false convention
+  data_push(ctx, success ? -1 : 0);  // Forth true/false convention
 }
 
 // Register all WiFi words for Pico platform

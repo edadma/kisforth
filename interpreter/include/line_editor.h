@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 
+#include "forth.h"
 #include "text.h"
 
 typedef enum {

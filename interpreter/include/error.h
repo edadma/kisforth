@@ -1,8 +1,7 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#include "context.h"
-#include "types.h"
+#include "forth.h"
 
 // Error reporting function
 void error(context_t* ctx, const char* format, ...);

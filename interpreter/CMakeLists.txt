@@ -1,6 +1,6 @@
 # KISForth interpreter library - portable Forth interpreter
 add_library(kisforth_interpreter STATIC
-        src/context.c
+        src/forth.c
         src/core.c
         src/debug.c
         src/dictionary.c

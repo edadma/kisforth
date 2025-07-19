@@ -3,8 +3,7 @@
 
 #include <stdbool.h>
 
-#include "context.h"
-#include "types.h"
+#include "forth.h"
 
 // Debug module - zero overhead when disabled at compile time
 // Enable with -DFORTH_DEBUG_ENABLED in CMake

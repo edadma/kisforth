@@ -83,7 +83,7 @@ static void f_gpio_get(word_t* self) {
   }
 
   bool state = gpio_get((uint)pin);
-  data_push(state ? 1 : 0);
+  data_push(ctx, state ? 1 : 0);
 }
 
 // MS ( u -- )
@@ -124,7 +124,7 @@ static void f_ticks(word_t* self) {
   absolute_time_t now = get_absolute_time();
   uint32_t ms = to_ms_since_boot(now);
 
-  data_push((cell_t)ms);
+  data_push(ctx, (cell_t)ms);
 }
 
 // Register all Pico stdlib words

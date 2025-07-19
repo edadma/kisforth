@@ -17,9 +17,9 @@ test_stats_t test_stats = {0, 0, 0, NULL};
                       expected_remainder, expected_quotient)               \
   do {                                                                     \
     forth_reset();                                                         \
-    data_push(dividend_lo);                                                \
-    data_push(dividend_hi);                                                \
-    data_push(divisor);                                                    \
+    data_push(ctx, dividend_lo);                                                \
+    data_push(ctx, dividend_hi);                                                \
+    data_push(ctx, divisor);                                                    \
     execute_word(div_word);                                                \
     test_stats.total++;                                                    \
     if (data_depth() == 2) {                                               \
@@ -109,11 +109,11 @@ static void test_stack_functions(void) {
   stack_init();
   TEST_ASSERT_STACK_DEPTH(0);
 
-  data_push(42);
+  data_push(ctx, 42);
   TEST_ASSERT_STACK_DEPTH(1);
   TEST_ASSERT_STACK_TOP(42);
 
-  data_push(100);
+  data_push(ctx, 100);
   TEST_ASSERT_STACK_DEPTH(2);
   TEST_ASSERT_STACK_TOP(100);
 
@@ -142,9 +142,9 @@ static void test_division_functions(void) {
 
   // Test SM/REM basic case: 10 ÷ 7 = 1 remainder 3
   forth_reset();
-  data_push(10);
-  data_push(0);
-  data_push(7);
+  data_push(ctx, 10);
+  data_push(ctx, 0);
+  data_push(ctx, 7);
   execute_word(sm_rem);
   TEST_ASSERT_STACK_DEPTH(2);
   TEST_ASSERT_EQUAL(1, data_pop());  // quotient
@@ -152,9 +152,9 @@ static void test_division_functions(void) {
 
   // Test FM/MOD different result: -10 ÷ 7 = -2 remainder 4 (floored)
   forth_reset();
-  data_push(-10);
-  data_push(-1);
-  data_push(7);
+  data_push(ctx, -10);
+  data_push(ctx, -1);
+  data_push(ctx, 7);
   execute_word(fm_mod);
   TEST_ASSERT_STACK_DEPTH(2);
   TEST_ASSERT_EQUAL(-2, data_pop());  // quotient (floored)
@@ -186,9 +186,9 @@ static void test_division_comprehensive(void) {
   // Verify mathematical identity: divisor * quotient + remainder = dividend
   test_stats.current_test_name = "Division Identity Check";
   forth_reset();
-  data_push(-10);
-  data_push(-1);
-  data_push(7);
+  data_push(ctx, -10);
+  data_push(ctx, -1);
+  data_push(ctx, 7);
   execute_word(sm_rem);
   cell_t q = data_pop();
   cell_t r = data_pop();

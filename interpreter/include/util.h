@@ -1,7 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "types.h"
+
 
 // Character/digit conversion utilities
 char digit_to_char(int digit);

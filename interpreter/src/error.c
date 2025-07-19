@@ -5,7 +5,7 @@
 
 #include "repl.h"
 #include "stack.h"
-#include "types.h"
+
 
 void error(context_t* ctx, const char* format, ...) {
   va_list args;

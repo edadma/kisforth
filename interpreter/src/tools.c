@@ -9,7 +9,7 @@
 #include "memory.h"
 #include "stack.h"
 #include "text.h"
-#include "types.h"
+
 #include "util.h"
 
 #ifdef FORTH_ENABLE_TOOLS

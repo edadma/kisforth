@@ -5,11 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "context.h"
 #include "core.h"
 #include "debug.h"
 #include "error.h"
 #include "floating.h"
+#include "forth.h"
 #include "memory.h"
 #include "stack.h"
 #include "test.h"
@@ -272,7 +272,7 @@ void execute_colon(context_t* ctx, word_t* self) {
     // Execute the word at token_addr
     word_t* word = addr_to_ptr(NULL, token_addr);
     debug("  Executing token: %s", word->name);
-    execute_word(word);
+    execute_word(ctx, word);
 
     // If EXIT was called, ctx->ip will have been updated
   }
@@ -292,11 +292,11 @@ void f_address(word_t* self) {
   forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
 
   // Push the Forth address of the parameter field
-  data_push(param_addr);
+  data_push(ctx, param_addr);
 }
 
 // CREATE runtime behavior: Push address IN the param_field
 // (param_field contains a Forth address pointing to data space)
 void f_param_field(word_t* self) {
-  data_push(self->param_field);  // Push the value stored in param_field
+  data_push(ctx, self->param_field);  // Push the value stored in param_field
 }

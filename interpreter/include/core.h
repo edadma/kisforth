@@ -1,8 +1,7 @@
 #ifndef CORE_H
 #define CORE_H
 
-#include "context.h"
-#include "types.h"
+#include "forth.h"
 
 #define FORTH_PAD_SIZE 1024
 

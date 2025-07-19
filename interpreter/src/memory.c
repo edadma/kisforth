@@ -3,9 +3,9 @@
 #include <assert.h>
 #include <string.h>
 
-#include "context.h"
 #include "debug.h"
 #include "error.h"
+#include "forth.h"
 #include "text.h"
 
 /*
@@ -91,5 +91,5 @@ forth_addr_t ptr_to_addr(word_t* word) {
   require(word_ptr >= forth_memory);
   require(word_ptr < forth_memory + FORTH_MEMORY_SIZE);
 
-  return (forth_addr_t)(word_ptr - forth_memory);
+  return word_ptr - forth_memory;
 }

@@ -1,8 +1,7 @@
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
 
-#include "context.h"
-#include "types.h"
+#include "forth.h"
 
 // Dictionary head - points to most recently defined word
 extern word_t* dictionary_head;
