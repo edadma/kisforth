@@ -58,6 +58,8 @@ void forth_reset(void) {
 
   // Rebuild primitive dictionary
   dictionary_init();
+
+  forth_reset_high_memory();
 }
 
 // Execute Forth code and check results

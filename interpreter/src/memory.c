@@ -17,6 +17,7 @@
  */
 uint8_t forth_memory[FORTH_MEMORY_SIZE];
 forth_addr_t here = 0;  // Data space pointer starts at beginning
+forth_addr_t forth_end = FORTH_MEMORY_SIZE;
 
 forth_addr_t input_buffer_addr;
 forth_addr_t to_in_addr;
@@ -92,4 +93,24 @@ forth_addr_t ptr_to_addr(context_t* ctx, word_t* word) {
   require(ctx, word_ptr < forth_memory + FORTH_MEMORY_SIZE);
 
   return word_ptr - forth_memory;
+}
+
+forth_addr_t forth_allot_high(context_t* ctx, size_t bytes) {
+  require(ctx, bytes > 0);
+  require(ctx, forth_end >= here + bytes);  // Check for collision
+
+  forth_end -= bytes;
+  forth_align_down(&forth_end);  // Align downward
+
+  // Zero the allocated memory
+  memset(&forth_memory[forth_end], 0, bytes);
+
+  return forth_end;
+}
+
+// Reset function for REPL
+void forth_reset_high_memory(void) { forth_end = FORTH_MEMORY_SIZE; }
+
+void forth_align_down(forth_addr_t* addr) {
+  *addr = *addr & ~(sizeof(cell_t) - 1);
 }

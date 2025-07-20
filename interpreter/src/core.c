@@ -1464,17 +1464,19 @@ void f_s_quote(context_t* ctx, word_t* self) {
   int length = parse_string(ctx, '"', string_buffer, sizeof(string_buffer));
 
   if (*state_ptr == 0) {
-    // Interpretation mode - store string temporarily and push address/length
-    debug("S\" interpretation: storing '%s' temporarily", string_buffer);
-    // Store string at PAD (temporary area)
-    forth_addr_t pad_addr = here - FORTH_PAD_SIZE;  // PAD is before HERE
+    // Interpretation: allocate from high memory
+    forth_addr_t string_addr = forth_allot_high(ctx, length);
+
+    // Store the string
     for (int i = 0; i < length; i++) {
-      forth_c_store(ctx, pad_addr + i, string_buffer[i]);
+      forth_c_store(ctx, string_addr + i, string_buffer[i]);
     }
 
     // Push address and length
-    data_push(ctx, (cell_t)pad_addr);  // c-addr
-    data_push(ctx, length);            // u
+    data_push(ctx, (cell_t)string_addr);
+    data_push(ctx, length);
+
+    debug("S\" interpretation: allocated at high memory %u", string_addr);
 
   } else {
     // Compilation mode - compile inline string data
@@ -1486,7 +1488,7 @@ void f_s_quote(context_t* ctx, word_t* self) {
     compile_word(ctx, runtime_word);
 
     // 2. Compile the string length
-    compile_cell(ctx, (cell_t)length);
+    compile_cell(ctx, length);
 
     // 3. Compile the string data
     for (int i = 0; i < length; i++) {

@@ -8,7 +8,8 @@
 
 // Global memory
 extern uint8_t forth_memory[FORTH_MEMORY_SIZE];
-extern forth_addr_t here;  // Data space pointer
+extern forth_addr_t here;       // Data space pointer
+extern forth_addr_t forth_end;  // Grows downward from FORTH_MEMORY_SIZE
 
 // Input system globals
 extern forth_addr_t input_buffer_addr;
@@ -20,6 +21,9 @@ forth_addr_t forth_allot(context_t* ctx, size_t bytes);
 void forth_align(void);
 forth_addr_t ptr_to_addr(context_t* ctx, word_t* word);
 uintptr_t align_up(uintptr_t addr, size_t alignment);
+forth_addr_t forth_allot_high(context_t* ctx, size_t bytes);
+void forth_reset_high_memory(void);
+void forth_align_down(forth_addr_t* addr);
 
 // Memory access functions
 void forth_store(context_t* ctx, forth_addr_t addr, cell_t value);    // !
