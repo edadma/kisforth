@@ -19,28 +19,28 @@ double float_stack[FLOAT_STACK_SIZE];
 int float_stack_ptr = 0;  // Points to next empty slot
 
 // Initialize float stack
-void float_stack_init(void) { float_stack_ptr = 0; }
+void float_stack_init(void) { main_context.float_stack_ptr = 0; }
 
 // Float stack operations
-void float_push(double value) {
+void float_push(context_t* ctx, double value) {
   require(ctx, float_stack_ptr < FLOAT_STACK_SIZE);  // Stack overflow check
   float_stack[float_stack_ptr++] = value;
   debug("Float pushed: %g (depth now %d)", value, float_stack_ptr);
 }
 
-double float_pop(void) {
+double float_pop(context_t* ctx) {
   require(ctx, float_stack_ptr > 0);  // Stack underflow check
   double value = float_stack[--float_stack_ptr];
   debug("Float popped: %g (depth now %d)", value, float_stack_ptr);
   return value;
 }
 
-double float_peek(void) {
+double float_peek(context_t* ctx) {
   require(ctx, float_stack_ptr > 0);  // Stack underflow check
   return float_stack[float_stack_ptr - 1];
 }
 
-int float_depth(void) { return float_stack_ptr; }
+int float_depth(context_t* ctx) { return ctx->float_stack_ptr; }
 
 // Liberal floating-point number parsing
 // Accepts: 123.456, .5, 5., 1E5, 1.23e-10, etc.
@@ -90,55 +90,55 @@ bool try_parse_float(const char* token, double* result) {
 void f_fdrop(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
-  float_pop();
+  float_pop(ctx);
 }
 
 // FDUP ( F: r -- r r ) Duplicate top float
 void f_fdup(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
-  double r = float_peek();
-  float_push(r);
+  double r = float_peek(ctx);
+  float_push(ctx, r);
 }
 
 // F+ ( F: r1 r2 -- r3 ) Add two floats
 void f_fplus(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
-  double r2 = float_pop();
-  double r1 = float_pop();
-  float_push(r1 + r2);
+  double r2 = float_pop(ctx);
+  double r1 = float_pop(ctx);
+  float_push(ctx, r1 + r2);
 }
 
 // F- ( F: r1 r2 -- r3 ) Subtract r2 from r1
 void f_fminus(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
-  double r2 = float_pop();
-  double r1 = float_pop();
-  float_push(r1 - r2);
+  double r2 = float_pop(ctx);
+  double r1 = float_pop(ctx);
+  float_push(ctx, r1 - r2);
 }
 
 // F* ( F: r1 r2 -- r3 ) Multiply two floats
 void f_fmultiply(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
-  double r2 = float_pop();
-  double r1 = float_pop();
-  float_push(r1 * r2);
+  double r2 = float_pop(ctx);
+  double r1 = float_pop(ctx);
+  float_push(ctx, r1 * r2);
 }
 
 // F/ ( F: r1 r2 -- r3 ) Divide r1 by r2
 void f_fdivide(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
-  double r2 = float_pop();
-  double r1 = float_pop();
+  double r2 = float_pop(ctx);
+  double r1 = float_pop(ctx);
 
   // Check for division by zero
   if (r2 == 0.0) error(ctx, "Floating-point division by zero in 'F/'");
 
-  float_push(r1 / r2);
+  float_push(ctx, r1 / r2);
 }
 
 // F. ( F: r -- ) Display a float and remove from stack
@@ -146,7 +146,7 @@ void f_fdot(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  double value = float_pop();
+  double value = float_pop(ctx);
 
 #ifdef FORTH_TARGET_PICO
   // Pico-specific formatting - manual cleanup for cleaner output
@@ -200,13 +200,13 @@ void f_flit(context_t* ctx, word_t* self) {
     uint32_t cells[2];
   } converter;
 
-  converter.cells[0] = (uint32_t)forth_fetch(ctx->ip);
+  converter.cells[0] = (uint32_t)forth_fetch(ctx, ctx->ip);
   ctx->ip += sizeof(cell_t);
-  converter.cells[1] = (uint32_t)forth_fetch(ctx->ip);
+  converter.cells[1] = (uint32_t)forth_fetch(ctx, ctx->ip);
   ctx->ip += sizeof(cell_t);
 
   // Push the float onto the float stack
-  float_push(converter.d);
+  float_push(ctx, converter.d);
 
   debug("FLIT pushed float literal: %g", converter.d);
 }
@@ -219,10 +219,10 @@ void compile_float_literal(context_t* ctx, double value) {
   word_t* flit_word = find_word(ctx, "FLIT");
   if (!flit_word) error(ctx, "FLIT word not found");
 
-  debug("Found FLIT word at address %u", ptr_to_addr(flit_word));
+  debug("Found FLIT word at address %u", ptr_to_addr(ctx, flit_word));
 
   // Compile FLIT followed by the 8-byte double value
-  compile_token(ctx, ptr_to_addr(flit_word));
+  compile_token(ctx, ptr_to_addr(ctx, flit_word));
 
   // Store double as two consecutive 32-bit cells
   union {

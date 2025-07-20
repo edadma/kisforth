@@ -2,10 +2,10 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "repl.h"
 #include "stack.h"
-
 
 void error(context_t* ctx, const char* format, ...) {
   va_list args;
@@ -16,7 +16,11 @@ void error(context_t* ctx, const char* format, ...) {
 
   putchar('\n');
   fflush(stdout);
-  f_abort(ctx, NULL);
+
+  if (ctx)
+    f_abort(ctx, NULL);
+  else
+    abort();
 }
 
 void f_abort(context_t* ctx, word_t* self) {

@@ -14,10 +14,10 @@ extern int float_stack_ptr;
 
 // Float stack operations
 void float_stack_init(void);
-void float_push(double value);
-double float_pop(void);
-double float_peek(void);
-int float_depth(void);
+void float_push(context_t* ctx, double value);
+double float_pop(context_t* ctx);
+double float_peek(context_t* ctx);
+int float_depth(context_t* ctx);
 
 void compile_float_literal(context_t* ctx, double value);
 
@@ -36,7 +36,8 @@ void f_fminus(context_t* ctx, word_t* self);     // F- ( F: r1 r2 -- r3 )
 void f_fmultiply(context_t* ctx, word_t* self);  // F* ( F: r1 r2 -- r3 )
 void f_fdivide(context_t* ctx, word_t* self);    // F/ ( F: r1 r2 -- r3 )
 void f_fdot(context_t* ctx, word_t* self);       // F. ( F: r -- )
-void f_flit(context_t* ctx, word_t* self);       // FLIT ( F: -- r ) [float value follows]
+void f_flit(context_t* ctx,
+            word_t* self);  // FLIT ( F: -- r ) [float value follows]
 
 #endif  // FORTH_ENABLE_FLOATING
 #endif  // FLOATING_H

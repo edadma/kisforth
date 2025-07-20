@@ -11,9 +11,8 @@ void dictionary_init(void);
 void link_word(word_t* word);
 word_t* find_word(context_t* ctx, const char* name);
 word_t* search_word(const char* name);
-void show_dictionary(void);  // Debug helper
 void compile_word(context_t* ctx, word_t* word);
-void compile_cell(cell_t value);
+void compile_cell(context_t* ctx, cell_t value);
 
 // Word creation and execution utilities
 word_t* create_primitive_word(const char* name,
@@ -28,7 +27,7 @@ word_t* defining_word(context_t* ctx,
                       void (*cfunc)(context_t* ctx, word_t* self));
 void execute_word(context_t* ctx, word_t* word);
 void execute_colon(context_t* ctx, word_t* self);
-forth_addr_t store_counted_string(const char* str, int length);
+forth_addr_t store_counted_string(context_t* ctx, const char* str, int length);
 
 // Word execution semantics
 void f_address(context_t* ctx, word_t* self);  // Variable execution ( -- addr )

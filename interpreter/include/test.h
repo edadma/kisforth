@@ -23,7 +23,7 @@ extern test_stats_t test_stats;
 // Test functions
 bool test_forth_code(const char* code, cell_t expected_top, int expected_depth);
 void run_all_tests(void);
-void f_test(word_t* self);  // Forth TEST primitive
+void f_test(context_t* ctx, word_t* self);  // Forth TEST primitive
 
 void create_test_primitives(void);
 

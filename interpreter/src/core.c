@@ -323,7 +323,7 @@ void f_comma(context_t* ctx, word_t* self) {
   cell_t x = data_pop(ctx);
 
   // Align HERE to cell boundary before storing
-  forth_align(ctx);
+  forth_align();
 
   // Store the value at current HERE
   forth_store(ctx, here, x);
@@ -740,7 +740,7 @@ void f_dot_quote(context_t* ctx, word_t* self) {
 
   // Parse the string
   char string_buffer[256];
-  int length = parse_string('"', string_buffer, sizeof(string_buffer));
+  int length = parse_string(ctx, '"', string_buffer, sizeof(string_buffer));
 
   if (*state_ptr == 0) {
     // Interpretation mode - display immediately
@@ -762,7 +762,7 @@ void f_dot_quote(context_t* ctx, word_t* self) {
     }
 
     here += length;
-    forth_align(ctx);  // Align for next token
+    forth_align();  // Align for next token
 
     debug(".\" compilation: compiled %d bytes + alignment",
           length + sizeof(cell_t));
@@ -776,7 +776,7 @@ void f_abort_quote(context_t* ctx, word_t* self) {
 
   // Parse the string
   char string_buffer[256];
-  int length = parse_string('"', string_buffer, sizeof(string_buffer));
+  int length = parse_string(ctx, '"', string_buffer, sizeof(string_buffer));
 
   if (*state_ptr == 0) {
     // Interpretation mode - check flag and abort immediately
@@ -805,7 +805,7 @@ void f_abort_quote(context_t* ctx, word_t* self) {
     }
 
     here += length;
-    forth_align(ctx);  // Align for next token
+    forth_align();  // Align for next token
   }
 }
 
@@ -830,7 +830,7 @@ void f_bracket_tick(context_t* ctx, word_t* self) {
   (void)self;
 
   char name_buffer[32];
-  char* name = parse_name(name_buffer, sizeof(name_buffer));
+  char* name = parse_name(ctx, name_buffer, sizeof(name_buffer));
   if (!name) error(ctx, "Missing name after [']");
 
   word_t* word = find_word(ctx, name);
@@ -889,7 +889,7 @@ void f_tick(context_t* ctx, word_t* self) {
   (void)self;
 
   char name_buffer[32];
-  char* name = parse_name(name_buffer, sizeof(name_buffer));
+  char* name = parse_name(ctx, name_buffer, sizeof(name_buffer));
 
   if (!name) {
     error(ctx, "' expects a name");
@@ -1213,7 +1213,7 @@ void f_loop(context_t* ctx, word_t* self) {
   compile_word(ctx, loop_runtime);
 
   // Compile backward branch target (loop start address)
-  compile_cell(frame.loop_start_addr);
+  compile_cell(ctx, frame.loop_start_addr);
 
   // Resolve all LEAVE addresses to point here (after the loop)
   forth_addr_t after_loop = here;
@@ -1249,7 +1249,7 @@ void f_plus_loop(context_t* ctx, word_t* self) {
   compile_word(ctx, plus_loop_runtime);
 
   // Compile backward branch target (loop start address)
-  compile_cell(frame.loop_start_addr);
+  compile_cell(ctx, frame.loop_start_addr);
 
   // Resolve all LEAVE addresses to point here (after the loop)
   forth_addr_t after_loop = here;
@@ -1284,7 +1284,7 @@ void f_leave(context_t* ctx, word_t* self) {
 
   // Compile placeholder for branch target (will be resolved by LOOP/+LOOP)
   forth_addr_t placeholder_addr = here;
-  compile_cell(0);  // Placeholder address
+  compile_cell(ctx, 0);  // Placeholder address
 
   // Add this address to the current loop frame for later resolution
   add_leave_addr(ctx, placeholder_addr);
@@ -1461,7 +1461,7 @@ void f_s_quote(context_t* ctx, word_t* self) {
 
   // Parse the string
   char string_buffer[256];
-  int length = parse_string('"', string_buffer, sizeof(string_buffer));
+  int length = parse_string(ctx, '"', string_buffer, sizeof(string_buffer));
 
   if (*state_ptr == 0) {
     // Interpretation mode - store string temporarily and push address/length
@@ -1486,7 +1486,7 @@ void f_s_quote(context_t* ctx, word_t* self) {
     compile_word(ctx, runtime_word);
 
     // 2. Compile the string length
-    compile_cell((cell_t)length);
+    compile_cell(ctx, (cell_t)length);
 
     // 3. Compile the string data
     for (int i = 0; i < length; i++) {
@@ -1494,7 +1494,7 @@ void f_s_quote(context_t* ctx, word_t* self) {
     }
 
     here += length;
-    forth_align(ctx);  // Align for next cell
+    forth_align();  // Align for next cell
 
     debug("S\" compilation: compiled %d bytes + alignment",
           length + sizeof(cell_t));

@@ -23,13 +23,13 @@ forth_addr_t to_in_addr;
 forth_addr_t input_length_addr;
 
 void input_system_init(void) {
-  input_buffer_addr = forth_allot(INPUT_BUFFER_SIZE);
-  to_in_addr = forth_allot(sizeof(cell_t));
-  input_length_addr = forth_allot(sizeof(cell_t));
+  input_buffer_addr = forth_allot(&main_context, INPUT_BUFFER_SIZE);
+  to_in_addr = forth_allot(&main_context, sizeof(cell_t));
+  input_length_addr = forth_allot(&main_context, sizeof(cell_t));
 
   // Initialize >IN to 0
-  forth_store(to_in_addr, 0);
-  forth_store(input_length_addr, 0);
+  forth_store(&main_context, to_in_addr, 0);
+  forth_store(&main_context, input_length_addr, 0);
 }
 
 // Store cell (32-bit) at Forth address - implements ! (STORE)
@@ -79,7 +79,7 @@ forth_addr_t forth_allot(context_t* ctx, size_t bytes) {
 }
 
 inline uintptr_t align_up(uintptr_t addr, size_t alignment) {
-  return addr + alignment - 1 & ~(alignment - 1);
+  return (addr + alignment - 1) & ~(alignment - 1);
 }
 
 // Align HERE to cell boundary (4 bytes)

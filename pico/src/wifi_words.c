@@ -101,13 +101,13 @@ static void f_wifi_connect(word_t* self) {
 
   // Copy SSID
   for (int i = 0; i < ssid_len; i++) {
-    ssid[i] = forth_c_fetch(ssid_addr + i);
+    ssid[i] = forth_c_fetch(ctx, ssid_addr + i);
   }
   ssid[ssid_len] = '\0';
 
   // Copy password
   for (int i = 0; i < pass_len; i++) {
-    password[i] = forth_c_fetch(pass_addr + i);
+    password[i] = forth_c_fetch(ctx, pass_addr + i);
   }
   password[pass_len] = '\0';
 

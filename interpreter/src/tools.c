@@ -54,7 +54,7 @@ void f_dump(context_t* ctx, word_t* self) {
     // Hex bytes
     for (int i = 0; i < 16 && offset + i < u; i++) {
       if (i == 8) printf(" ");
-      printf("%02X ", forth_c_fetch(addr + offset + i));
+      printf("%02X ", forth_c_fetch(ctx, addr + offset + i));
     }
 
     // Padding for short lines
@@ -67,7 +67,7 @@ void f_dump(context_t* ctx, word_t* self) {
 
     // ASCII representation
     for (int i = 0; i < 16 && offset + i < u; i++) {
-      byte_t ch = forth_c_fetch(addr + offset + i);
+      byte_t ch = forth_c_fetch(ctx, addr + offset + i);
       putchar((ch >= 32 && ch <= 126) ? ch : '.');
     }
 

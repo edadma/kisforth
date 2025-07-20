@@ -17,7 +17,7 @@ extern forth_addr_t input_length_addr;
 
 // Memory management functions
 forth_addr_t forth_allot(context_t* ctx, size_t bytes);
-void forth_align(context_t* ctx);
+void forth_align(void);
 forth_addr_t ptr_to_addr(context_t* ctx, word_t* word);
 uintptr_t align_up(uintptr_t addr, size_t alignment);
 

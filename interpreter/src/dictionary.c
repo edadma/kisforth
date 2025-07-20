@@ -68,15 +68,10 @@ word_t* find_word(context_t* ctx, const char* name) {
   word_t* word = search_word(name);
 
   if (!word) {
-    if (ctx == NULL) {
-      printf("Word not found: %s", name);
-      abort();
-    }
-
     error(ctx, "Word not found: %s", name);
-
-    return word;
   }
+
+  return word;
 }
 
 word_t* search_word(const char* name) {
@@ -92,23 +87,6 @@ word_t* search_word(const char* name) {
   return NULL;
 }
 
-// Debug helper - show all words in dictionary
-void show_dictionary(void) {
-  printf("Dictionary contents (newest first):\n");
-  word_t* current = dictionary_head;
-  int count = 0;
-
-  while (current != NULL) {
-    printf("  %d: %s (addr=%u)\n", count++, current->name,
-           ptr_to_addr(current));
-    current = current->link;
-  }
-
-  if (count == 0) {
-    printf("  (empty)\n");
-  }
-}
-
 // ============================================================================
 // Word creation and execution utilities (moved from core.c)
 // ============================================================================
@@ -117,7 +95,7 @@ void show_dictionary(void) {
 word_t* create_primitive_word(const char* name,
                               void (*cfunc)(context_t* ctx, word_t* self)) {
   // Allocate space for the word structure
-  forth_addr_t word_addr = forth_allot(sizeof(word_t));
+  forth_addr_t word_addr = forth_allot(&main_context, sizeof(word_t));
   word_t* word = addr_to_ptr(NULL, word_addr);
 
   // Initialize the word structure
@@ -140,7 +118,7 @@ cell_t* create_variable_word(const char* name, cell_t initial_value) {
   word->param_field = initial_value;  // Store value directly
 
   // Return C pointer to the parameter field for efficiency
-  forth_addr_t word_addr = ptr_to_addr(word);
+  forth_addr_t word_addr = ptr_to_addr(&main_context, word);
   forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
   return (cell_t*)&forth_memory[param_addr];
 }
@@ -166,18 +144,18 @@ void compile_word(context_t* ctx, word_t* word) {
   }
 
   // Get the word's execution token (address)
-  forth_addr_t xt = ptr_to_addr(word);
+  forth_addr_t xt = ptr_to_addr(ctx, word);
 
   // Compile the execution token
-  compile_cell(xt);
+  compile_cell(ctx, xt);
 
   debug("Compiled word '%s' at XT=%d", word->name ? word->name : "unnamed", xt);
 }
 
 // Compile a cell value into the current definition
-void compile_cell(cell_t value) {
+void compile_cell(context_t* ctx, cell_t value) {
   // Store the value at HERE and advance HERE
-  forth_store(here, value);
+  forth_store(ctx, here, value);
   here += sizeof(cell_t);
 
   debug("Compiled cell value %d at address %d", value, here - sizeof(cell_t));
@@ -189,14 +167,14 @@ word_t* defining_word(context_t* ctx,
   char name_buffer[32];
 
   // Parse the name for the new definition
-  char* name = parse_name(name_buffer, sizeof(name_buffer));
+  char* name = parse_name(ctx, name_buffer, sizeof(name_buffer));
 
   if (!name) error(ctx, "Missing name after ':'");
 
   debug("Creating word: %s", name);
 
   // Create word header but don't link it yet (hidden until ; is executed)
-  forth_addr_t word_addr = forth_allot(sizeof(word_t));
+  forth_addr_t word_addr = forth_allot(ctx, sizeof(word_t));
   word_t* word = addr_to_ptr(NULL, word_addr);
 
   // Initialize word header
@@ -219,7 +197,7 @@ void execute_word(context_t* ctx, word_t* word) {
 
 // Store string in Forth memory as counted string (ANS Forth style)
 // Returns Forth address of the counted string
-forth_addr_t store_counted_string(const char* str, int length) {
+forth_addr_t store_counted_string(context_t* ctx, const char* str, int length) {
   // Align for the string
   forth_align();
   forth_addr_t string_addr = here;
@@ -228,14 +206,14 @@ forth_addr_t store_counted_string(const char* str, int length) {
         length, string_addr);
 
   // Allocate space for the entire counted string (length byte + characters)
-  forth_allot(1 + length);
+  forth_allot(ctx, 1 + length);
 
   // Store length byte first (counted string format)
-  forth_c_store(string_addr, (byte_t)length);
+  forth_c_store(ctx, string_addr, (byte_t)length);
 
   // Store the string characters
   for (int i = 0; i < length; i++) {
-    forth_c_store(string_addr + 1 + i, (byte_t)str[i]);
+    forth_c_store(ctx, string_addr + 1 + i, (byte_t)str[i]);
   }
 
   // Align after string storage for next allocation
@@ -266,7 +244,7 @@ void execute_colon(context_t* ctx, word_t* self) {
   // Execute tokens until EXIT is called (which will restore IP from return
   // stack)
   while (ctx->ip != 0) {
-    forth_addr_t token_addr = forth_fetch(ctx->ip);
+    forth_addr_t token_addr = forth_fetch(ctx, ctx->ip);
     ctx->ip += sizeof(cell_t);  // Advance to next token
 
     // Execute the word at token_addr
@@ -288,7 +266,7 @@ void execute_colon(context_t* ctx, word_t* self) {
 // (param_field contains the variable's value directly)
 void f_address(context_t* ctx, word_t* self) {
   // Parameter field is right after the word structure in memory
-  forth_addr_t word_addr = ptr_to_addr(self);
+  forth_addr_t word_addr = ptr_to_addr(ctx, self);
   forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
 
   // Push the Forth address of the parameter field

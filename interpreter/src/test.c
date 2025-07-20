@@ -54,7 +54,7 @@ void forth_reset(void) {
   input_system_init();
 
   // Clear input buffer
-  set_input_buffer("");
+  set_input_buffer(&main_context, "");
 
   // Rebuild primitive dictionary
   dictionary_init();
@@ -97,7 +97,7 @@ bool test_forth_code(const char* code, cell_t expected_top,
 // Individual test functions
 static void test_memory_functions(void) {
   forth_addr_t old_here = here;
-  forth_addr_t addr = forth_allot(100);
+  forth_addr_t addr = forth_allot(&main_context, 100);
 
   TEST_ASSERT_TRUE(addr < FORTH_MEMORY_SIZE);
   TEST_ASSERT_EQUAL(old_here, addr);
@@ -224,10 +224,10 @@ void run_all_tests(void) {
 
   // Test SOURCE and >IN behavior
   test_stats.current_test_name = "Input Buffer Functions";
-  set_input_buffer("123 456");
-  TEST_ASSERT_EQUAL(7, get_current_input_length());
+  set_input_buffer(&main_context, "123 456");
+  TEST_ASSERT_EQUAL(7, get_current_input_length(&main_context));
   TEST_ASSERT_TRUE(get_current_input_buffer_addr() < FORTH_MEMORY_SIZE);
-  TEST_ASSERT_EQUAL(0, get_current_to_in());
+  TEST_ASSERT_EQUAL(0, get_current_to_in(&main_context));
 
   // Final summary
   printf(
@@ -267,7 +267,8 @@ void run_all_tests(void) {
 }
 
 // TEST word implementation
-void f_test(word_t* self) {
+void f_test(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
 
   run_all_tests();
