@@ -1637,6 +1637,7 @@ void create_primitives(void) {
   create_immediate_primitive_word("\\", f_backslash);
 
   create_primitive_word("CONSTANT", f_constant);
+  create_primitive_word("CONST", f_constant);  // synonym for CONSTANT
 }
 
 // Built-in Forth definitions (created after primitives are available)
