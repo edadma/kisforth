@@ -62,9 +62,16 @@ typedef struct word {
                 struct word* self);  // C function for ALL word types
   // DUAL-PURPOSE PARAMETER FIELD:
   // - For most words: Forth address pointing to parameter space
-  // - For variables:  Direct storage of the variable's value
-  uint32_t param_field;  // either value or Forth address
+  // - For constants and variables:  Direct storage of the variable's value
+  union {
+    cell_t value;          // Variables store value directly
+    forth_addr_t address;  // Colon definitions, CREATE words point to data
+  } param;
+  uint8_t param_type;  // PARAM_VALUE, PARAM_ADDRESS
 } word_t;
+
+#define PARAM_VALUE 1    // param.value contains the actual value (variables)
+#define PARAM_ADDRESS 2  // param.address points to data space (definitions)
 
 // Word flags
 #define WORD_FLAG_IMMEDIATE 0x01

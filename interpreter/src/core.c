@@ -820,7 +820,10 @@ static void f_variable(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  defining_word(ctx, f_address)->param_field = 0;  // initialize variable to 0
+  word_t* word = defining_word(ctx, f_address);
+
+  word->param.value = 0;  // initialize variable to 0
+  word->param_type = PARAM_VALUE;
 }
 
 // ['] ( "name" -- ) Compilation: ( -- ) Runtime: ( -- xt )

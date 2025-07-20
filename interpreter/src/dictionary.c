@@ -104,7 +104,8 @@ word_t* create_primitive_word(const char* name,
   word->name[sizeof(word->name) - 1] = '\0';  // Ensure null termination
   word->flags = 0;
   word->cfunc = cfunc;
-  word->param_field = here;
+  word->param.address = here;
+  word->param_type = PARAM_ADDRESS;
   link_word(word);
 
   return word;
@@ -115,12 +116,13 @@ cell_t* create_variable_word(const char* name, cell_t initial_value) {
   // Create the word header with f_address cfunc
   word_t* word = create_primitive_word(name, f_address);
 
-  word->param_field = initial_value;  // Store value directly
+  word->param.value = initial_value;  // Store value directly
+  word->param_type = PARAM_VALUE;
 
   // Return C pointer to the parameter field for efficiency
   forth_addr_t word_addr = ptr_to_addr(&main_context, word);
-  forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
-  return (cell_t*)&forth_memory[param_addr];
+  forth_addr_t param_value_addr = word_addr + offsetof(word_t, param.value);
+  return (cell_t*)&forth_memory[param_value_addr];
 }
 
 // Create an area word (calls create_primitive_word with f_address)
@@ -182,7 +184,9 @@ word_t* defining_word(context_t* ctx,
   word->name[sizeof(word->name) - 1] = '\0';
   word->flags = 0;
   word->cfunc = cfunc;
-  word->param_field = here;  // Set parameter field to point to next free space
+  word->param.address =
+      here;  // Set parameter field to point to next free space
+  word->param_type = PARAM_ADDRESS;
   link_word(word);
 
   return word;
@@ -227,8 +231,8 @@ forth_addr_t store_counted_string(context_t* ctx, const char* str, int length) {
 void execute_colon(context_t* ctx, word_t* self) {
   // Parameter field contains array of tokens (word addresses)
   forth_addr_t tokens_addr =
-      self->param_field;  // parameter field points to actual parameter
-                          // space (word definition)
+      self->param.address;  // parameter field points to actual parameter
+                            // space (word definition)
 
   debug("Executing colon definition: %s", self->name);
 
@@ -262,19 +266,19 @@ void execute_colon(context_t* ctx, word_t* self) {
 // Word execution semantics
 // ============================================================================
 
-// VARIABLE runtime behavior: Push address OF the param_field
-// (param_field contains the variable's value directly)
+// VARIABLE runtime behavior: Push address OF the param.value
+// (param contains the variable's value directly)
 void f_address(context_t* ctx, word_t* self) {
   // Parameter field is right after the word structure in memory
   forth_addr_t word_addr = ptr_to_addr(ctx, self);
-  forth_addr_t param_addr = word_addr + offsetof(word_t, param_field);
+  forth_addr_t param_value_addr = word_addr + offsetof(word_t, param.value);
 
   // Push the Forth address of the parameter field
-  data_push(ctx, param_addr);
+  data_push(ctx, param_value_addr);
 }
 
 // CREATE runtime behavior: Push address IN the param_field
-// (param_field contains a Forth address pointing to data space)
+// (param contains a Forth address pointing to data space)
 void f_param_field(context_t* ctx, word_t* self) {
-  data_push(ctx, self->param_field);  // Push the value stored in param_field
+  data_push(ctx, self->param.address);  // Push the value stored in param_field
 }
