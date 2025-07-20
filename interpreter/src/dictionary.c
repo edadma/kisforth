@@ -212,8 +212,8 @@ word_t* defining_word(context_t* ctx,
 
 // Execute a word by calling its cfunc
 void execute_word(context_t* ctx, word_t* word) {
-  require(word != NULL);
-  require(word->cfunc != NULL);
+  require(ctx, word != NULL);
+  require(ctx, word->cfunc != NULL);
   word->cfunc(ctx, word);
 }
 

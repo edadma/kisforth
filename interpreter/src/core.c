@@ -138,7 +138,7 @@ void f_source(context_t* ctx, word_t* self) {
   data_push(ctx, input_buffer_addr);  // Forth address
   data_push(
       ctx,
-      forth_fetch(input_length_addr));  // Current length from Forth memory
+      forth_fetch(ctx, input_length_addr));  // Current length from Forth memory
 }
 
 // >IN ( -- addr )  Return address of >IN variable
@@ -174,7 +174,7 @@ void f_store(context_t* ctx, word_t* self) {
 
   forth_addr_t addr = (forth_addr_t)data_pop(ctx);
   cell_t value = data_pop(ctx);
-  forth_store(addr, value);
+  forth_store(ctx, addr, value);
 }
 
 // @ ( addr -- x )  Fetch value from addr
@@ -183,7 +183,7 @@ void f_fetch(context_t* ctx, word_t* self) {
   (void)self;
 
   forth_addr_t addr = (forth_addr_t)data_pop(ctx);
-  cell_t value = forth_fetch(addr);
+  cell_t value = forth_fetch(ctx, addr);
   data_push(ctx, value);
 }
 
@@ -194,7 +194,7 @@ void f_c_store(context_t* ctx, word_t* self) {
 
   forth_addr_t addr = (forth_addr_t)data_pop(ctx);
   byte_t value = (byte_t)data_pop(ctx);
-  forth_c_store(addr, value);
+  forth_c_store(ctx, addr, value);
 }
 
 // C@ ( addr -- char )  Fetch char from addr
@@ -203,7 +203,7 @@ void f_c_fetch(context_t* ctx, word_t* self) {
   (void)self;
 
   forth_addr_t addr = (forth_addr_t)data_pop(ctx);
-  byte_t value = forth_c_fetch(addr);
+  byte_t value = forth_c_fetch(ctx, addr);
   data_push(ctx, (cell_t)value);
 }
 
@@ -281,8 +281,8 @@ void f_pick(context_t* ctx, word_t* self) {
   cell_t u = data_pop(ctx);
 
   // Bounds check: u must be >= 0 and < stack depth
-  require(u >= 0);
-  require(u < data_depth(ctx));
+  require(ctx, u >= 0);
+  require(ctx, u < data_depth(ctx));
 
   // Use data_peek_at to get the u-th item from top
   cell_t xu = data_peek_at(ctx, u);
@@ -307,11 +307,11 @@ void f_allot(context_t* ctx, word_t* self) {
   // Handle negative allot (deallocation) carefully
   if (n < 0) {
     // Negative allot - check bounds to prevent underflow
-    require(here >= (forth_addr_t)(-n));
+    require(ctx, here >= (forth_addr_t)(-n));
     here += n;  // n is negative, so this subtracts
   } else {
     // Positive allot - normal allocation
-    forth_allot(n);
+    forth_allot(ctx, n);
   }
 }
 
@@ -323,10 +323,10 @@ void f_comma(context_t* ctx, word_t* self) {
   cell_t x = data_pop(ctx);
 
   // Align HERE to cell boundary before storing
-  forth_align();
+  forth_align(ctx);
 
   // Store the value at current HERE
-  forth_store(here, x);
+  forth_store(ctx, here, x);
 
   // Advance HERE by one cell
   here += sizeof(cell_t);
@@ -344,7 +344,7 @@ void f_colon(context_t* ctx, word_t* self) {
   *state_ptr = -1;
 
   debug("Colon definition header created at %u, entering compilation mode",
-        ptr_to_addr(word));
+        ptr_to_addr(ctx, word));
 }
 
 // ; (semicolon) - end colon definition
@@ -360,7 +360,7 @@ void f_semicolon(context_t* ctx, word_t* self) {
   // Compile EXIT as the last token
   word_t* exit_word = find_word(ctx, "EXIT");
 
-  compile_token(ctx, ptr_to_addr(exit_word));
+  compile_token(ctx, ptr_to_addr(ctx, exit_word));
 
   // Exit compilation state
   *state_ptr = 0;
@@ -397,7 +397,7 @@ void f_lit(context_t* ctx, word_t* self) {
   if (ctx->ip == 0) error(ctx, "LIT called outside colon definition");
 
   // Read the literal value from the instruction stream
-  cell_t literal = forth_fetch(ctx->ip);
+  cell_t literal = forth_fetch(ctx, ctx->ip);
   ctx->ip += sizeof(cell_t);  // Advance past the literal
 
   // Push the literal onto the data stack
@@ -415,7 +415,7 @@ void f_sm_rem(context_t* ctx, word_t* self) {
 
   // Pop divisor (single cell)
   cell_t divisor = data_pop(ctx);
-  require(divisor != 0);  // Division by zero check
+  require(ctx, divisor != 0);  // Division by zero check
 
   // Pop dividend (double cell: high cell first, then low cell)
   cell_t dividend_hi = data_pop(ctx);
@@ -430,8 +430,8 @@ void f_sm_rem(context_t* ctx, word_t* self) {
   int64_t remainder = dividend % div;  // C remainder has sign of dividend
 
   // Ensure results fit in 32-bit cells
-  require(quotient >= INT32_MIN && quotient <= INT32_MAX);
-  require(remainder >= INT32_MIN && remainder <= INT32_MAX);
+  require(ctx, quotient >= INT32_MIN && quotient <= INT32_MAX);
+  require(ctx, remainder >= INT32_MIN && remainder <= INT32_MAX);
 
   // Push remainder first, then quotient
   data_push(ctx, (cell_t)remainder);
@@ -447,7 +447,7 @@ void f_fm_mod(context_t* ctx, word_t* self) {
 
   // Pop divisor (single cell)
   cell_t divisor = data_pop(ctx);
-  require(divisor != 0);  // Division by zero check
+  require(ctx, divisor != 0);  // Division by zero check
 
   // Pop dividend (double cell: high cell first, then low cell)
   cell_t dividend_hi = data_pop(ctx);
@@ -469,8 +469,8 @@ void f_fm_mod(context_t* ctx, word_t* self) {
   }
 
   // Ensure results fit in 32-bit cells
-  require(quotient >= INT32_MIN && quotient <= INT32_MAX);
-  require(remainder >= INT32_MIN && remainder <= INT32_MAX);
+  require(ctx, quotient >= INT32_MIN && quotient <= INT32_MAX);
+  require(ctx, remainder >= INT32_MIN && remainder <= INT32_MAX);
 
   // Push remainder first, then quotient
   data_push(ctx, (cell_t)remainder);
@@ -576,7 +576,7 @@ void f_type(context_t* ctx, word_t* self) {
       break;  // Stop at memory boundary
     }
 
-    char c = (char)forth_c_fetch(c_addr + i);
+    char c = (char)forth_c_fetch(ctx, c_addr + i);
     putchar(c);
   }
 
@@ -610,7 +610,7 @@ void f_r_fetch(context_t* ctx, word_t* self) {
   (void)self;
 
   // Make sure there's something to peek at
-  require(return_depth(ctx) > 0);
+  require(ctx, return_depth(ctx) > 0);
 
   // Peek at top of return stack without removing it
   cell_t x = ctx->return_stack[ctx->return_stack_ptr - 1];
@@ -684,14 +684,14 @@ void f_dot_quote_runtime(context_t* ctx, word_t* self) {
   if (ctx->ip == 0) error(ctx, "'.(' called outside colon definition");
 
   // Read string length from parameter field
-  byte_t length = (byte_t)forth_fetch(ctx->ip);
+  byte_t length = (byte_t)forth_fetch(ctx, ctx->ip);
   ctx->ip += sizeof(cell_t);
 
   debug("(. runtime: reading string length %d", length);
 
   // Display each character
   for (cell_t i = 0; i < length; i++) {
-    putchar(forth_c_fetch(ctx->ip + i));
+    putchar(forth_c_fetch(ctx, ctx->ip + i));
   }
 
   fflush(stdout);
@@ -711,7 +711,7 @@ void f_abort_quote_runtime(context_t* ctx, word_t* self) {
   if (ctx->ip == 0) error(ctx, "(ABORT called outside colon definition");
 
   // Read string length from parameter field
-  byte_t length = (byte_t)forth_fetch(ctx->ip);
+  byte_t length = (byte_t)forth_fetch(ctx, ctx->ip);
   ctx->ip += sizeof(cell_t);
 
   cell_t start = ctx->ip;
@@ -723,7 +723,7 @@ void f_abort_quote_runtime(context_t* ctx, word_t* self) {
   if (flag != 0) {
     // Display the string
     for (cell_t i = 0; i < length; i++) {
-      putchar(forth_c_fetch(start + i));
+      putchar(forth_c_fetch(ctx, start + i));
     }
 
     fflush(stdout);
@@ -754,15 +754,15 @@ void f_dot_quote(context_t* ctx, word_t* self) {
 
     word_t* runtime_word = find_word(ctx, "(.\"");
 
-    compile_token(ctx, ptr_to_addr(runtime_word));
+    compile_token(ctx, ptr_to_addr(ctx, runtime_word));
     compile_token(ctx, (forth_addr_t)length);
 
     for (int i = 0; i < length; i++) {
-      forth_c_store(here + i, string_buffer[i]);
+      forth_c_store(ctx, here + i, string_buffer[i]);
     }
 
     here += length;
-    forth_align();  // Align for next token
+    forth_align(ctx);  // Align for next token
 
     debug(".\" compilation: compiled %d bytes + alignment",
           length + sizeof(cell_t));
@@ -794,18 +794,18 @@ void f_abort_quote(context_t* ctx, word_t* self) {
     // 1. Compile the runtime word
     word_t* runtime_word = find_word(ctx, "(ABORT\"");
 
-    compile_token(ctx, ptr_to_addr(runtime_word));
+    compile_token(ctx, ptr_to_addr(ctx, runtime_word));
 
     // 2. Compile the string length
     compile_token(ctx, (forth_addr_t)length);
 
     // 3. Compile each character
     for (int i = 0; i < length; i++) {
-      forth_c_store(here + i, string_buffer[i]);
+      forth_c_store(ctx, here + i, string_buffer[i]);
     }
 
     here += length;
-    forth_align();  // Align for next token
+    forth_align(ctx);  // Align for next token
   }
 }
 
@@ -837,9 +837,9 @@ void f_bracket_tick(context_t* ctx, word_t* self) {
   if (!word) error(ctx, "Word not found in [']");
 
   // Compile the word's address as a literal
-  compile_literal(ctx, ptr_to_addr(word));
+  compile_literal(ctx, ptr_to_addr(ctx, word));
 
-  debug("['] compiled literal for %s: %u", name, ptr_to_addr(word));
+  debug("['] compiled literal for %s: %u", name, ptr_to_addr(ctx, word));
 }
 
 // 0BRANCH ( x -- ) - conditional branch
@@ -850,7 +850,7 @@ void f_0branch(context_t* ctx, word_t* self) {
   (void)self;
 
   cell_t x = data_pop(ctx);
-  forth_addr_t target = forth_fetch(ctx->ip);
+  forth_addr_t target = forth_fetch(ctx, ctx->ip);
   ctx->ip += sizeof(cell_t);
 
   if (x == 0) {
@@ -864,7 +864,7 @@ void f_branch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  forth_addr_t target = forth_fetch(ctx->ip);
+  forth_addr_t target = forth_fetch(ctx, ctx->ip);
   ctx->ip = target;  // Always branch
 }
 
@@ -900,7 +900,7 @@ void f_tick(context_t* ctx, word_t* self) {
   word_t* word = find_word(ctx, name);
 
   // Convert word pointer to execution token (forth address)
-  forth_addr_t xt = ptr_to_addr(word);
+  forth_addr_t xt = ptr_to_addr(ctx, word);
   data_push(ctx, (cell_t)xt);
 
   debug("' found word %s at address %u", name, xt);
@@ -932,7 +932,7 @@ void f_find(context_t* ctx, word_t* self) {
   forth_addr_t c_addr = (forth_addr_t)data_pop(ctx);
 
   // Get the counted string: first byte is length, followed by characters
-  byte_t length = forth_c_fetch(c_addr);
+  byte_t length = forth_c_fetch(ctx, c_addr);
 
   // Convert counted string to null-terminated C string
   char name_buffer[32];
@@ -944,7 +944,7 @@ void f_find(context_t* ctx, word_t* self) {
   }
 
   for (int i = 0; i < length; i++) {
-    name_buffer[i] = forth_c_fetch(c_addr + 1 + i);
+    name_buffer[i] = forth_c_fetch(ctx, c_addr + 1 + i);
   }
   name_buffer[length] = '\0';
 
@@ -960,7 +960,7 @@ void f_find(context_t* ctx, word_t* self) {
     debug("FIND: word not found");
   } else {
     // Found: return xt and flag
-    forth_addr_t xt = ptr_to_addr(word);
+    forth_addr_t xt = ptr_to_addr(ctx, word);
     data_push(ctx, (cell_t)xt);
 
     // Check if immediate
@@ -1033,7 +1033,7 @@ void f_loop_runtime(context_t* ctx, word_t* self) {
   return_push(ctx, index);
 
   // The backward branch address follows this instruction
-  forth_addr_t branch_target = forth_fetch(ctx->ip);
+  forth_addr_t branch_target = forth_fetch(ctx, ctx->ip);
   ctx->ip = branch_target;
   debug("LOOP: continue to %d", branch_target);
 }
@@ -1089,7 +1089,7 @@ void f_plus_loop_runtime(context_t* ctx, word_t* self) {
   return_push(ctx, index);
 
   // The backward branch address follows this instruction
-  forth_addr_t branch_target = forth_fetch(ctx->ip);
+  forth_addr_t branch_target = forth_fetch(ctx, ctx->ip);
   ctx->ip = branch_target;
   debug("+LOOP: continue to %d", branch_target);
 }
@@ -1145,7 +1145,7 @@ void f_leave_runtime(context_t* ctx, word_t* self) {
   return_pop(ctx);  // limit
 
   // The branch target address follows this instruction
-  forth_addr_t branch_target = forth_fetch(ctx->ip);
+  forth_addr_t branch_target = forth_fetch(ctx, ctx->ip);
   ctx->ip = branch_target;
 
   debug("LEAVE: branch to %d", branch_target);
@@ -1304,12 +1304,12 @@ void f_word(context_t* ctx, word_t* self) {
   char delim_char = (char)(delimiter & 0xFF);
 
   // Get current input state
-  cell_t current_to_in = forth_fetch(to_in_addr);
-  cell_t current_length = forth_fetch(input_length_addr);
+  cell_t current_to_in = forth_fetch(ctx, to_in_addr);
+  cell_t current_length = forth_fetch(ctx, input_length_addr);
 
   // Skip leading delimiters
   while (current_to_in < current_length) {
-    char ch = (char)forth_c_fetch(input_buffer_addr + current_to_in);
+    char ch = (char)forth_c_fetch(ctx, input_buffer_addr + current_to_in);
     if (ch != delim_char) {
       break;  // Found non-delimiter
     }
@@ -1319,7 +1319,7 @@ void f_word(context_t* ctx, word_t* self) {
   // Parse until next delimiter or end of input
   cell_t start_pos = current_to_in;
   while (current_to_in < current_length) {
-    char ch = (char)forth_c_fetch(input_buffer_addr + current_to_in);
+    char ch = (char)forth_c_fetch(ctx, input_buffer_addr + current_to_in);
     if (ch == delim_char) {
       break;  // Found delimiter
     }
@@ -1338,7 +1338,7 @@ void f_word(context_t* ctx, word_t* self) {
   if (current_to_in < current_length) {
     current_to_in++;  // Skip the delimiter
   }
-  forth_store(to_in_addr, current_to_in);
+  forth_store(ctx, to_in_addr, current_to_in);
 
   // Get PAD address by executing PAD word
   word_t* pad_word = search_word("PAD");
@@ -1349,12 +1349,12 @@ void f_word(context_t* ctx, word_t* self) {
   forth_addr_t pad_addr = (forth_addr_t)data_pop(ctx);
 
   // Store counted string in PAD
-  forth_c_store(pad_addr, (byte_t)length);  // Store length byte
+  forth_c_store(ctx, pad_addr, (byte_t)length);  // Store length byte
 
   // Copy characters from input buffer to PAD
   for (cell_t i = 0; i < length; i++) {
-    char ch = (char)forth_c_fetch(input_buffer_addr + start_pos + i);
-    forth_c_store(pad_addr + 1 + i, (byte_t)ch);
+    char ch = (char)forth_c_fetch(ctx, input_buffer_addr + start_pos + i);
+    forth_c_store(ctx, pad_addr + 1 + i, (byte_t)ch);
   }
 
   // Return PAD address
@@ -1417,7 +1417,7 @@ void f_accept(context_t* ctx, word_t* self) {
     }
 
     // Store character in buffer
-    forth_c_store(buffer_addr + count, (byte_t)ch);
+    forth_c_store(ctx, buffer_addr + count, (byte_t)ch);
     count++;
 
     // Echo character to output (for interactive use)
@@ -1439,7 +1439,7 @@ void f_s_quote_runtime(context_t* ctx, word_t* self) {
   if (ctx->ip == 0) error(ctx, "(S\") called outside colon definition");
 
   // Read the string length from the instruction stream
-  cell_t length = forth_fetch(ctx->ip);
+  cell_t length = forth_fetch(ctx, ctx->ip);
   ctx->ip += sizeof(cell_t);
 
   // Push the string address and length onto the data stack
@@ -1469,7 +1469,7 @@ void f_s_quote(context_t* ctx, word_t* self) {
     // Store string at PAD (temporary area)
     forth_addr_t pad_addr = here - FORTH_PAD_SIZE;  // PAD is before HERE
     for (int i = 0; i < length; i++) {
-      forth_c_store(pad_addr + i, string_buffer[i]);
+      forth_c_store(ctx, pad_addr + i, string_buffer[i]);
     }
 
     // Push address and length
@@ -1490,11 +1490,11 @@ void f_s_quote(context_t* ctx, word_t* self) {
 
     // 3. Compile the string data
     for (int i = 0; i < length; i++) {
-      forth_c_store(here + i, string_buffer[i]);
+      forth_c_store(ctx, here + i, string_buffer[i]);
     }
 
     here += length;
-    forth_align();  // Align for next cell
+    forth_align(ctx);  // Align for next cell
 
     debug("S\" compilation: compiled %d bytes + alignment",
           length + sizeof(cell_t));
@@ -1566,7 +1566,7 @@ void create_all_primitives(void) {
   create_immediate_primitive_word("ABORT\"", f_abort_quote);
 
   create_area_word("PAD");
-  forth_allot(FORTH_PAD_SIZE);
+  forth_allot(&main_context, FORTH_PAD_SIZE);
 
   create_primitive_word("CREATE", f_create);
   create_primitive_word("VARIABLE", f_variable);

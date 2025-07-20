@@ -10,12 +10,12 @@ void error(context_t* ctx, const char* format, ...);
 void f_abort(context_t* ctx, word_t* self);
 
 // Requirement checking macro
-#define require(condition, ...)                                           \
-  do {                                                                    \
-    if (!(condition)) {                                                   \
-      error("Requirement failed: %s at %s:%d - " __VA_ARGS__, #condition, \
-            __FILE__, __LINE__);                                          \
-    }                                                                     \
+#define require(ctx, condition, ...)                                           \
+  do {                                                                         \
+    if (!(condition)) {                                                        \
+      error(ctx, "Requirement failed: %s at %s:%d - " __VA_ARGS__, #condition, \
+            __FILE__, __LINE__);                                               \
+    }                                                                          \
   } while (0)
 
 #endif  // ERROR_H

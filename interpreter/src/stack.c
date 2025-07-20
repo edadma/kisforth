@@ -7,23 +7,23 @@
 
 // Data stack operations
 void data_push(context_t* ctx, cell_t value) {
-  require(ctx->data_stack_ptr < DATA_STACK_SIZE, "Stack overflow");
+  require(ctx, ctx->data_stack_ptr < DATA_STACK_SIZE, "Stack overflow");
   ctx->data_stack[ctx->data_stack_ptr++] = value;
 }
 
 cell_t data_pop(context_t* ctx) {
-  require(ctx->data_stack_ptr > 0, "Stack underflow");
+  require(ctx, ctx->data_stack_ptr > 0, "Stack underflow");
   return ctx->data_stack[--ctx->data_stack_ptr];
 }
 
 cell_t data_peek(context_t* ctx) {
-  require(ctx->data_stack_ptr > 0, "Stack underflow");
+  require(ctx, ctx->data_stack_ptr > 0, "Stack underflow");
   return ctx->data_stack[ctx->data_stack_ptr - 1];
 }
 
 // Peek at specific stack position (0 = top, 1 = second from top, etc.)
 cell_t data_peek_at(context_t* ctx, int offset) {
-  require(ctx->data_stack_ptr > offset);  // Bounds check
+  require(ctx, ctx->data_stack_ptr > offset);  // Bounds check
   return ctx->data_stack[ctx->data_stack_ptr - 1 - offset];
 }
 
@@ -31,12 +31,12 @@ int data_depth(context_t* ctx) { return ctx->data_stack_ptr; }
 
 // Return stack operations
 void return_push(context_t* ctx, cell_t value) {
-  require(ctx->return_stack_ptr < RETURN_STACK_SIZE, "Return stack overflow");
+  require(ctx, ctx->return_stack_ptr < RETURN_STACK_SIZE, "Return stack overflow");
   ctx->return_stack[ctx->return_stack_ptr++] = value;
 }
 
 cell_t return_pop(context_t* ctx) {
-  require(ctx->return_stack_ptr > 0, "Return stack underflow");
+  require(ctx, ctx->return_stack_ptr > 0, "Return stack underflow");
   return ctx->return_stack[--ctx->return_stack_ptr];
 }
 

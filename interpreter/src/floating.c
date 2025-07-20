@@ -23,20 +23,20 @@ void float_stack_init(void) { float_stack_ptr = 0; }
 
 // Float stack operations
 void float_push(double value) {
-  require(float_stack_ptr < FLOAT_STACK_SIZE);  // Stack overflow check
+  require(ctx, float_stack_ptr < FLOAT_STACK_SIZE);  // Stack overflow check
   float_stack[float_stack_ptr++] = value;
   debug("Float pushed: %g (depth now %d)", value, float_stack_ptr);
 }
 
 double float_pop(void) {
-  require(float_stack_ptr > 0);  // Stack underflow check
+  require(ctx, float_stack_ptr > 0);  // Stack underflow check
   double value = float_stack[--float_stack_ptr];
   debug("Float popped: %g (depth now %d)", value, float_stack_ptr);
   return value;
 }
 
 double float_peek(void) {
-  require(float_stack_ptr > 0);  // Stack underflow check
+  require(ctx, float_stack_ptr > 0);  // Stack underflow check
   return float_stack[float_stack_ptr - 1];
 }
 
@@ -88,12 +88,14 @@ bool try_parse_float(const char* token, double* result) {
 
 // FDROP ( F: r -- ) Remove top float from stack
 void f_fdrop(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
   float_pop();
 }
 
 // FDUP ( F: r -- r r ) Duplicate top float
 void f_fdup(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
   double r = float_peek();
   float_push(r);
@@ -101,6 +103,7 @@ void f_fdup(context_t* ctx, word_t* self) {
 
 // F+ ( F: r1 r2 -- r3 ) Add two floats
 void f_fplus(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
   double r2 = float_pop();
   double r1 = float_pop();
@@ -109,6 +112,7 @@ void f_fplus(context_t* ctx, word_t* self) {
 
 // F- ( F: r1 r2 -- r3 ) Subtract r2 from r1
 void f_fminus(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
   double r2 = float_pop();
   double r1 = float_pop();
@@ -117,6 +121,7 @@ void f_fminus(context_t* ctx, word_t* self) {
 
 // F* ( F: r1 r2 -- r3 ) Multiply two floats
 void f_fmultiply(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
   double r2 = float_pop();
   double r1 = float_pop();
@@ -125,6 +130,7 @@ void f_fmultiply(context_t* ctx, word_t* self) {
 
 // F/ ( F: r1 r2 -- r3 ) Divide r1 by r2
 void f_fdivide(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
   double r2 = float_pop();
   double r1 = float_pop();
@@ -137,6 +143,7 @@ void f_fdivide(context_t* ctx, word_t* self) {
 
 // F. ( F: r -- ) Display a float and remove from stack
 void f_fdot(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
 
   double value = float_pop();
@@ -181,6 +188,7 @@ void f_fdot(context_t* ctx, word_t* self) {
 // FLIT implementation that reads from instruction stream
 // FLIT ( F: -- r ) Push the float literal value that follows in compiled code
 void f_flit(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
 
   if (ctx->ip == 0) error(ctx, "FLIT called outside colon definition");
