@@ -12,6 +12,12 @@ static CONSOLE_SCREEN_BUFFER_INFO originalConsoleInfo;
 void terminal_raw_mode_enter(void) {
   hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
   GetConsoleScreenBufferInfo(hConsole, &originalConsoleInfo);
+
+  // Enable ANSI escape sequence processing on Windows 10+
+  DWORD mode;
+  if (GetConsoleMode(hConsole, &mode)) {
+    SetConsoleMode(hConsole, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+  }
 }
 
 void terminal_raw_mode_exit(void) {
@@ -85,9 +91,12 @@ key_event_t parse_key_sequence(void) {
     // Read the extended key code
     c = _getch();
     switch (c) {
-      case 3:
-        printf("3");
-        exit(0);
+      case 72:  // Up arrow
+        event.type = KEY_UP;
+        break;
+      case 80:  // Down arrow
+        event.type = KEY_DOWN;
+        break;
       case 75:  // Left arrow
         event.type = KEY_LEFT;
         break;

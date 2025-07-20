@@ -23,6 +23,7 @@ KISForth (Keep It Simple Forth) prioritizes simplicity and correctness over perf
 - **Embedded ready**: Tested on Raspberry Pi Pico with 32KB memory footprint
 - **Debug system**: Optional runtime debug output with zero overhead when disabled
 - **Unit tests**: Comprehensive test suite for validation
+- **Timer interrupts**: Hardware timer support on Pico with isolated interrupt contexts
 
 ## Architecture
 
@@ -42,7 +43,11 @@ kisforth/
 ├── nix/                   # Nix development platform
 │   └── src/main.c         # Nix application entry point
 ├── pico/                  # Raspberry Pi Pico platform
-│   └── src/main.c         # Pico application entry point
+│   ├── src/
+│   │   ├── main.c         # Pico application entry point
+│   │   ├── systick.c      # Timer interrupt system
+│   │   └── ...            # Other platform-specific code
+│   └── include/           # Platform headers
 ├── CMakeLists.txt         # Root build configuration
 └── README.md
 ```
@@ -66,6 +71,16 @@ kisforth/
 - ✅ **Strings**: `S"`, `."`, `COUNT`, `EVALUATE`
 - ✅ **Input system**: `SOURCE`, `>IN`, `ACCEPT`, `QUIT`
 
+### Platform-Specific Extensions
+
+#### Raspberry Pi Pico
+
+- ✅ **GPIO control**: `GPIO-INIT`, `GPIO-OUT`, `GPIO-IN`, `GPIO-PUT`, `GPIO-GET`
+- ✅ **Timing**: `MS`, `US`, `TICKS`
+- ✅ **Timer interrupts**: `SYSTICK-START`, `SYSTICK-STOP`
+- ✅ **WiFi support**: Connection and network management
+- ✅ **Multi-context**: Isolated execution contexts for main program and interrupts
+
 ### Optional Word Sets
 
 - ✅ **Floating-point**: `F+`, `F-`, `F*`, `F/`, `F.`, `FDROP`, `FDUP`, `FLIT`
@@ -77,6 +92,43 @@ kisforth/
 - ✅ **Nix development**: Linux, macOS, Windows (MinGW cross-compilation)
 - ✅ **Raspberry Pi Pico**: Full support with USB serial I/O
 - ✅ **Memory management**: 64KB virtual memory (host), 32KB (Pico)
+
+## Timer Interrupt System
+
+The Pico platform includes a sophisticated timer interrupt system that allows Forth words to be executed at regular
+intervals without interfering with the main program execution.
+
+### Key Features
+
+- **Isolated execution**: Timer interrupts run in their own `context_t` with separate stacks
+- **Non-interfering**: Main program execution continues normally between timer events
+- **Hardware precision**: Uses Pico SDK hardware timers for accurate timing
+- **Simple interface**: Just two words to control timer operation
+
+### Timer Words
+
+- `SYSTICK-START ( interval-ms xt -- )` - Start timer with interval and handler word
+- `SYSTICK-STOP ( -- )` - Stop timer interrupts
+
+### Usage Examples
+
+```forth
+\ Simple heartbeat every 1000ms
+: HEARTBEAT ." tick " TICKS . CR ;
+1000 ' HEARTBEAT SYSTICK-START
+
+\ Blink onboard LED every 500ms
+25 GPIO-INIT 25 GPIO-OUT
+VARIABLE LED-STATE
+: BLINK 25 LED-STATE @ 0= DUP LED-STATE ! GPIO-PUT ;
+500 ' BLINK SYSTICK-START
+
+\ Stop timer
+SYSTICK-STOP
+```
+
+The timer system demonstrates true multi-tasking capability - you can type and execute Forth commands interactively
+while timer interrupts continue to fire in the background.
 
 ## Building
 
@@ -184,6 +236,24 @@ ok> HERE 16 DUMP
 DUMP 0000A120 (16 bytes):
 0000A120: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 |................|
 ok>
+```
+
+### Pico Platform Features
+
+```forth
+\ GPIO control
+25 GPIO-INIT 25 GPIO-OUT    \ Initialize onboard LED
+25 1 GPIO-PUT               \ Turn LED on
+25 0 GPIO-PUT               \ Turn LED off
+
+\ Timing
+1000 MS                     \ Sleep 1 second
+TICKS .                     \ Show milliseconds since boot
+
+\ Timer interrupts
+: BLINK-LED 25 GPIO-GET 0= 25 SWAP GPIO-PUT ;
+500 ' BLINK-LED SYSTICK-START    \ Blink every 500ms
+SYSTICK-STOP                     \ Stop blinking
 ```
 
 ## Development Environment

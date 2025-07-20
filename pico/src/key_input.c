@@ -44,6 +44,12 @@ key_event_t parse_key_sequence(void) {
       // Read the command character
       c = getchar();
       switch (c) {
+        case 'A':
+          event.type = KEY_UP;
+          break;
+        case 'B':
+          event.type = KEY_DOWN;
+          break;
         case 'D':
           event.type = KEY_LEFT;
           break;
