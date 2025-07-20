@@ -82,17 +82,20 @@ void f_words(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
+  int width = 16;
+  int columns = 10;
+
   word_t* word = dictionary_head;
   int count = 0;
 
   printf("\nDictionary words:\n");
   while (word != NULL) {
-    printf("%-12s ", word->name);
+    printf("%-*s ", width, word->name);
     count++;
-    if (count % 10 == 0) printf("\n");  // 6 words per line
+    if (count % columns == 0) printf("\n");  // 6 words per line
     word = word->link;
   }
-  if (count % 10 != 0) printf("\n");
+  if (count % columns != 0) printf("\n");
   printf("\n%d words\n", count);
   fflush(stdout);
 }
