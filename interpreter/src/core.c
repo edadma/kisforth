@@ -1538,6 +1538,76 @@ static void f_constant(context_t* ctx, word_t* self) {
   word->param_type = PARAM_VALUE;  // Mark as value storage
 }
 
+// VALUE runtime behavior: Same as CONSTANT but different function pointer
+static void f_value_runtime(context_t* ctx, word_t* self) {
+  f_constant_runtime(ctx, self);
+}
+
+// VALUE defining word: ( n "name" -- )
+static void f_value(context_t* ctx, word_t* self) {
+  (void)self;
+
+  cell_t value = data_pop(ctx);
+
+  char name_buffer[32];
+  char* name = parse_name(ctx, name_buffer, sizeof(name_buffer));
+  if (!name) error(ctx, "Missing name after 'VALUE'");
+
+  word_t* word =
+      create_primitive_word(name, f_value_runtime);  // Different cfunc!
+  word->param.value = value;
+  word->param_type = PARAM_VALUE;
+}
+
+// Helper runtime word for compiled TO
+static void f_to_runtime(context_t* ctx, word_t* self) {
+  (void)self;
+
+  // Runtime behavior: ( x word_addr -- )
+  // The word address was compiled after the TO runtime word
+  forth_addr_t word_addr = forth_fetch(ctx, ctx->ip);
+  ctx->ip += sizeof(cell_t);
+
+  cell_t new_value = data_pop(ctx);
+  word_t* word = addr_to_ptr(ctx, word_addr);
+
+  // Verify it's a VALUE
+  if (word->cfunc != f_value_runtime) {
+    error(ctx, "'%s' is not a VALUE", word->name);
+  }
+
+  word->param.value = new_value;
+}
+
+// TO primitive: ( n "name" -- )
+static void f_to(context_t* ctx, word_t* self) {
+  (void)self;
+
+  char name_buffer[32];
+  char* name = parse_name(ctx, name_buffer, sizeof(name_buffer));
+  if (!name) error(ctx, "Missing name after 'TO'");
+
+  word_t* word = search_word(name);
+  if (!word) error(ctx, "Word not found: %s", name);
+
+  // Verify it's a VALUE by checking cfunc pointer
+  if (word->cfunc != f_value_runtime) {
+    error(ctx, "'%s' is not a VALUE", name);
+  }
+
+  if (*state_ptr == 0) {
+    // Interpretation: directly modify the VALUE
+    cell_t new_value = data_pop(ctx);
+    word->param.value = new_value;
+  } else {
+    // Compilation: compile runtime code
+    // 1. Compile call to TO runtime helper
+    compile_word(ctx, find_word(ctx, "(TO)"));
+    // 2. Compile the word's address as literal
+    compile_cell(ctx, ptr_to_addr(ctx, word));
+  }
+}
+
 // Create all primitive words - called during system initialization
 void create_primitives(void) {
   create_primitive_word("+", f_plus);
@@ -1638,6 +1708,9 @@ void create_primitives(void) {
 
   create_primitive_word("CONSTANT", f_constant);
   create_primitive_word("CONST", f_constant);  // synonym for CONSTANT
+  create_primitive_word("VALUE", f_value);
+  create_immediate_primitive_word("TO", f_to);
+  create_primitive_word("(TO)", f_to_runtime);
 }
 
 // Built-in Forth definitions (created after primitives are available)
