@@ -37,5 +37,10 @@ void enhanced_get_line(char* buffer, size_t max_len);
 // Terminal control functions (platform-specific)
 void terminal_raw_mode_enter(void);
 void terminal_raw_mode_exit(void);
+void terminal_clear_eol(void);
+void terminal_cursor_left(void);
+void terminal_cursor_right(void);
+void terminal_show_cursor(void);
+void terminal_hide_cursor(void);
 
 #endif  // LINE_EDITOR_H

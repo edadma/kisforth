@@ -5,13 +5,6 @@
 
 #include "text.h"
 
-// Terminal control sequences
-#define CURSOR_SAVE "\033[s"
-#define CURSOR_RESTORE "\033[u"
-#define CURSOR_LEFT "\033[D"
-#define CURSOR_RIGHT "\033[C"
-#define CLEAR_EOL "\033[K"
-
 // Line buffer management functions
 static void insert_char_at_cursor(line_buffer_t *line, char c) {
   if (line->length >= INPUT_BUFFER_SIZE - 1) {
@@ -45,7 +38,7 @@ static void delete_char_at_cursor(line_buffer_t *line) {
 
 static void redraw_from_cursor(line_buffer_t *line) {
   // Clear from cursor to end of line
-  printf(CLEAR_EOL);
+  terminal_clear_eol();
 
   // Print remaining characters from cursor position
   printf("%.*s", (int)(line->length - line->cursor_pos),
@@ -54,7 +47,7 @@ static void redraw_from_cursor(line_buffer_t *line) {
   // Move cursor back to original position
   size_t chars_printed = line->length - line->cursor_pos;
   for (size_t i = 0; i < chars_printed; i++) {
-    printf(CURSOR_LEFT);
+    terminal_cursor_left();
   }
 
   fflush(stdout);
@@ -63,7 +56,7 @@ static void redraw_from_cursor(line_buffer_t *line) {
 static void move_cursor_left(line_buffer_t *line) {
   if (line->cursor_pos > 0) {
     line->cursor_pos--;
-    printf(CURSOR_LEFT);
+    terminal_cursor_left();
     fflush(stdout);
   }
 }
@@ -71,7 +64,7 @@ static void move_cursor_left(line_buffer_t *line) {
 static void move_cursor_right(line_buffer_t *line) {
   if (line->cursor_pos < line->length) {
     line->cursor_pos++;
-    printf(CURSOR_RIGHT);
+    terminal_cursor_right();
     fflush(stdout);
   }
 }
@@ -79,7 +72,7 @@ static void move_cursor_right(line_buffer_t *line) {
 static void move_cursor_to_start(line_buffer_t *line) {
   while (line->cursor_pos > 0) {
     line->cursor_pos--;
-    printf(CURSOR_LEFT);
+    terminal_cursor_left();
   }
   fflush(stdout);
 }
@@ -87,7 +80,7 @@ static void move_cursor_to_start(line_buffer_t *line) {
 static void move_cursor_to_end(line_buffer_t *line) {
   while (line->cursor_pos < line->length) {
     line->cursor_pos++;
-    printf(CURSOR_RIGHT);
+    terminal_cursor_right();
   }
   fflush(stdout);
 }
@@ -96,7 +89,7 @@ static void handle_backspace(line_buffer_t *line) {
   if (line->cursor_pos > 0) {
     delete_char_at_cursor(line);
     // Move cursor back and redraw from new position
-    printf(CURSOR_LEFT);
+    terminal_cursor_left();
     redraw_from_cursor(line);
   }
 }
