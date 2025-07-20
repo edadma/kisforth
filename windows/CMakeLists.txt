@@ -12,16 +12,29 @@ target_include_directories(kisforth PRIVATE
         ${KISFORTH_SHARED_INCLUDES}
 )
 
+# Link with interpreter library (this should already be there)
+target_link_libraries(kisforth PRIVATE kisforth_interpreter)
+
 # Link with interpreter library
 target_link_libraries(kisforth PRIVATE kisforth_interpreter)
 
 # Platform-specific libraries for nix
-if (UNIX AND NOT APPLE)    # Linux - might need readline later
+if (BUILD_FOR_WINDOWS)
+    # Windows-specific settings
+    set_target_properties(kisforth PROPERTIES
+            OUTPUT_NAME "kisforth"
+            SUFFIX ".exe"
+    )
+elseif (UNIX AND NOT APPLE)    # Linux - might need readline later
     # target_link_libraries(kisforth PRIVATE readline)
 endif ()
 
 if (APPLE)
     # macOS specific settings if needed
+endif ()
+
+if (WIN32)
+    # Windows specific settings if needed
 endif ()
 
 # Set executable properties
