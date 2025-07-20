@@ -1507,7 +1507,7 @@ static void f_s_quote(context_t* ctx, word_t* self) {
 }
 
 static void f_backslash(context_t* ctx, word_t* self) {
-  (void)self;  // Unused parameter
+  (void)self;
 
   // Set >IN to the length of the input buffer, effectively skipping
   // the rest of the current line
@@ -1515,6 +1515,27 @@ static void f_backslash(context_t* ctx, word_t* self) {
   forth_store(ctx, to_in_addr, input_length);
 
   debug("Backslash comment: skipped to end of line (>IN=%d)", input_length);
+}
+
+// CONSTANT runtime behavior: Push the value directly (not address)
+static void f_constant_runtime(context_t* ctx, word_t* self) {
+  data_push(ctx, self->param.value);  // Push the constant's value
+}
+
+// CONSTANT defining word: ( n "name" -- )
+static void f_constant(context_t* ctx, word_t* self) {
+  (void)self;
+
+  cell_t value = data_pop(ctx);  // Get value from stack
+
+  char name_buffer[32];
+  char* name = parse_name(ctx, name_buffer, sizeof(name_buffer));
+  if (!name) error(ctx, "Missing name after 'CONSTANT'");
+
+  // Create the constant word
+  word_t* word = create_primitive_word(name, f_constant_runtime);
+  word->param.value = value;       // Store value directly
+  word->param_type = PARAM_VALUE;  // Mark as value storage
 }
 
 // Create all primitive words - called during system initialization
@@ -1614,6 +1635,8 @@ void create_primitives(void) {
   create_primitive_word("ACCEPT", f_accept);
 
   create_immediate_primitive_word("\\", f_backslash);
+
+  create_primitive_word("CONSTANT", f_constant);
 }
 
 // Built-in Forth definitions (created after primitives are available)
