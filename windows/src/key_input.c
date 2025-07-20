@@ -1,16 +1,69 @@
 #include <conio.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <windows.h>
 
 #include "line_editor.h"
 
-// Windows doesn't need special terminal mode setup for _getch()
+static HANDLE hConsole;
+static CONSOLE_SCREEN_BUFFER_INFO originalConsoleInfo;
+
+// Windows console initialization
 void terminal_raw_mode_enter(void) {
-  // No-op on Windows with conio
+  hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+  GetConsoleScreenBufferInfo(hConsole, &originalConsoleInfo);
 }
 
 void terminal_raw_mode_exit(void) {
-  // No-op on Windows with conio
+  // Restore original console state if needed
+  // (Windows console doesn't need explicit restoration like termios)
+}
+
+// Windows Console API terminal control functions
+void terminal_clear_eol(void) {
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  GetConsoleScreenBufferInfo(hConsole, &csbi);
+
+  COORD coord = csbi.dwCursorPosition;
+  DWORD charsWritten;
+  DWORD length = csbi.dwSize.X - coord.X;
+
+  FillConsoleOutputCharacter(hConsole, ' ', length, coord, &charsWritten);
+  SetConsoleCursorPosition(hConsole, coord);
+}
+
+void terminal_cursor_left(void) {
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  GetConsoleScreenBufferInfo(hConsole, &csbi);
+
+  if (csbi.dwCursorPosition.X > 0) {
+    COORD newPos = {csbi.dwCursorPosition.X - 1, csbi.dwCursorPosition.Y};
+    SetConsoleCursorPosition(hConsole, newPos);
+  }
+}
+
+void terminal_cursor_right(void) {
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  GetConsoleScreenBufferInfo(hConsole, &csbi);
+
+  if (csbi.dwCursorPosition.X < csbi.dwSize.X - 1) {
+    COORD newPos = {csbi.dwCursorPosition.X + 1, csbi.dwCursorPosition.Y};
+    SetConsoleCursorPosition(hConsole, newPos);
+  }
+}
+
+void terminal_show_cursor(void) {
+  CONSOLE_CURSOR_INFO cursorInfo;
+  GetConsoleCursorInfo(hConsole, &cursorInfo);
+  cursorInfo.bVisible = TRUE;
+  SetConsoleCursorInfo(hConsole, &cursorInfo);
+}
+
+void terminal_hide_cursor(void) {
+  CONSOLE_CURSOR_INFO cursorInfo;
+  GetConsoleCursorInfo(hConsole, &cursorInfo);
+  cursorInfo.bVisible = FALSE;
+  SetConsoleCursorInfo(hConsole, &cursorInfo);
 }
 
 // Parse Windows key input using _getch()
@@ -18,12 +71,12 @@ key_event_t parse_key_sequence(void) {
   key_event_t event = {0};
   int c = _getch();
 
-  if (c == '\r' || c == '\n') {
+  if (c == '\r') {
     event.type = KEY_ENTER;
     return event;
   }
 
-  if (c == '\b' || c == 127) {
+  if (c == '\b') {
     event.type = KEY_BACKSPACE;
     return event;
   }
@@ -32,6 +85,9 @@ key_event_t parse_key_sequence(void) {
     // Read the extended key code
     c = _getch();
     switch (c) {
+      case 3:
+        printf("3");
+        exit(0);
       case 75:  // Left arrow
         event.type = KEY_LEFT;
         break;
