@@ -31,3 +31,12 @@ set_target_properties(kisforth PROPERTIES
 target_sources(kisforth PRIVATE
         src/key_input.c
 )
+
+if (COPY_EXECUTABLES_TO_ROOT)
+    add_custom_command(TARGET kisforth POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_FILE:kisforth>
+            ${CMAKE_SOURCE_DIR}/kisforth-v${KISFORTH_VERSION}-linux
+            COMMENT "Copying executable to repository root"
+    )
+endif ()
