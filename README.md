@@ -11,124 +11,117 @@ KISForth (Keep It Simple Forth) prioritizes simplicity and correctness over perf
 - **Portable design**: Carefully chosen types and abstractions ensure immediate portability to 32-bit microcontrollers
   like the Raspberry Pi Pico
 - **Standards compliance**: Implements the ANS Forth required word set plus floating-point extensions
-- **Clean architecture**: Separation between interpreter and platform-specific code
+- **Clean architecture**: Separation between interpreter core and platform-specific code
+
+## Quick Start
+
+Pre-built executables are included in the repository root:
+
+- **Linux**: `./kisforth-v0.0.1-linux`
+- **Windows**: `kisforth-v0.0.1-windows.exe`
+- **Raspberry Pi Pico**: `kisforth-v0.0.1-pico.uf2` (drag to Pico in bootloader mode)
+
+Or build from source (see [Building](#building) section).
 
 ## Features
 
-- **ANS Forth Core**: Implements most of the ANS Forth required word set
-- **Floating-point support**: Complete floating-point word set with double-precision arithmetic
-- **Programming tools**: `.S`, `WORDS`, `DUMP`, and other development aids
+- **ANS Forth Core**: Complete implementation of the ANS Forth required word set
+- **Floating-point support**: IEEE 754 double-precision floating-point word set
+- **Programming tools**: `.S`, `WORDS`, `DUMP`, `SEE`, and other development aids
 - **32-bit architecture**: Consistent 32-bit integers and addresses across platforms
 - **Cross-platform build**: CMake-based build system with platform selection
 - **Embedded ready**: Tested on Raspberry Pi Pico with 32KB memory footprint
 - **Debug system**: Optional runtime debug output with zero overhead when disabled
 - **Unit tests**: Comprehensive test suite for validation
-- **Timer interrupts**: Hardware timer support on Pico with isolated interrupt contexts
+- **Timer interrupts**: Hardware timer support on Pico with isolated execution contexts
+- **WiFi support**: Network connectivity and LED control on Pico W
 
 ## Architecture
 
 ```
 kisforth/
-├── interpreter/           # Shared Forth interpreter
+├── interpreter/           # Shared Forth interpreter core
 │   ├── src/
+│   │   ├── forth.c        # Core execution engine and context management
 │   │   ├── core.c         # ANS Forth Core word set
-│   │   ├── dictionary.c   # Dictionary management
-│   │   ├── text.c         # Text interpreter
-│   │   ├── memory.c       # Memory management
-│   │   ├── stack.c        # Stack operations
+│   │   ├── dictionary.c   # Dictionary management and word lookup
+│   │   ├── text.c         # Text interpreter and input processing
+│   │   ├── memory.c       # Virtual memory management
+│   │   ├── stack.c        # Data and return stack operations
 │   │   ├── floating.c     # Floating-point word set
 │   │   ├── tools.c        # Programming tools word set
-│   │   └── test.c         # Unit testing framework
+│   │   ├── test.c         # Unit testing framework
+│   │   ├── repl.c         # Read-eval-print loop
+│   │   └── ...            # Additional core modules
 │   └── include/           # Public headers
-├── nix/                   # Nix development platform
-│   └── src/main.c         # Nix application entry point
+├── shared/                # Shared application code
+│   ├── src/startup.c      # System initialization
+│   └── include/           # Shared headers
+├── nix/                   # Unix/Linux/macOS platform
+│   └── src/
+│       ├── main.c         # Platform entry point
+│       └── key_input.c    # Platform-specific input handling
+├── windows/               # Windows platform
+│   └── src/
+│       ├── main.c         # Platform entry point
+│       └── key_input.c    # Platform-specific input handling
 ├── pico/                  # Raspberry Pi Pico platform
 │   ├── src/
-│   │   ├── main.c         # Pico application entry point
+│   │   ├── main.c         # Platform entry point
 │   │   ├── systick.c      # Timer interrupt system
-│   │   └── ...            # Other platform-specific code
+│   │   ├── wifi_support.c # WiFi connectivity
+│   │   ├── wifi_words.c   # WiFi-related Forth words
+│   │   └── stdlib_words.c # GPIO and timing words
 │   └── include/           # Platform headers
 ├── CMakeLists.txt         # Root build configuration
+├── kisforth-v0.0.1-linux          # Pre-built Linux executable
+├── kisforth-v0.0.1-windows.exe    # Pre-built Windows executable
+├── kisforth-v0.0.1-pico.uf2       # Pre-built Pico firmware
 └── README.md
 ```
 
-## Current Implementation Status
+## Implementation Status
 
-### Core Word Set
+### Core Word Set (✅ Complete)
 
-- ✅ **Arithmetic**: `+`, `-`, `*`, `/`, `MOD`, `ABS`, `NEGATE`, `M*`, `SM/REM`, `FM/MOD`
-- ✅ **Stack manipulation**: `DROP`, `DUP`, `SWAP`, `ROT`, `OVER`, `PICK`, `ROLL`
-- ✅ **Memory access**: `@`, `!`, `C@`, `C!`, `+!`, `2@`, `2!`
-- ✅ **Comparison**: `=`, `<`, `>`, `0=`, `0<`, `U<`
-- ✅ **Logic**: `AND`, `OR`, `XOR`, `INVERT`
-- ✅ **Memory allocation**: `HERE`, `ALLOT`, `,`, `C,`, `ALIGN`, `ALIGNED`
-- ✅ **I/O**: `EMIT`, `KEY`, `TYPE`, `.`, `CR`, `SPACE`, `SPACES`
-- ✅ **Return stack**: `>R`, `R>`, `R@`
-- ✅ **Control flow**: `IF`/`THEN`/`ELSE`, `DO`/`LOOP`, `BEGIN`/`WHILE`/`REPEAT`
-- ✅ **Compilation**: `:`, `;`, `IMMEDIATE`, `[`, `]`, `LITERAL`
-- ✅ **Dictionary**: `'`, `EXECUTE`, `FIND`, `WORD`, `CREATE`, `DOES>`
-- ✅ **Variables**: `VARIABLE`, `CONSTANT`, `STATE`, `BASE`
-- ✅ **Strings**: `S"`, `."`, `COUNT`, `EVALUATE`
-- ✅ **Input system**: `SOURCE`, `>IN`, `ACCEPT`, `QUIT`
+- **Arithmetic**: `+`, `-`, `*`, `/`, `MOD`, `ABS`, `NEGATE`, `M*`, `SM/REM`, `FM/MOD`
+- **Stack manipulation**: `DROP`, `DUP`, `SWAP`, `ROT`, `OVER`, `PICK`, `ROLL`
+- **Memory access**: `@`, `!`, `C@`, `C!`, `+!`, `2@`, `2!`
+- **Comparison**: `=`, `<`, `>`, `0=`, `0<`, `U<`
+- **Logic**: `AND`, `OR`, `XOR`, `INVERT`
+- **Memory allocation**: `HERE`, `ALLOT`, `,`, `C,`, `ALIGN`, `ALIGNED`
+- **I/O**: `EMIT`, `KEY`, `TYPE`, `.`, `CR`, `SPACE`, `SPACES`
+- **Return stack**: `>R`, `R>`, `R@`
+- **Control flow**: `IF`/`THEN`/`ELSE`, `DO`/`LOOP`, `BEGIN`/`WHILE`/`REPEAT`
+- **Compilation**: `:`, `;`, `IMMEDIATE`, `[`, `]`, `LITERAL`
+- **Dictionary**: `'`, `EXECUTE`, `FIND`, `WORD`, `CREATE`, `DOES>`
+- **Variables**: `VARIABLE`, `CONSTANT`, `STATE`, `BASE`
+- **Strings**: `S"`, `."`, `COUNT`, `EVALUATE`
+- **Input system**: `SOURCE`, `>IN`, `ACCEPT`, `QUIT`
+
+### Optional Word Sets (✅ Complete)
+
+- **Floating-point**: `F+`, `F-`, `F*`, `F/`, `F.`, `FDROP`, `FDUP`, `FLIT`
+- **Programming tools**: `.S`, `WORDS`, `DUMP`, `?`, `SEE` (stub), `UNUSED`
+- **System**: `BYE`, `ABORT`, `ABORT"`
 
 ### Platform-Specific Extensions
 
-#### Raspberry Pi Pico
+#### Raspberry Pi Pico (✅ Complete)
 
-- ✅ **GPIO control**: `GPIO-INIT`, `GPIO-OUT`, `GPIO-IN`, `GPIO-PUT`, `GPIO-GET`
-- ✅ **Timing**: `MS`, `US`, `TICKS`
-- ✅ **Timer interrupts**: `SYSTICK-START`, `SYSTICK-STOP`
-- ✅ **WiFi support**: Connection and network management
-- ✅ **Multi-context**: Isolated execution contexts for main program and interrupts
+- **GPIO control**: `GPIO-INIT`, `GPIO-OUT`, `GPIO-IN`, `GPIO-PUT`, `GPIO-GET`
+- **Timing**: `MS`, `US`, `TICKS`
+- **Timer interrupts**: `SYSTICK-START`, `SYSTICK-STOP`
+- **WiFi support**: `WIFI-INIT`, `WIFI-CONNECT`, `WIFI-STATUS`, `WIFI-CONNECTED?`, `WIFI-DISCONNECT`
+- **LED control**: `LED-ON`, `LED-OFF`, `LED-TOGGLE`
+- **Multi-context**: Isolated execution contexts for main program and timer interrupts
 
-### Optional Word Sets
+### Development Features (✅ Complete)
 
-- ✅ **Floating-point**: `F+`, `F-`, `F*`, `F/`, `F.`, `FDROP`, `FDUP`, `FLIT`
-- ✅ **Programming tools**: `.S`, `WORDS`, `DUMP`, `?`, `SEE` (stub)
-- ✅ **System**: `BYE`, `ABORT`, `ABORT"`
-
-### Platform Support
-
-- ✅ **Nix development**: Linux, macOS, Windows (MinGW cross-compilation)
-- ✅ **Raspberry Pi Pico**: Full support with USB serial I/O
-- ✅ **Memory management**: 64KB virtual memory (host), 32KB (Pico)
-
-## Timer Interrupt System
-
-The Pico platform includes a sophisticated timer interrupt system that allows Forth words to be executed at regular
-intervals without interfering with the main program execution.
-
-### Key Features
-
-- **Isolated execution**: Timer interrupts run in their own `context_t` with separate stacks
-- **Non-interfering**: Main program execution continues normally between timer events
-- **Hardware precision**: Uses Pico SDK hardware timers for accurate timing
-- **Simple interface**: Just two words to control timer operation
-
-### Timer Words
-
-- `SYSTICK-START ( interval-ms xt -- )` - Start timer with interval and handler word
-- `SYSTICK-STOP ( -- )` - Stop timer interrupts
-
-### Usage Examples
-
-```forth
-\ Simple heartbeat every 1000ms
-: HEARTBEAT ." tick " TICKS . CR ;
-1000 ' HEARTBEAT SYSTICK-START
-
-\ Blink onboard LED every 500ms
-25 GPIO-INIT 25 GPIO-OUT
-VARIABLE LED-STATE
-: BLINK 25 LED-STATE @ 0= DUP LED-STATE ! GPIO-PUT ;
-500 ' BLINK SYSTICK-START
-
-\ Stop timer
-SYSTICK-STOP
-```
-
-The timer system demonstrates true multi-tasking capability - you can type and execute Forth commands interactively
-while timer interrupts continue to fire in the background.
+- **Unit testing**: Comprehensive test framework with `TEST` command
+- **Debug system**: Runtime debug output (`DEBUG-ON`/`DEBUG-OFF`)
+- **Memory inspection**: `DUMP`, `WORDS`, `.S` for examining system state
+- **Cross-compilation**: Support for Linux, Windows, and Pico targets
 
 ## Building
 
@@ -137,45 +130,54 @@ while timer interrupts continue to fire in the background.
 - CMake 3.13 or higher
 - GCC (recommended for consistency with Pico's arm-none-eabi-gcc)
 - For Pico builds: [Pico SDK](https://github.com/raspberrypi/pico-sdk)
+- For Windows cross-compilation: MinGW-w64 (`apt install gcc-mingw-w64`)
 
-### Nix Development Build (Default)
+### Quick Build (Linux/macOS)
 
 ```bash
-mkdir build
-cd build
+mkdir build && cd build
 cmake ..
 make
 ```
 
-### Raspberry Pi Pico Build
+### Platform-Specific Builds
+
+#### Raspberry Pi Pico
 
 ```bash
 export PICO_SDK_PATH=/path/to/pico-sdk
-mkdir build-pico
-cd build-pico
+mkdir build-pico && cd build-pico
 cmake -DBUILD_FOR_PICO=ON ..
 make
 ```
 
 This generates a `.uf2` file that can be dragged onto the Pico when in bootloader mode.
 
-### Debug Build
+#### Windows Cross-Compilation (from Linux)
 
 ```bash
-mkdir build-debug
-cd build-debug
-cmake -DENABLE_DEBUG=ON ..
+mkdir build-windows && cd build-windows
+cmake -DBUILD_FOR_WINDOWS=ON ..
 make
 ```
 
 ### Build Options
 
 - `BUILD_FOR_PICO=ON` - Build for Raspberry Pi Pico
-- `BUILD_FOR_WINDOWS=ON` - Cross-compile for Windows
+- `BUILD_FOR_WINDOWS=ON` - Cross-compile for Windows (requires MinGW-w64)
 - `ENABLE_DEBUG=ON` - Enable debug output (default: ON)
 - `ENABLE_TESTS=ON` - Enable unit tests (default: ON)
 - `ENABLE_FLOATING=ON` - Enable floating-point word set (default: ON)
 - `ENABLE_TOOLS=ON` - Enable programming tools (default: ON)
+- `COPY_EXECUTABLES_TO_ROOT=ON` - Copy built executables to repository root (default: ON)
+
+### Debug Build
+
+```bash
+mkdir build-debug && cd build-debug
+cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_DEBUG=ON ..
+make
+```
 
 ## Usage
 
@@ -187,7 +189,14 @@ make
 
 ```forth
 KISForth v0.0.1 - Nix Development Version
-Memory size: 65536 bytes
+Memory: 65536 bytes allocated
+Extensions: [FLOAT] [TOOLS] [TESTS] [DEBUG]
+
+Type 'WORDS' to see available commands
+Type 'TEST' to run unit tests
+Type 'BYE' to exit
+
+Ready.
 ok> 42 43 +
 ok> .
 85 ok> 
@@ -212,7 +221,7 @@ CREATE       VARIABLE     0BRANCH      BRANCH
 ./kisforth test
 ```
 
-Runs the built-in unit test suite.
+Runs the built-in unit test suite, validating core functionality.
 
 ### Floating-Point Support
 
@@ -223,6 +232,10 @@ ok> F.
 
 ok> 1.0 2.0 F/ F.
 0.5 ok>
+
+ok> : CIRCLE-AREA ( radius -- area ) FDUP F* 3.14159 F* ;
+ok> 5.0 CIRCLE-AREA F.
+78.5398 ok>
 ```
 
 ### Programming Tools
@@ -236,25 +249,101 @@ ok> HERE 16 DUMP
 DUMP 0000A120 (16 bytes):
 0000A120: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 |................|
 ok>
+
+ok> UNUSED .
+49152 ok>
 ```
 
 ### Pico Platform Features
 
+#### GPIO Control
+
 ```forth
-\ GPIO control
-25 GPIO-INIT 25 GPIO-OUT    \ Initialize onboard LED
+\ Initialize and control onboard LED (GPIO 25)
+25 GPIO-INIT 25 GPIO-OUT    \ Initialize as output
 25 1 GPIO-PUT               \ Turn LED on
 25 0 GPIO-PUT               \ Turn LED off
 
-\ Timing
-1000 MS                     \ Sleep 1 second
-TICKS .                     \ Show milliseconds since boot
-
-\ Timer interrupts
-: BLINK-LED 25 GPIO-GET 0= 25 SWAP GPIO-PUT ;
-500 ' BLINK-LED SYSTICK-START    \ Blink every 500ms
-SYSTICK-STOP                     \ Stop blinking
+\ Read external input
+2 GPIO-INIT 2 GPIO-IN       \ Initialize GPIO 2 as input
+2 GPIO-GET .                \ Read current state
 ```
+
+#### Timing and Sleep
+
+```forth
+1000 MS                     \ Sleep 1 second
+500 US                      \ Sleep 500 microseconds
+TICKS .                     \ Show milliseconds since boot
+```
+
+#### Timer Interrupt System
+
+The Pico platform includes sophisticated timer interrupt support that allows Forth words to execute at regular intervals
+without interfering with main program execution:
+
+```forth
+\ Simple heartbeat every 1000ms
+: HEARTBEAT ." tick " TICKS . CR ;
+1000 ' HEARTBEAT SYSTICK-START
+
+\ Blink onboard LED every 500ms
+25 GPIO-INIT 25 GPIO-OUT
+VARIABLE LED-STATE
+: BLINK 25 LED-STATE @ 0= DUP LED-STATE ! GPIO-PUT ;
+500 ' BLINK SYSTICK-START
+
+\ Stop timer
+SYSTICK-STOP
+```
+
+The timer system demonstrates true multi-tasking capability - you can type and execute Forth commands interactively
+while timer interrupts continue to fire in the background.
+
+#### WiFi Support (Pico W)
+
+```forth
+\ Initialize WiFi
+WIFI-INIT .                 \ Returns true if successful
+
+\ Connect to network (example with string literals)
+S" MyNetwork" S" MyPassword" WIFI-CONNECT .
+
+\ Check connection status
+WIFI-CONNECTED? .           \ Returns true if connected
+WIFI-STATUS                 \ Print detailed status
+
+\ Control onboard LED (requires WiFi init)
+LED-ON                      \ Turn on onboard LED
+LED-OFF                     \ Turn off onboard LED
+LED-TOGGLE                  \ Toggle LED state
+```
+
+## Technical Details
+
+### Memory Architecture
+
+- **Virtual memory**: All Forth addresses are 32-bit offsets into a unified memory space
+- **Portability**: Same address space on both 32-bit and 64-bit host systems
+- **Memory sizes**: 64KB on development platforms, 32KB on Pico
+- **Cell size**: 32-bit signed integers throughout
+
+### Context System
+
+KISForth uses a context-based execution model that enables advanced features like timer interrupts:
+
+- **Main context**: Interactive REPL and user programs
+- **Interrupt contexts**: Isolated execution for timer callbacks
+- **Separate stacks**: Each context has its own data, return, and float stacks
+- **Memory isolation**: Contexts share dictionary but have separate transient areas
+
+### Build System Features
+
+- **Platform detection**: Automatic selection between nix/Windows/Pico targets
+- **Optional features**: Compile-time selection of word sets and debug features
+- **Cross-compilation**: Full Windows cross-compilation support from Linux
+- **Executable generation**: Automatic copying of built executables to repository root
+- **Version management**: Unified version numbering across all platforms
 
 ## Development Environment
 
@@ -291,6 +380,20 @@ This project emphasizes clarity and correctness. When contributing:
 - Clear variable names (avoid abbreviations)
 - Comprehensive error checking
 - Debug output for tracing execution
+
+## Version History
+
+### v0.0.1 (Current)
+
+- Complete ANS Forth core word set implementation
+- Floating-point word set with IEEE 754 double precision
+- Programming tools word set
+- Multi-platform build system (Linux, Windows, Pico)
+- Timer interrupt system for Pico
+- WiFi support for Pico W
+- Comprehensive unit test framework
+- Debug system with runtime control
+- Pre-built executables for all platforms
 
 ## License
 
