@@ -56,7 +56,7 @@ if (BUILD_FOR_PICO)
     )
 else ()
     target_compile_definitions(kisforth_interpreter PUBLIC
-            FORTH_TARGET_HOST=1
+            FORTH_TARGET_NIX=1
     )
 endif ()
 

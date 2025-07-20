@@ -39,8 +39,8 @@ kisforth/
 │   │   ├── tools.c        # Programming tools word set
 │   │   └── test.c         # Unit testing framework
 │   └── include/           # Public headers
-├── host/                  # Host development platform
-│   └── src/main.c         # Host application entry point
+├── nix/                   # Nix development platform
+│   └── src/main.c         # Nix application entry point
 ├── pico/                  # Raspberry Pi Pico platform
 │   └── src/main.c         # Pico application entry point
 ├── CMakeLists.txt         # Root build configuration
@@ -74,7 +74,7 @@ kisforth/
 
 ### Platform Support
 
-- ✅ **Host development**: Linux, macOS, Windows (MinGW cross-compilation)
+- ✅ **Nix development**: Linux, macOS, Windows (MinGW cross-compilation)
 - ✅ **Raspberry Pi Pico**: Full support with USB serial I/O
 - ✅ **Memory management**: 64KB virtual memory (host), 32KB (Pico)
 
@@ -86,7 +86,7 @@ kisforth/
 - GCC (recommended for consistency with Pico's arm-none-eabi-gcc)
 - For Pico builds: [Pico SDK](https://github.com/raspberrypi/pico-sdk)
 
-### Host Development Build (Default)
+### Nix Development Build (Default)
 
 ```bash
 mkdir build
@@ -134,7 +134,7 @@ make
 ```
 
 ```forth
-KISForth v0.0.1 - Host Development Version
+KISForth v0.0.1 - Nix Development Version
 Memory size: 65536 bytes
 ok> 42 43 +
 ok> .

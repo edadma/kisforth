@@ -1,7 +1,7 @@
 # Include shared application code
 include(../shared/CMakeLists.txt)
 
-# Host version of KISForth
+# Nix version of KISForth
 add_executable(kisforth
         src/main.c
         ${KISFORTH_SHARED_SOURCES}  # Add this line
@@ -18,7 +18,7 @@ target_link_libraries(kisforth PRIVATE kisforth_interpreter)
 # Link with interpreter library
 target_link_libraries(kisforth PRIVATE kisforth_interpreter)
 
-# Platform-specific libraries for host
+# Platform-specific libraries for nix
 if (BUILD_FOR_WINDOWS)
     # Windows-specific settings
     set_target_properties(kisforth PROPERTIES

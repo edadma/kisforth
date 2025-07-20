@@ -39,7 +39,7 @@ void print_startup_banner(const char* platform_name) {
   printf("Type 'TEST' to run unit tests\n");
 #endif
 
-#ifdef FORTH_TARGET_HOST
+#ifdef FORTH_TARGET_NIX
   printf("Type 'BYE' to exit\n");
 #endif
 

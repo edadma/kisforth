@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
     printf("Running tests...\n\n");
     execute_word(&main_context, test_word);
   } else {
-    print_startup_banner("Host Development");
+    print_startup_banner("Nix Development");
     repl();
   }
 
