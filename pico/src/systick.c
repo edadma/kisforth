@@ -10,7 +10,7 @@
 
 // Global state for SysTick timer
 static context_t systick_context;
-static cell_t handler_xt = 0;     // Execution token of handler word
+static word_t* handler_word = 0;  // pointer to handler word
 static uint32_t interval_ms = 0;  // Timer interval in milliseconds
 static repeating_timer_t timer;   // Pico SDK timer structure
 static bool timer_running = false;
@@ -20,14 +20,8 @@ static bool systick_callback(repeating_timer_t* rt) {
   (void)rt;  // Unused parameter
 
   // Only execute if we have a valid handler
-  if (handler_xt != 0) {
-    // Find the word in the dictionary
-    word_t* handler_word = (word_t*)handler_xt;
-
-    // Execute the handler in the SysTick context
-    if (handler_word && handler_word->cfunc) {
-      handler_word->cfunc(&systick_context, handler_word);
-    }
+  if (handler_word) {
+    execute_word(&systick_context, handler_word);
   }
 
   return true;  // Keep repeating
@@ -39,7 +33,7 @@ void systick_init(void) {
   context_init(&systick_context, "SYSTICK_IRQ", true);
 
   // Initialize global state
-  handler_xt = 0;
+  handler_word = NULL;
   interval_ms = 0;
   timer_running = false;
 
@@ -68,7 +62,7 @@ static void f_systick_start(context_t* ctx, word_t* self) {
   }
 
   // Store new settings
-  handler_xt = xt;
+  handler_word = addr_to_ptr(NULL, xt);
   interval_ms = (uint32_t)interval;
 
   // Start the timer
@@ -78,7 +72,7 @@ static void f_systick_start(context_t* ctx, word_t* self) {
     printf("SysTick started: %lu ms interval\n", interval_ms);
   } else {
     printf("SysTick failed to start\n");
-    handler_xt = 0;
+    handler_word = NULL;
     interval_ms = 0;
   }
 }
@@ -92,7 +86,7 @@ static void f_systick_stop(context_t* ctx, word_t* self) {
   if (timer_running) {
     cancel_repeating_timer(&timer);
     timer_running = false;
-    handler_xt = 0;
+    handler_word = NULL;
     interval_ms = 0;
     printf("SysTick stopped\n");
   } else {
