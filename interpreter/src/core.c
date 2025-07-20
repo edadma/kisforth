@@ -1501,6 +1501,17 @@ void f_s_quote(context_t* ctx, word_t* self) {
   }
 }
 
+static void f_backslash(context_t* ctx, word_t* self) {
+  (void)self;  // Unused parameter
+
+  // Set >IN to the length of the input buffer, effectively skipping
+  // the rest of the current line
+  cell_t input_length = forth_fetch(ctx, input_length_addr);
+  forth_store(ctx, to_in_addr, input_length);
+
+  debug("Backslash comment: skipped to end of line (>IN=%d)", input_length);
+}
+
 // Create all primitive words - called during system initialization
 void create_all_primitives(void) {
   create_primitive_word("+", f_plus);
@@ -1596,6 +1607,8 @@ void create_all_primitives(void) {
 
   create_primitive_word("WORD", f_word);
   create_primitive_word("ACCEPT", f_accept);
+
+  create_immediate_primitive_word("\\", f_backslash);
 }
 
 // Built-in Forth definitions (created after primitives are available)
