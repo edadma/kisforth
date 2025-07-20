@@ -73,6 +73,8 @@ add_subdirectory(interpreter)
 # Platform-specific executables
 if (BUILD_FOR_PICO)
     add_subdirectory(pico)
+elseif (BUILD_FOR_WINDOWS)
+    add_subdirectory(windows)
 else ()
     add_subdirectory(nix)
 endif ()
