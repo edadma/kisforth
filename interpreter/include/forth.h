@@ -15,14 +15,14 @@ typedef uint32_t forth_addr_t;  // Forth address (always 32-bit)
 #define RETURN_STACK_SIZE 256
 #define PAD_SIZE 1024
 #define WORD_BUFFER_SIZE 33
-#define PICTURED_BUFFER_SIZE 66
+#define PICTURED_BUFFER_SIZE 70
 
 #ifdef FORTH_ENABLE_FLOATING
 #define FLOAT_STACK_SIZE 32
 #endif
 
 // Execution context structure
-typedef struct forth {
+typedef struct context {
   // Execution state
   forth_addr_t ip;
 
