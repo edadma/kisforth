@@ -79,7 +79,7 @@ static loop_frame_t pop_loop_frame(context_t* ctx) {
 // Arithmetic primitives - these operate on the data stack
 
 // + ( n1 n2 -- n3 )  Add n1 and n2, leaving sum n3
-void f_plus(context_t* ctx, word_t* self) {
+static void f_plus(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)ctx;
   (void)self;
@@ -90,7 +90,7 @@ void f_plus(context_t* ctx, word_t* self) {
 }
 
 // - ( n1 n2 -- n3 )  Subtract n2 from n1, leaving difference n3
-void f_minus(context_t* ctx, word_t* self) {
+static void f_minus(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -100,7 +100,7 @@ void f_minus(context_t* ctx, word_t* self) {
 }
 
 // * ( n1 n2 -- n3 )  Multiply n1 by n2, leaving product n3
-void f_multiply(context_t* ctx, word_t* self) {
+static void f_multiply(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -110,7 +110,7 @@ void f_multiply(context_t* ctx, word_t* self) {
 }
 
 // / ( n1 n2 -- n3 )  Divide n1 by n2, leaving quotient n3
-void f_divide(context_t* ctx, word_t* self) {
+static void f_divide(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -123,7 +123,7 @@ void f_divide(context_t* ctx, word_t* self) {
 }
 
 // DROP ( x -- )  Remove x from the stack
-void f_drop(context_t* ctx, word_t* self) {
+static void f_drop(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -131,7 +131,7 @@ void f_drop(context_t* ctx, word_t* self) {
 }
 
 // SOURCE ( -- c-addr u )  Return input buffer address and length
-void f_source(context_t* ctx, word_t* self) {
+static void f_source(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -142,7 +142,7 @@ void f_source(context_t* ctx, word_t* self) {
 }
 
 // >IN ( -- addr )  Return address of >IN variable
-void f_to_in(context_t* ctx, word_t* self) {
+static void f_to_in(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -150,7 +150,7 @@ void f_to_in(context_t* ctx, word_t* self) {
 }
 
 // . ( n -- ) Print and remove top stack item (BASE-aware)
-void f_dot(context_t* ctx, word_t* self) {
+static void f_dot(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -168,7 +168,7 @@ void f_dot(context_t* ctx, word_t* self) {
 }
 
 // ! ( x addr -- )  Store x at addr
-void f_store(context_t* ctx, word_t* self) {
+static void f_store(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -178,7 +178,7 @@ void f_store(context_t* ctx, word_t* self) {
 }
 
 // @ ( addr -- x )  Fetch value from addr
-void f_fetch(context_t* ctx, word_t* self) {
+static void f_fetch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -188,7 +188,7 @@ void f_fetch(context_t* ctx, word_t* self) {
 }
 
 // C! ( char addr -- )  Store char at addr
-void f_c_store(context_t* ctx, word_t* self) {
+static void f_c_store(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -198,7 +198,7 @@ void f_c_store(context_t* ctx, word_t* self) {
 }
 
 // C@ ( addr -- char )  Fetch char from addr
-void f_c_fetch(context_t* ctx, word_t* self) {
+static void f_c_fetch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -211,7 +211,7 @@ void f_c_fetch(context_t* ctx, word_t* self) {
 // flags
 
 // = ( x1 x2 -- flag )  Return true if x1 equals x2
-void f_equals(context_t* ctx, word_t* self) {
+static void f_equals(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -224,7 +224,7 @@ void f_equals(context_t* ctx, word_t* self) {
 }
 
 // < ( x1 x2 -- flag )  Return true if x1 is less than x2 (signed comparison)
-void f_less_than(context_t* ctx, word_t* self) {
+static void f_less_than(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -237,7 +237,7 @@ void f_less_than(context_t* ctx, word_t* self) {
 }
 
 // 0= ( x -- flag )  Return true if x equals zero
-void f_zero_equals(context_t* ctx, word_t* self) {
+static void f_zero_equals(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -249,7 +249,7 @@ void f_zero_equals(context_t* ctx, word_t* self) {
 }
 
 // SWAP ( x1 x2 -- x2 x1 )  Exchange the top two stack items
-void f_swap(context_t* ctx, word_t* self) {
+static void f_swap(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -260,7 +260,7 @@ void f_swap(context_t* ctx, word_t* self) {
 }
 
 // ROT ( x1 x2 x3 -- x2 x3 x1 )  Rotate third item to top
-void f_rot(context_t* ctx, word_t* self) {
+static void f_rot(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -274,7 +274,7 @@ void f_rot(context_t* ctx, word_t* self) {
 
 // PICK ( xu ... x1 x0 u -- xu ... x1 x0 xu )  Copy u-th stack item to top
 // 0 PICK is equivalent to DUP, 1 PICK is equivalent to OVER
-void f_pick(context_t* ctx, word_t* self) {
+static void f_pick(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -290,7 +290,7 @@ void f_pick(context_t* ctx, word_t* self) {
 }
 
 // HERE ( -- addr )  Return the current data space pointer
-void f_here(context_t* ctx, word_t* self) {
+static void f_here(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -298,7 +298,7 @@ void f_here(context_t* ctx, word_t* self) {
 }
 
 // ALLOT ( n -- )  Allocate n bytes of data space
-void f_allot(context_t* ctx, word_t* self) {
+static void f_allot(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -316,7 +316,7 @@ void f_allot(context_t* ctx, word_t* self) {
 }
 
 // , ( x -- )  Store cell at HERE and advance HERE by one cell
-void f_comma(context_t* ctx, word_t* self) {
+static void f_comma(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -334,7 +334,7 @@ void f_comma(context_t* ctx, word_t* self) {
 
 // : (colon) - start colon definition
 // ( C: "<spaces>name" -- colon-sys )
-void f_colon(context_t* ctx, word_t* self) {
+static void f_colon(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -349,7 +349,7 @@ void f_colon(context_t* ctx, word_t* self) {
 
 // ; (semicolon) - end colon definition
 // Compilation: ( C: colon-sys -- )
-void f_semicolon(context_t* ctx, word_t* self) {
+static void f_semicolon(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -370,7 +370,7 @@ void f_semicolon(context_t* ctx, word_t* self) {
 
 // EXIT - return from colon definition using return stack
 // Run-time: ( -- ) ( R: nest-sys -- )
-void f_exit(context_t* ctx, word_t* self) {
+static void f_exit(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -390,7 +390,7 @@ void f_exit(context_t* ctx, word_t* self) {
 
 // LIT implementation that reads from instruction stream
 // LIT ( -- x ) Push the literal value that follows in compiled code
-void f_lit(context_t* ctx, word_t* self) {
+static void f_lit(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -409,7 +409,7 @@ void f_lit(context_t* ctx, word_t* self) {
 // SM/REM ( d1 n1 -- n2 n3 )  Symmetric division primitive (rounds toward zero)
 // d1 is double-cell dividend, n1 is single-cell divisor
 // n2 is remainder (sign of dividend), n3 is quotient (truncated)
-void f_sm_rem(context_t* ctx, word_t* self) {
+static void f_sm_rem(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -441,7 +441,7 @@ void f_sm_rem(context_t* ctx, word_t* self) {
 // FM/MOD ( d1 n1 -- n2 n3 )  Floored division primitive (rounds toward negative
 // infinity) d1 is double-cell dividend, n1 is single-cell divisor n2 is
 // remainder (sign of divisor), n3 is quotient (floored)
-void f_fm_mod(context_t* ctx, word_t* self) {
+static void f_fm_mod(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -480,7 +480,7 @@ void f_fm_mod(context_t* ctx, word_t* self) {
 // Bitwise logical operations - operate on the data stack
 
 // AND ( x1 x2 -- x3 )  Bitwise logical AND of x1 with x2
-void f_and(context_t* ctx, word_t* self) {
+static void f_and(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -491,7 +491,7 @@ void f_and(context_t* ctx, word_t* self) {
 }
 
 // OR ( x1 x2 -- x3 )  Bitwise inclusive-or of x1 with x2
-void f_or(context_t* ctx, word_t* self) {
+static void f_or(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -502,7 +502,7 @@ void f_or(context_t* ctx, word_t* self) {
 }
 
 // XOR ( x1 x2 -- x3 )  Bitwise exclusive-or of x1 with x2
-void f_xor(context_t* ctx, word_t* self) {
+static void f_xor(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -513,7 +513,7 @@ void f_xor(context_t* ctx, word_t* self) {
 }
 
 // INVERT ( x1 -- x2 )  Bitwise logical inversion of x1
-void f_invert(context_t* ctx, word_t* self) {
+static void f_invert(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -525,7 +525,7 @@ void f_invert(context_t* ctx, word_t* self) {
 // I/O primitives - operate on the data stack and provide character I/O
 
 // EMIT ( char -- )  Output character to the user output device
-void f_emit(context_t* ctx, word_t* self) {
+static void f_emit(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -540,7 +540,7 @@ void f_emit(context_t* ctx, word_t* self) {
 }
 
 // KEY ( -- char )  Input character from the user input device
-void f_key(context_t* ctx, word_t* self) {
+static void f_key(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -557,7 +557,7 @@ void f_key(context_t* ctx, word_t* self) {
 }
 
 // TYPE ( c-addr u -- )  Output u characters from string at c-addr
-void f_type(context_t* ctx, word_t* self) {
+static void f_type(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -587,7 +587,7 @@ void f_type(context_t* ctx, word_t* self) {
 // arithmetic
 
 // >R ( x -- ) ( R: -- x )  Transfer x from data stack to return stack
-void f_to_r(context_t* ctx, word_t* self) {
+static void f_to_r(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -596,7 +596,7 @@ void f_to_r(context_t* ctx, word_t* self) {
 }
 
 // R> ( -- x ) ( R: x -- )  Transfer x from return stack to data stack
-void f_r_from(context_t* ctx, word_t* self) {
+static void f_r_from(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -605,7 +605,7 @@ void f_r_from(context_t* ctx, word_t* self) {
 }
 
 // R@ ( -- x ) ( R: x -- x )  Copy top of return stack to data stack
-void f_r_fetch(context_t* ctx, word_t* self) {
+static void f_r_fetch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -618,7 +618,7 @@ void f_r_fetch(context_t* ctx, word_t* self) {
 }
 
 // M* ( n1 n2 -- d )  Multiply n1 by n2 giving signed double-cell product d
-void f_m_star(context_t* ctx, word_t* self) {
+static void f_m_star(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -635,7 +635,7 @@ void f_m_star(context_t* ctx, word_t* self) {
 }
 
 // IMMEDIATE ( -- ) Mark the most recently defined word as immediate
-void f_immediate(context_t* ctx, word_t* self) {
+static void f_immediate(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -650,7 +650,7 @@ void f_immediate(context_t* ctx, word_t* self) {
 // ROLL ( xu xu-1 ... x1 x0 u -- xu-1 ... x1 x0 xu )
 // Remove u. Rotate u+1 items on top of stack. An ambiguous condition
 // exists if there are less than u+2 items on the stack before ROLL.
-void f_roll(context_t* ctx, word_t* self) {
+static void f_roll(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -677,7 +677,7 @@ void f_roll(context_t* ctx, word_t* self) {
   debug("ROLL %d executed", u);
 }
 
-void f_dot_quote_runtime(context_t* ctx, word_t* self) {
+static void f_dot_quote_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -702,7 +702,7 @@ void f_dot_quote_runtime(context_t* ctx, word_t* self) {
 
 // Runtime word for ABORT" - reads inline string data and conditionally aborts
 // Compiled sequence: [(ABORT")]  [length] [char1] [char2] ... [charN]
-void f_abort_quote_runtime(context_t* ctx, word_t* self) {
+static void f_abort_quote_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -734,7 +734,7 @@ void f_abort_quote_runtime(context_t* ctx, word_t* self) {
 }
 
 // Improved ." implementation - compiles inline string data
-void f_dot_quote(context_t* ctx, word_t* self) {
+static void f_dot_quote(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -770,7 +770,7 @@ void f_dot_quote(context_t* ctx, word_t* self) {
 }
 
 // Improved ABORT" implementation - compiles inline string data
-void f_abort_quote(context_t* ctx, word_t* self) {
+static void f_abort_quote(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -809,14 +809,14 @@ void f_abort_quote(context_t* ctx, word_t* self) {
   }
 }
 
-void f_create(context_t* ctx, word_t* self) {
+static void f_create(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
   defining_word(ctx, f_param_field);
 }
 
-void f_variable(context_t* ctx, word_t* self) {
+static void f_variable(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -825,7 +825,7 @@ void f_variable(context_t* ctx, word_t* self) {
 
 // ['] ( "name" -- ) Compilation: ( -- ) Runtime: ( -- xt )
 // Parse name, find it, compile its execution token as literal
-void f_bracket_tick(context_t* ctx, word_t* self) {
+static void f_bracket_tick(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -845,7 +845,7 @@ void f_bracket_tick(context_t* ctx, word_t* self) {
 // 0BRANCH ( x -- ) - conditional branch
 // If x is zero, branch to address stored at ctx->ip
 // Always advances ctx->ip past the address
-void f_0branch(context_t* ctx, word_t* self) {
+static void f_0branch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -860,7 +860,7 @@ void f_0branch(context_t* ctx, word_t* self) {
 }
 
 // BRANCH ( -- ) - unconditional branch
-void f_branch(context_t* ctx, word_t* self) {
+static void f_branch(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -869,7 +869,7 @@ void f_branch(context_t* ctx, word_t* self) {
 }
 
 // U< ( u1 u2 -- flag )  Unsigned less than comparison
-void f_u_less(context_t* ctx, word_t* self) {
+static void f_u_less(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -884,7 +884,7 @@ void f_u_less(context_t* ctx, word_t* self) {
 }
 
 // ' ( "<spaces>name" -- xt )  Parse name and return execution token
-void f_tick(context_t* ctx, word_t* self) {
+static void f_tick(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -907,7 +907,7 @@ void f_tick(context_t* ctx, word_t* self) {
 }
 
 // EXECUTE ( i*x xt -- j*x )  Execute the word whose execution token is xt
-void f_execute(context_t* ctx, word_t* self) {
+static void f_execute(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -925,7 +925,7 @@ void f_execute(context_t* ctx, word_t* self) {
 }
 
 // FIND ( c-addr -- c-addr 0 | xt 1 | xt -1 )  Find word in dictionary
-void f_find(context_t* ctx, word_t* self) {
+static void f_find(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -974,7 +974,7 @@ void f_find(context_t* ctx, word_t* self) {
   }
 }
 
-void f_unused(context_t* ctx, word_t* self) {
+static void f_unused(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
   cell_t unused_bytes = FORTH_MEMORY_SIZE - here;
@@ -983,7 +983,7 @@ void f_unused(context_t* ctx, word_t* self) {
 
 // DO runtime: ( limit start -- ) ( R: -- loop-sys )
 // Sets up loop parameters on return stack
-void f_do_runtime(context_t* ctx, word_t* self) {
+static void f_do_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
@@ -1003,7 +1003,7 @@ void f_do_runtime(context_t* ctx, word_t* self) {
 
 // LOOP runtime: ( -- ) ( R: loop-sys1 -- | loop-sys2 )
 // Increment index by 1, test for loop termination
-void f_loop_runtime(context_t* ctx, word_t* self) {
+static void f_loop_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
@@ -1040,7 +1040,7 @@ void f_loop_runtime(context_t* ctx, word_t* self) {
 
 // +LOOP runtime: ( n -- ) ( R: loop-sys1 -- | loop-sys2 )
 // Increment index by n, test for loop termination with boundary crossing
-void f_plus_loop_runtime(context_t* ctx, word_t* self) {
+static void f_plus_loop_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
@@ -1096,7 +1096,7 @@ void f_plus_loop_runtime(context_t* ctx, word_t* self) {
 
 // I: ( -- n ) ( R: loop-sys -- loop-sys )
 // Return current loop index
-void f_i(context_t* ctx, word_t* self) {
+static void f_i(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
@@ -1113,7 +1113,7 @@ void f_i(context_t* ctx, word_t* self) {
 
 // J: ( -- n ) ( R: loop-sys1 loop-sys2 -- loop-sys1 loop-sys2 )
 // Return outer loop index (for nested loops)
-void f_j(context_t* ctx, word_t* self) {
+static void f_j(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
@@ -1132,7 +1132,7 @@ void f_j(context_t* ctx, word_t* self) {
 
 // LEAVE runtime: ( -- ) ( R: loop-sys -- )
 // Remove loop parameters and branch to after loop
-void f_leave_runtime(context_t* ctx, word_t* self) {
+static void f_leave_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
@@ -1153,7 +1153,7 @@ void f_leave_runtime(context_t* ctx, word_t* self) {
 
 // UNLOOP: ( -- ) ( R: loop-sys -- )
 // Remove loop parameters without branching
-void f_unloop(context_t* ctx, word_t* self) {
+static void f_unloop(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
@@ -1170,7 +1170,7 @@ void f_unloop(context_t* ctx, word_t* self) {
 
 // DO: ( C: -- do-sys )
 // Compilation: Push loop frame, compile DO runtime
-void f_do(context_t* ctx, word_t* self) {
+static void f_do(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
@@ -1194,7 +1194,7 @@ void f_do(context_t* ctx, word_t* self) {
 
 // LOOP: ( C: do-sys -- )
 // Compilation: Resolve LEAVEs, compile LOOP runtime and backward branch
-void f_loop(context_t* ctx, word_t* self) {
+static void f_loop(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
@@ -1230,7 +1230,7 @@ void f_loop(context_t* ctx, word_t* self) {
 
 // +LOOP: ( C: do-sys -- )
 // Compilation: Resolve LEAVEs, compile +LOOP runtime and backward branch
-void f_plus_loop(context_t* ctx, word_t* self) {
+static void f_plus_loop(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
@@ -1267,7 +1267,7 @@ void f_plus_loop(context_t* ctx, word_t* self) {
 // LEAVE: ( C: -- )
 // Compilation: Compile LEAVE runtime and add branch address for later
 // resolution
-void f_leave(context_t* ctx, word_t* self) {
+static void f_leave(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;  // Unused parameter
 
@@ -1295,7 +1295,7 @@ void f_leave(context_t* ctx, word_t* self) {
 // WORD ( char "<chars>cchar<chars>" -- c-addr )
 // Skip leading delimiters, parse until next delimiter, store as counted string
 // in PAD
-void f_word(context_t* ctx, word_t* self) {
+static void f_word(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -1367,7 +1367,7 @@ void f_word(context_t* ctx, word_t* self) {
 
 // ACCEPT ( c-addr +n1 -- +n2 )
 // Read up to +n1 characters into buffer at c-addr, return actual count
-void f_accept(context_t* ctx, word_t* self) {
+static void f_accept(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -1432,7 +1432,7 @@ void f_accept(context_t* ctx, word_t* self) {
 }
 
 // S" runtime implementation - pushes address and length of compiled string
-void f_s_quote_runtime(context_t* ctx, word_t* self) {
+static void f_s_quote_runtime(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -1455,7 +1455,7 @@ void f_s_quote_runtime(context_t* ctx, word_t* self) {
 }
 
 // S" implementation - compiles inline string data
-void f_s_quote(context_t* ctx, word_t* self) {
+static void f_s_quote(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
