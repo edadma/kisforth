@@ -9,6 +9,9 @@
 extern cell_t* state_ptr;  // C pointer to STATE variable for efficiency
 extern cell_t* base_ptr;   // BASE variable pointer
 
+void f_constant_runtime(context_t* ctx, word_t* self);
+void f_value_runtime(context_t* ctx, word_t* self);
+
 void create_primitives(void);
 void create_builtin_definitions(void);
 

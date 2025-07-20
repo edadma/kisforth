@@ -752,7 +752,7 @@ static void f_dot_quote(context_t* ctx, word_t* self) {
     debug(".\" compilation: compiling inline string \"%s\" (length %d)",
           string_buffer, length);
 
-    word_t* runtime_word = find_word(ctx, "(.\"");
+    word_t* runtime_word = find_word(ctx, "(.\")");
 
     compile_token(ctx, ptr_to_addr(ctx, runtime_word));
     compile_token(ctx, (forth_addr_t)length);
@@ -792,7 +792,7 @@ static void f_abort_quote(context_t* ctx, word_t* self) {
     debug("ABORT\" compilation: compiling inline string \"%s\"", string_buffer);
 
     // 1. Compile the runtime word
-    word_t* runtime_word = find_word(ctx, "(ABORT\"");
+    word_t* runtime_word = find_word(ctx, "(ABORT\")");
 
     compile_token(ctx, ptr_to_addr(ctx, runtime_word));
 
@@ -1518,7 +1518,7 @@ static void f_backslash(context_t* ctx, word_t* self) {
 }
 
 // CONSTANT runtime behavior: Push the value directly (not address)
-static void f_constant_runtime(context_t* ctx, word_t* self) {
+void f_constant_runtime(context_t* ctx, word_t* self) {
   data_push(ctx, self->param.value);  // Push the constant's value
 }
 
@@ -1539,7 +1539,7 @@ static void f_constant(context_t* ctx, word_t* self) {
 }
 
 // VALUE runtime behavior: Same as CONSTANT but different function pointer
-static void f_value_runtime(context_t* ctx, word_t* self) {
+void f_value_runtime(context_t* ctx, word_t* self) {
   f_constant_runtime(ctx, self);
 }
 
@@ -1664,8 +1664,8 @@ void create_primitives(void) {
 
   // Create helper words first (these are implementation details)
   create_primitive_word("(S\")", f_s_quote_runtime);
-  create_primitive_word("(.\"", f_dot_quote_runtime);
-  create_primitive_word("(ABORT\"", f_abort_quote_runtime);
+  create_primitive_word("(.\")", f_dot_quote_runtime);
+  create_primitive_word("(ABORT\")", f_abort_quote_runtime);
 
   // Create the user-visible immediate words
   create_immediate_primitive_word("S\"", f_s_quote);

@@ -1,6 +1,7 @@
 #include "tools.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #include "core.h"
 #include "debug.h"
@@ -14,7 +15,7 @@
 #ifdef FORTH_ENABLE_TOOLS
 
 // .S ( -- ) Display the contents of the data stack
-void f_dot_s(context_t* ctx, word_t* self) {
+static void f_dot_s(context_t* ctx, word_t* self) {
   (void)self;
 
   // Stack depth always in decimal for readability
@@ -38,7 +39,7 @@ void f_dot_s(context_t* ctx, word_t* self) {
 }
 
 // DUMP ( addr u -- ) Display u bytes starting at addr
-void f_dump(context_t* ctx, word_t* self) {
+static void f_dump(context_t* ctx, word_t* self) {
   (void)self;
 
   cell_t u = data_pop(ctx);
@@ -78,7 +79,7 @@ void f_dump(context_t* ctx, word_t* self) {
 }
 
 // WORDS ( -- ) Display the names of definitions in the first word list
-void f_words(context_t* ctx, word_t* self) {
+static void f_words(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
@@ -101,13 +102,97 @@ void f_words(context_t* ctx, word_t* self) {
 }
 
 // SEE ( "<spaces>name" -- ) Decompile word (simplified version)
-void f_see(context_t* ctx, word_t* self) {
+static void f_see(context_t* ctx, word_t* self) {
   (void)ctx;
   (void)self;
 
-  // This is a simplified version - full SEE requires parsing the next word
-  printf("SEE: Decompiler not yet implemented\n");
-  printf("Usage: Find word with FIND first, then examine with DUMP\n");
+  char name_buffer[32];
+  char* name = parse_name(ctx, name_buffer, sizeof(name_buffer));
+  if (!name) {
+    printf("SEE: Missing word name\n");
+    return;
+  }
+
+  word_t* word = search_word(name);
+  if (!word) {
+    printf("SEE: Word '%s' not found\n", name);
+    return;
+  }
+
+  printf("SEE %s\n", word->name);
+
+  // Identify word type and display accordingly
+  if (word->cfunc == execute_colon) {
+    // Colon definition - decompile tokens
+    printf(": %s ", word->name);
+
+    forth_addr_t ip = word->param.address;
+    while (true) {
+      forth_addr_t token = forth_fetch(ctx, ip);
+      ip += sizeof(cell_t);
+
+      word_t* token_word = addr_to_ptr(ctx, token);
+
+      // Check for EXIT (end of definition)
+      if (strcmp(token_word->name, "EXIT") == 0) {
+        break;
+      }
+
+      // Handle special cases
+      if (strcmp(token_word->name, "LIT") == 0) {
+        // Next token is a literal value
+        cell_t literal = forth_fetch(ctx, ip);
+        ip += sizeof(cell_t);
+        printf("%d ", literal);
+      } else if (strcmp(token_word->name, "0BRANCH") == 0) {
+        forth_addr_t branch_addr = forth_fetch(ctx, ip);
+        ip += sizeof(cell_t);
+        printf("0BRANCH %u , ", branch_addr);
+      } else if (strcmp(token_word->name, "BRANCH") == 0) {
+        forth_addr_t branch_addr = forth_fetch(ctx, ip);
+        ip += sizeof(cell_t);
+        printf("BRANCH %u , ", branch_addr);
+      } else if (strcmp(token_word->name, "(.\")") == 0) {
+        cell_t length = forth_fetch(ctx, ip);
+        ip += sizeof(cell_t);
+        printf(".\" ");
+        for (int i = 0; i < length; i++) {
+          char ch = (char)forth_c_fetch(ctx, ip + i);
+          putchar(ch);
+        }
+        printf("\" ");
+        ip += length;
+        ip = align_up(ip, sizeof(cell_t));
+      } else if (strcmp(token_word->name, "(S\")") == 0) {
+        // Next is string length, then string data
+        cell_t length = forth_fetch(ctx, ip);
+        ip += sizeof(cell_t);
+        printf("S\" ");
+        for (int i = 0; i < length; i++) {
+          char ch = (char)forth_c_fetch(ctx, ip + i);
+          putchar(ch);
+        }
+        printf("\" ");
+        ip += length;
+        ip = align_up(ip, sizeof(cell_t));  // Align after string
+      } else {
+        // Regular word
+        printf("%s ", token_word->name);
+      }
+    }
+  } else if (word->cfunc == f_address) {
+    printf("VARIABLE %s  \\ current value: %d", word->name, word->param.value);
+  } else if (word->cfunc == f_constant_runtime) {
+    printf("%d CONSTANT %s", word->param.value, word->name);
+  } else if (word->cfunc == f_value_runtime) {
+    printf("%d VALUE %s", word->param.value, word->name);
+  } else if (word->cfunc == f_param_field) {
+    printf("CREATE %s  \\ data at address %u", word->name, word->param.address);
+  } else {
+    printf("<primitive> %s", word->name);
+  }
+
+  printf(" ;\n");
   fflush(stdout);
 }
 
