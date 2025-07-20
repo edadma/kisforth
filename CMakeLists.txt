@@ -14,6 +14,8 @@ option(ENABLE_TOOLS "Enable programming tools word set" ON)  # Default ON for de
 # Add after the existing platform selection options
 option(BUILD_FOR_WINDOWS "Cross-compile for Windows" OFF)
 
+option(COPY_EXECUTABLES_TO_ROOT "Copy built executables to repository root" ON)
+
 if (BUILD_FOR_WINDOWS)
     # Windows cross-compilation setup
     set(CMAKE_SYSTEM_NAME Windows)

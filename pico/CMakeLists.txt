@@ -43,3 +43,13 @@ target_sources(kisforth_pico PRIVATE
         src/wifi_support.c
         src/wifi_words.c
 )
+
+# For Pico - use a slight delay to ensure .uf2 is generated first
+if (COPY_EXECUTABLES_TO_ROOT AND BUILD_FOR_PICO)
+    add_custom_command(TARGET kisforth_pico POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_CURRENT_BINARY_DIR}/kisforth_pico.uf2
+            ${CMAKE_SOURCE_DIR}/kisforth-v${KISFORTH_VERSION}-pico.uf2
+            COMMENT "Copying UF2 file to repository root"
+    )
+endif ()
