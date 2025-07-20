@@ -11,6 +11,12 @@ void terminal_raw_mode_exit(void) {
   // No-op on Pico
 }
 
+void terminal_clear_eol(void) { printf("\033[K"); }
+
+void terminal_cursor_left(void) { printf("\033[D"); }
+
+void terminal_cursor_right(void) { printf("\033[C"); }
+
 // Parse Pico escape sequences
 key_event_t parse_key_sequence(void) {
   key_event_t event = {0};

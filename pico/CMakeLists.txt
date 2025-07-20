@@ -39,6 +39,7 @@ set_target_properties(kisforth_pico PROPERTIES
 target_sources(kisforth_pico PRIVATE
         src/key_input.c
         src/stdlib_words.c
+        src/systick.c
         src/wifi_support.c
         src/wifi_words.c
 )

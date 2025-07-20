@@ -4,6 +4,7 @@
 #include "repl.h"
 #include "startup.h"
 #include "stdlib_words.h"
+#include "systick.h"
 #include "wifi_words.h"
 
 int main() {
@@ -17,8 +18,10 @@ int main() {
   printf("\n");
 
   forth_system_init();
+  systick_init();  // Initialize SysTick system
   pico_register_wifi_words();
   pico_register_stdlib_words();
+  pico_register_systick_words();  // Register SysTick words
   print_startup_banner("Pico");
 
   repl();
