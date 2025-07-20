@@ -13,7 +13,7 @@
 
 // WIFI-INIT ( -- flag )
 // Initialize WiFi subsystem, return true if successful
-static void f_wifi_init(word_t* self) {
+static void f_wifi_init(context_t* ctx, word_t* self) {
   (void)self;
 
   bool success = wifi_init();
@@ -22,7 +22,8 @@ static void f_wifi_init(word_t* self) {
 
 // WIFI-STATUS ( -- )
 // Print detailed WiFi status information
-static void f_wifi_status(word_t* self) {
+static void f_wifi_status(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
 
   wifi_status();
@@ -30,7 +31,7 @@ static void f_wifi_status(word_t* self) {
 
 // WIFI-CONNECTED? ( -- flag )
 // Check if WiFi is currently connected
-static void f_wifi_connected_q(word_t* self) {
+static void f_wifi_connected_q(context_t* ctx, word_t* self) {
   (void)self;
 
   bool connected = wifi_is_connected();
@@ -39,7 +40,7 @@ static void f_wifi_connected_q(word_t* self) {
 
 // WIFI-DISCONNECT ( -- flag )
 // Disconnect from WiFi, return true if successful
-static void f_wifi_disconnect(word_t* self) {
+static void f_wifi_disconnect(context_t* ctx, word_t* self) {
   (void)self;
 
   bool success = wifi_disconnect();
@@ -48,7 +49,8 @@ static void f_wifi_disconnect(word_t* self) {
 
 // LED-ON ( -- )
 // Turn on the onboard LED (requires WiFi init)
-static void f_led_on(word_t* self) {
+static void f_led_on(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
 
   // Set the onboard LED (GPIO 0 on CYW43 chip)
@@ -57,7 +59,8 @@ static void f_led_on(word_t* self) {
 
 // LED-OFF ( -- )
 // Turn off the onboard LED (requires WiFi init)
-static void f_led_off(word_t* self) {
+static void f_led_off(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
 
   // Clear the onboard LED (GPIO 0 on CYW43 chip)
@@ -66,7 +69,8 @@ static void f_led_off(word_t* self) {
 
 // LED-TOGGLE ( -- )
 // Toggle the onboard LED state
-static void f_led_toggle(word_t* self) {
+static void f_led_toggle(context_t* ctx, word_t* self) {
+  (void)ctx;
   (void)self;
 
   // Read current state and toggle it
@@ -78,7 +82,7 @@ static void f_led_toggle(word_t* self) {
 // Connect to WiFi network with SSID and password
 // c-addr1 u1 = SSID string
 // c-addr2 u2 = password string
-static void f_wifi_connect(word_t* self) {
+static void f_wifi_connect(context_t* ctx, word_t* self) {
   (void)self;
 
   // Get password string (top of stack)

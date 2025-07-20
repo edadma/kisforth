@@ -4,6 +4,7 @@
 
 #include "dictionary.h"
 #include "error.h"
+#include "forth.h"
 #include "hardware/gpio.h"
 #include "pico/stdlib.h"
 #include "pico/time.h"
@@ -11,13 +12,13 @@
 
 // GPIO-INIT ( pin -- )
 // Initialize a GPIO pin
-static void f_gpio_init(word_t* self) {
+static void f_gpio_init(context_t* ctx, word_t* self) {
   (void)self;
 
   cell_t pin = data_pop(ctx);
 
   if (pin < 0 || pin > 29) {  // RP2040 has GPIO 0-29
-    error("GPIO-INIT: invalid pin number");
+    error(ctx, "GPIO-INIT: invalid pin number");
     return;
   }
 
@@ -26,13 +27,13 @@ static void f_gpio_init(word_t* self) {
 
 // GPIO-OUT ( pin -- )
 // Set GPIO pin as output
-static void f_gpio_out(word_t* self) {
+static void f_gpio_out(context_t* ctx, word_t* self) {
   (void)self;
 
   cell_t pin = data_pop(ctx);
 
   if (pin < 0 || pin > 29) {
-    error("GPIO-OUT: invalid pin number");
+    error(ctx, "GPIO-OUT: invalid pin number");
     return;
   }
 
@@ -41,13 +42,13 @@ static void f_gpio_out(word_t* self) {
 
 // GPIO-IN ( pin -- )
 // Set GPIO pin as input
-static void f_gpio_in(word_t* self) {
+static void f_gpio_in(context_t* ctx, word_t* self) {
   (void)self;
 
   cell_t pin = data_pop(ctx);
 
   if (pin < 0 || pin > 29) {
-    error("GPIO-IN: invalid pin number");
+    error(ctx, "GPIO-IN: invalid pin number");
     return;
   }
 
@@ -56,14 +57,14 @@ static void f_gpio_in(word_t* self) {
 
 // GPIO-PUT ( pin value -- )
 // Set GPIO pin high (non-zero) or low (zero)
-static void f_gpio_put(word_t* self) {
+static void f_gpio_put(context_t* ctx, word_t* self) {
   (void)self;
 
   cell_t value = data_pop(ctx);
   cell_t pin = data_pop(ctx);
 
   if (pin < 0 || pin > 29) {
-    error("GPIO-PUT: invalid pin number");
+    error(ctx, "GPIO-PUT: invalid pin number");
     return;
   }
 
@@ -72,13 +73,13 @@ static void f_gpio_put(word_t* self) {
 
 // GPIO-GET ( pin -- value )
 // Read GPIO pin state (0 or 1)
-static void f_gpio_get(word_t* self) {
+static void f_gpio_get(context_t* ctx, word_t* self) {
   (void)self;
 
   cell_t pin = data_pop(ctx);
 
   if (pin < 0 || pin > 29) {
-    error("GPIO-GET: invalid pin number");
+    error(ctx, "GPIO-GET: invalid pin number");
     return;
   }
 
@@ -88,13 +89,13 @@ static void f_gpio_get(word_t* self) {
 
 // MS ( u -- )
 // Sleep for u milliseconds
-static void f_ms(word_t* self) {
+static void f_ms(context_t* ctx, word_t* self) {
   (void)self;
 
   cell_t ms = data_pop(ctx);
 
   if (ms < 0) {
-    error("MS: negative delay not allowed");
+    error(ctx, "MS: negative delay not allowed");
     return;
   }
 
@@ -103,13 +104,13 @@ static void f_ms(word_t* self) {
 
 // US ( u -- )
 // Sleep for u microseconds
-static void f_us(word_t* self) {
+static void f_us(context_t* ctx, word_t* self) {
   (void)self;
 
   cell_t us = data_pop(ctx);
 
   if (us < 0) {
-    error("US: negative delay not allowed");
+    error(ctx, "US: negative delay not allowed");
     return;
   }
 
@@ -118,7 +119,7 @@ static void f_us(word_t* self) {
 
 // TICKS ( -- u )
 // Get milliseconds since boot
-static void f_ticks(word_t* self) {
+static void f_ticks(context_t* ctx, word_t* self) {
   (void)self;
 
   absolute_time_t now = get_absolute_time();
