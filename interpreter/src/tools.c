@@ -89,10 +89,10 @@ void f_words(context_t* ctx, word_t* self) {
   while (word != NULL) {
     printf("%-12s ", word->name);
     count++;
-    if (count % 6 == 0) printf("\n");  // 6 words per line
+    if (count % 10 == 0) printf("\n");  // 6 words per line
     word = word->link;
   }
-  if (count % 6 != 0) printf("\n");
+  if (count % 10 != 0) printf("\n");
   printf("\n%d words\n", count);
   fflush(stdout);
 }
