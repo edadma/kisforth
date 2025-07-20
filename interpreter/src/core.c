@@ -1515,7 +1515,7 @@ static void f_backslash(context_t* ctx, word_t* self) {
 }
 
 // Create all primitive words - called during system initialization
-void create_all_primitives(void) {
+void create_primitives(void) {
   create_primitive_word("+", f_plus);
   create_primitive_word("-", f_minus);
   create_primitive_word("*", f_multiply);
