@@ -28,16 +28,5 @@ bool try_parse_float(const char* token, double* result);
 void create_floating_primitives(void);
 void create_floating_definitions(void);
 
-// Primitive implementations
-void f_fdrop(context_t* ctx, word_t* self);      // FDROP ( F: r -- )
-void f_fdup(context_t* ctx, word_t* self);       // FDUP ( F: r -- r r )
-void f_fplus(context_t* ctx, word_t* self);      // F+ ( F: r1 r2 -- r3 )
-void f_fminus(context_t* ctx, word_t* self);     // F- ( F: r1 r2 -- r3 )
-void f_fmultiply(context_t* ctx, word_t* self);  // F* ( F: r1 r2 -- r3 )
-void f_fdivide(context_t* ctx, word_t* self);    // F/ ( F: r1 r2 -- r3 )
-void f_fdot(context_t* ctx, word_t* self);       // F. ( F: r -- )
-void f_flit(context_t* ctx,
-            word_t* self);  // FLIT ( F: -- r ) [float value follows]
-
 #endif  // FORTH_ENABLE_FLOATING
 #endif  // FLOATING_H
