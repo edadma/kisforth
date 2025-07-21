@@ -1608,6 +1608,28 @@ static void f_to(context_t* ctx, word_t* self) {
   }
 }
 
+// LSHIFT ( x1 u -- x2 )  Logical left shift
+static void f_lshift(context_t* ctx, word_t* self) {
+  (void)self;
+
+  cell_t u = data_pop(ctx);
+  cell_t x1 = data_pop(ctx);
+
+  cell_t result = (cell_t)((ucell_t)x1 << u);
+  data_push(ctx, result);
+}
+
+// RSHIFT ( x1 u -- x2 )  Logical right shift
+static void f_rshift(context_t* ctx, word_t* self) {
+  (void)self;
+
+  cell_t u = data_pop(ctx);
+  cell_t x1 = data_pop(ctx);
+
+  cell_t result = (cell_t)((ucell_t)x1 >> u);
+  data_push(ctx, result);
+}
+
 // Create all primitive words - called during system initialization
 void create_primitives(void) {
   create_primitive_word("+", f_plus);
@@ -1642,6 +1664,8 @@ void create_primitives(void) {
   create_primitive_word("OR", f_or);
   create_primitive_word("XOR", f_xor);
   create_primitive_word("INVERT", f_invert);
+  create_primitive_word("LSHIFT", f_lshift);
+  create_primitive_word("RSHIFT", f_rshift);
   create_primitive_word("EMIT", f_emit);
   create_primitive_word("KEY", f_key);
   create_primitive_word("TYPE", f_type);
