@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "debug.h"
 #include "dictionary.h"
@@ -1630,6 +1631,33 @@ static void f_rshift(context_t* ctx, word_t* self) {
   data_push(ctx, result);
 }
 
+// MOVE ( addr1 addr2 u -- )
+static void f_move(context_t* ctx, word_t* self) {
+  (void)self;
+  cell_t u = data_pop(ctx);
+  forth_addr_t addr2 = (forth_addr_t)data_pop(ctx);
+  forth_addr_t addr1 = (forth_addr_t)data_pop(ctx);
+  if (u > 0) {
+    void* src = addr_to_ptr(ctx, addr1);
+    void* dest = addr_to_ptr(ctx, addr2);
+    memmove(dest, src, (size_t)u);
+  }
+}
+
+// FILL ( c-addr u char -- )
+static void f_fill(context_t* ctx, word_t* self) {
+  (void)self;
+
+  cell_t char_val = data_pop(ctx);
+  cell_t u = data_pop(ctx);
+  forth_addr_t c_addr = (forth_addr_t)data_pop(ctx);
+
+  if (u > 0) {
+    void* dest = addr_to_ptr(ctx, c_addr);
+    memset(dest, (char)char_val, (size_t)u);
+  }
+}
+
 // Create all primitive words - called during system initialization
 void create_primitives(void) {
   create_primitive_word("+", f_plus);
@@ -1735,6 +1763,9 @@ void create_primitives(void) {
   create_primitive_word("VALUE", f_value);
   create_immediate_primitive_word("TO", f_to);
   create_primitive_word("(TO)", f_to_runtime);
+
+  create_primitive_word("MOVE", f_move);
+  create_primitive_word("FILL", f_fill);
 }
 
 // Built-in Forth definitions (created after primitives are available)
