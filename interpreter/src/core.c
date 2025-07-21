@@ -1634,9 +1634,11 @@ static void f_rshift(context_t* ctx, word_t* self) {
 // MOVE ( addr1 addr2 u -- )
 static void f_move(context_t* ctx, word_t* self) {
   (void)self;
+
   cell_t u = data_pop(ctx);
   forth_addr_t addr2 = (forth_addr_t)data_pop(ctx);
   forth_addr_t addr1 = (forth_addr_t)data_pop(ctx);
+
   if (u > 0) {
     void* src = addr_to_ptr(ctx, addr1);
     void* dest = addr_to_ptr(ctx, addr2);
